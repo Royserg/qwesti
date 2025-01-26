@@ -14,13 +14,16 @@
   "license": "MIT",
   "dependencies": {
     "@generouted/solid-router": "^1.19.10",
+    "@kobalte/core": "^0.13.7",
     "@solidjs/router": "^0.15.3",
     "@tailwindcss/vite": "^4.0.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
+    "date-fns": "^4.1.0",
     "solid-js": "^1.9.4",
     "swup": "^4.8.1",
-    "tailwindcss": "^4.0.0"
+    "tailwindcss": "^4.0.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

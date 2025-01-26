@@ -9,7 +9,7 @@ export default function App(props: ParentProps) {
   });
 
   return (
-    <section>
+    <section class="flex h-screen w-screen flex-col gap-2 overflow-hidden p-2">
       <header>
         <nav>The Nav (persist)</nav>
       </header>
