@@ -1,4 +1,8 @@
+mod commands;
+use commands::get_quests;
+
 mod db;
+
 use specta_typescript::Typescript;
 use sqlx::{Pool, Sqlite};
 
@@ -26,9 +30,10 @@ pub async fn run() -> anyhow::Result<()> {
     let builder = Builder::<tauri::Wry>::new()
         // Then register them (separated by a comma)
         .commands(collect_commands![
-        //     create_connection,
-        //     get_connections,
-        //     get_today_bday_connections
+            get_quests,
+            //     create_connection,
+            //     get_connections,
+            //     get_today_bday_connections
         ]);
 
     #[cfg(debug_assertions)] // <- Only export on non-release builds
