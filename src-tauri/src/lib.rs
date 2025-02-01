@@ -3,7 +3,7 @@ use commands::get_quests;
 
 mod db;
 
-use specta_typescript::Typescript;
+use specta_typescript::{BigIntExportBehavior, Typescript};
 use sqlx::{Pool, Sqlite};
 
 use db::init_db;
@@ -27,6 +27,7 @@ pub async fn run() -> anyhow::Result<()> {
         }
     };
 
+    // let specta_config = ExportConfiguration::new().bigint(specta::ts::BigIntExportBehavior::Number);
     let builder = Builder::<tauri::Wry>::new()
         // Then register them (separated by a comma)
         .commands(collect_commands![
@@ -36,9 +37,13 @@ pub async fn run() -> anyhow::Result<()> {
             //     get_today_bday_connections
         ]);
 
+    // Export config
+    let mut default_ts_config = Typescript::default();
+    default_ts_config = default_ts_config.bigint(BigIntExportBehavior::Number);
+
     #[cfg(debug_assertions)] // <- Only export on non-release builds
     builder
-        .export(Typescript::default(), "../src/bindings.ts")
+        .export(default_ts_config, "../src/bindings.ts")
         .expect("Failed to export typescript bindings");
 
     tauri::Builder::default()
