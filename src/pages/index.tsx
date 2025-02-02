@@ -1,9 +1,8 @@
-import { Square } from "lucide-solid";
 import { createResource, For, Show } from "solid-js";
 import { commands } from "~/bindings";
 import { AddQuestForm } from "~/components/add-quest-form";
+import { QuestCard } from "~/components/quest-card";
 import { TodayDate } from "~/components/today-date";
-import { Card, CardContent } from "~/components/ui/card";
 
 const Home = () => {
 	const [data, { refetch }] = createResource(() => commands.getQuests());
@@ -29,18 +28,7 @@ const Home = () => {
 								if (dataRes.status === "ok") {
 									return (
 										<For each={dataRes.data}>
-											{(item) => {
-												return (
-													<Card class="h-full">
-														<CardContent class="flex gap-2 justify-start align-middle p-2">
-															<div class="pr-4">
-																{item.completed === 1 ? "done" : <Square />}
-															</div>
-															<h5>{item.title}</h5>
-														</CardContent>
-													</Card>
-												);
-											}}
+											{(item) => <QuestCard quest={item} />}
 										</For>
 									);
 								}
