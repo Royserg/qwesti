@@ -34,7 +34,7 @@ async addQuest(props: AddQuestRequest) : Promise<Result<Quest, string>> {
 /** user-defined types **/
 
 export type AddQuestRequest = { title: string }
-export type Quest = { id: string; title: string; completed: number; createdAt: string }
+export type Quest = { id: string; title: string; completed: boolean; createdAt: string }
 
 /** tauri-specta globals **/
 

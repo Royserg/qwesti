@@ -2,6 +2,7 @@ mod commands;
 use commands::{add_quest, get_quests};
 
 mod db;
+mod entities;
 mod models;
 mod utils;
 

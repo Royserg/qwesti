@@ -1,21 +1,13 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use specta::Type;
 use tauri::{command, State};
 use uuid::Uuid;
 
-use crate::{models::Quest, DbConnection};
+use crate::{entities::Quest, models::QuestRow, DbConnection};
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq, Type)]
 pub struct AddQuestRequest {
     title: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Type)]
-pub struct AddQuestResponse {
-    id: String,
-    title: String,
-    completed: bool,
-    created_at: String,
 }
 
 #[command]
@@ -27,7 +19,7 @@ pub async fn add_quest(
     let id = Uuid::now_v7().to_string();
 
     let inserted_quest = sqlx::query_as!(
-        Quest,
+        QuestRow,
         r#"
             INSERT INTO
                 quests (id, title, completed)
@@ -46,5 +38,5 @@ pub async fn add_quest(
     .await
     .expect("Failed to insert quest");
 
-    Ok(inserted_quest)
+    Ok(inserted_quest.into())
 }

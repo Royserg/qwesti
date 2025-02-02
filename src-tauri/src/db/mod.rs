@@ -5,10 +5,6 @@ use sqlx::{
     sqlite::{SqlitePool, SqlitePoolOptions},
     Sqlite,
 };
-use tauri::{
-    path::{self, BaseDirectory, PathResolver},
-    AppHandle, Manager,
-};
 
 pub async fn init_db() -> anyhow::Result<SqlitePool> {
     // TODO: enable for deployment/built
