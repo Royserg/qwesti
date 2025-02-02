@@ -1,7 +1,9 @@
 mod commands;
-use commands::get_quests;
+use commands::{add_quest, get_quests};
 
 mod db;
+mod models;
+mod utils;
 
 use specta_typescript::{BigIntExportBehavior, Typescript};
 use sqlx::{Pool, Sqlite};
@@ -30,12 +32,7 @@ pub async fn run() -> anyhow::Result<()> {
     // let specta_config = ExportConfiguration::new().bigint(specta::ts::BigIntExportBehavior::Number);
     let builder = Builder::<tauri::Wry>::new()
         // Then register them (separated by a comma)
-        .commands(collect_commands![
-            get_quests,
-            //     create_connection,
-            //     get_connections,
-            //     get_today_bday_connections
-        ]);
+        .commands(collect_commands![get_quests, add_quest,]);
 
     // Export config
     let mut default_ts_config = Typescript::default();
