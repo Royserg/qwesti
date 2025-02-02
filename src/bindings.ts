@@ -5,7 +5,14 @@
 
 
 export const commands = {
-
+async getQuests() : Promise<Result<Quest[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_quests") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+}
 }
 
 /** user-defined events **/
@@ -18,7 +25,7 @@ export const commands = {
 
 /** user-defined types **/
 
-
+export type Quest = { id: number; title: string; completed: number; created_at: string }
 
 /** tauri-specta globals **/
 

@@ -1,31 +1,59 @@
-import { Card, CardContent } from "~/components/ui/card";
-import { A } from "../router";
-import { Button } from "~/components/ui/button";
-import { TodayDate } from "~/components/today-date";
+import { createResource, For, Show } from "solid-js";
+import { commands } from "~/bindings";
 import { AddQuestForm } from "~/components/add-quest-form";
+import { TodayDate } from "~/components/today-date";
+import { Card, CardContent } from "~/components/ui/card";
 
 const Home = () => {
-  return (
-    <main class="h-screen w-full">
-      <TodayDate />
+	const [data, { mutate, refetch }] = createResource(
+		() => commands.getQuests(),
+		{
+			onHydrated: (_, info) => {
+				if (info.value?.status === "ok") {
+					info.value.data;
+				}
+			},
+		},
+	);
 
-      <div class="flex flex-col gap-2">
-        <section class="my-2 px-4">
-          <AddQuestForm />
-        </section>
+	return (
+		<main class="h-screen w-full">
+			<TodayDate />
 
-        <section class="flex flex-col gap-1 px-4">
-          <Card>
-            <CardContent>Quest 1</CardContent>
-          </Card>
+			<div class="flex flex-col gap-2">
+				<section class="my-2 px-4">
+					<AddQuestForm />
+				</section>
 
-          <Card>
-            <CardContent>Quest 2</CardContent>
-          </Card>
-        </section>
-      </div>
-    </main>
-  );
+				<section class="flex flex-col gap-1 px-4">
+					<Show when={data.loading}>
+						<div>...Loading</div>
+					</Show>
+
+					<Show when={!data.loading}>
+						<Show when={data()}>
+							{(data) => {
+								const dataRes = data();
+								if (dataRes.status === "ok") {
+									return (
+										<For each={dataRes.data}>
+											{(item) => {
+												return (
+													<Card>
+														<CardContent>{item.title}</CardContent>
+													</Card>
+												);
+											}}
+										</For>
+									);
+								}
+							}}
+						</Show>
+					</Show>
+				</section>
+			</div>
+		</main>
+	);
 };
 
 export default Home;
