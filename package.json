@@ -20,6 +20,7 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "date-fns": "^4.1.0",
+    "lucide-solid": "^0.474.0",
     "solid-js": "^1.9.4",
     "swup": "^4.8.1",
     "tailwindcss": "^4.0.0",

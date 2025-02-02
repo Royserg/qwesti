@@ -1,16 +1,7 @@
-use serde::{Deserialize, Serialize};
-use specta::Type;
 use tauri::{command, State};
 
+use crate::models::Quest;
 use crate::DbConnection;
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, sqlx::FromRow, Type)]
-pub struct Quest {
-    id: i64,
-    title: String,
-    completed: i64,
-    created_at: String,
-}
 
 #[command]
 #[specta::specta]

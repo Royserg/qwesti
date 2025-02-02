@@ -29,6 +29,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      lucide-solid:
+        specifier: ^0.474.0
+        version: 0.474.0(solid-js@1.9.4)
       solid-js:
         specifier: ^1.9.4
         version: 1.9.4
@@ -928,6 +931,11 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lucide-solid@0.474.0:
+    resolution: {integrity: sha512-sSEzUW2TVHpbYRehLfPuWtL+mGeBUQRZWPE0020aealCIxaNSuZOWts3NdS+R+itWr5JenTcwi1+Q3OcLTIZXg==}
+    peerDependencies:
+      solid-js: ^1.4.7
 
   merge-anything@5.1.7:
     resolution: {integrity: sha512-eRtbOb1N5iyH0tkQDAoQ4Ipsp/5qSR79Dzrz8hEPxRX10RWWR/iQXdoKmBSRCThY1Fh5EhISDtpSc93fpxUniQ==}
@@ -1946,6 +1954,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-solid@0.474.0(solid-js@1.9.4):
+    dependencies:
+      solid-js: 1.9.4
 
   merge-anything@5.1.7:
     dependencies:

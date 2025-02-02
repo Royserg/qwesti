@@ -1,3 +1,4 @@
+import { Square } from "lucide-solid";
 import { createResource, For, Show } from "solid-js";
 import { commands } from "~/bindings";
 import { AddQuestForm } from "~/components/add-quest-form";
@@ -5,16 +6,7 @@ import { TodayDate } from "~/components/today-date";
 import { Card, CardContent } from "~/components/ui/card";
 
 const Home = () => {
-	const [data, { mutate, refetch }] = createResource(
-		() => commands.getQuests(),
-		{
-			onHydrated: (_, info) => {
-				if (info.value?.status === "ok") {
-					info.value.data;
-				}
-			},
-		},
-	);
+	const [data, { refetch }] = createResource(() => commands.getQuests());
 
 	return (
 		<main class="h-screen w-full">
@@ -22,7 +14,7 @@ const Home = () => {
 
 			<div class="flex flex-col gap-2">
 				<section class="my-2 px-4">
-					<AddQuestForm />
+					<AddQuestForm onQuestAdded={refetch} />
 				</section>
 
 				<section class="flex flex-col gap-1 px-4">
@@ -39,8 +31,13 @@ const Home = () => {
 										<For each={dataRes.data}>
 											{(item) => {
 												return (
-													<Card>
-														<CardContent>{item.title}</CardContent>
+													<Card class="h-full">
+														<CardContent class="flex gap-2 justify-start align-middle p-2">
+															<div class="pr-4">
+																{item.completed === 1 ? "done" : <Square />}
+															</div>
+															<h5>{item.title}</h5>
+														</CardContent>
 													</Card>
 												);
 											}}
