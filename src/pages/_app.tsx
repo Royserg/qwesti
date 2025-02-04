@@ -3,6 +3,7 @@ import Swup from "swup";
 
 export default function App(props: ParentProps) {
 	new Swup({
+		cache: false,
 		animationScope: "containers",
 		// native: true,
 		containers: ["#content"],

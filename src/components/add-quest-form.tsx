@@ -1,11 +1,7 @@
-import type { Component } from "solid-js";
+import { queryClient } from "~/.";
 import { commands } from "~/bindings";
 
-interface Props {
-	onQuestAdded: () => void;
-}
-
-export const AddQuestForm: Component<Props> = (props) => {
+export const AddQuestForm = () => {
 	let inputRef!: HTMLInputElement;
 
 	const handleAddQuest = async () => {
@@ -15,7 +11,9 @@ export const AddQuestForm: Component<Props> = (props) => {
 			await commands.addQuest({
 				title,
 			});
-			props.onQuestAdded();
+
+			queryClient.invalidateQueries({ queryKey: ["quests"] });
+
 			// clear input
 			inputRef.value = "";
 		} catch (err) {

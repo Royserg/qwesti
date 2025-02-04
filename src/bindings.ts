@@ -20,6 +20,14 @@ async addQuest(props: AddQuestRequest) : Promise<Result<Quest, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async updateQuest(props: UpdateQuestRequest) : Promise<Result<Quest, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_quest", { props }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -35,6 +43,8 @@ async addQuest(props: AddQuestRequest) : Promise<Result<Quest, string>> {
 
 export type AddQuestRequest = { title: string }
 export type Quest = { id: string; title: string; completed: boolean; createdAt: string }
+export type UpdateQuestData = { title?: string | null; completed?: boolean | null }
+export type UpdateQuestRequest = { id: string; data: UpdateQuestData }
 
 /** tauri-specta globals **/
 
