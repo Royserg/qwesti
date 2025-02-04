@@ -6,34 +6,45 @@ use sqlx::{
     Sqlite,
 };
 
-pub async fn init_db() -> anyhow::Result<SqlitePool> {
-    // TODO: enable for deployment/built
+fn verify_folders() -> Result<String, std::io::Error> {
+    let db_name = "database.db";
     let home_dir = dirs::home_dir().unwrap();
-    let db_path = home_dir.to_str().unwrap().to_string() + "/.config/qwesti/database.db";
-    // Development: current di
 
-    dbg!("+++++++++++++");
-    dbg!(db_path);
-    dbg!("+++++++++++++");
+    let config_dir = home_dir.to_str().unwrap().to_string() + "/.config";
+    let config_dir_exists: bool = Path::new(&config_dir).is_dir();
+    dbg!("config dir exists: {?:}", config_dir_exists);
 
-    let dev_db_path = "database.db";
-    if !Path::new(dev_db_path).exists() {
-        dbg!("DB file didn't exist, creating at: {:?}", dev_db_path);
+    let db_dir = home_dir.to_str().unwrap().to_string() + "/.config/qwesti";
+    let db_dir_exists: bool = Path::new(&db_dir).is_dir();
 
-        Sqlite::create_database(&dev_db_path).await?;
+    if !db_dir_exists {
+        std::fs::create_dir_all(&db_dir)?;
     }
 
-    dbg!("Initializing database: {:?}", &dev_db_path);
+    Ok(db_dir + "/" + db_name)
+}
+
+pub async fn init_db() -> anyhow::Result<SqlitePool> {
+    #[cfg(not(debug_assertions))]
+    let db_path = verify_folders().unwrap();
+
+    #[cfg(debug_assertions)]
+    let db_path = "database.db".to_string();
+
+    if !Path::new(&db_path).exists() {
+        dbg!("DB file didn't exist, creating at: {:?}", &db_path);
+
+        Sqlite::create_database(&db_path).await?;
+    }
+
+    dbg!("Initializing database: {:?}", &db_path);
 
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
-        .connect(&dev_db_path)
+        .connect(&db_path)
         .await?;
-
-    // // let db_pool = SqlitePool::connect(&db_path_str).await?;
 
     sqlx::migrate!().run(&pool).await?;
 
     Ok(pool)
-    // Ok(())
 }
