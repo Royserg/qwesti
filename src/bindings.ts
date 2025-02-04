@@ -28,6 +28,14 @@ async updateQuest(props: UpdateQuestRequest) : Promise<Result<Quest, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async deleteQuest(props: DeleteQuestRequest) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_quest", { props }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -42,6 +50,7 @@ async updateQuest(props: UpdateQuestRequest) : Promise<Result<Quest, string>> {
 /** user-defined types **/
 
 export type AddQuestRequest = { title: string }
+export type DeleteQuestRequest = { id: string }
 export type Quest = { id: string; title: string; completed: boolean; createdAt: string }
 export type UpdateQuestData = { title?: string | null; completed?: boolean | null }
 export type UpdateQuestRequest = { id: string; data: UpdateQuestData }

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { lazy } from "solid-js";
 import { render } from "solid-js/web";
 import "./index.css";
+import Home from "./pages/index.tsx";
 
 const wrapper = document.getElementById("app");
 
@@ -14,7 +15,7 @@ if (!wrapper) {
 const routes = [
 	{
 		path: "/",
-		component: lazy(() => import("./pages/index.tsx")),
+		component: Home,
 	},
 	{
 		path: "/about",

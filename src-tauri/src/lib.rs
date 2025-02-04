@@ -1,5 +1,5 @@
 mod commands;
-use commands::{add_quest, get_quests, update_quest};
+use commands::{add_quest, delete_quest, get_quests, update_quest};
 
 mod db;
 mod entities;
@@ -32,7 +32,12 @@ pub async fn run() -> anyhow::Result<()> {
 
     let builder = Builder::<tauri::Wry>::new()
         // Then register them (separated by a comma)
-        .commands(collect_commands![get_quests, add_quest, update_quest,]);
+        .commands(collect_commands![
+            get_quests,
+            add_quest,
+            update_quest,
+            delete_quest,
+        ]);
 
     // Export config
     let mut default_ts_config = Typescript::default();

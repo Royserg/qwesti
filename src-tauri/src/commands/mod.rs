@@ -6,3 +6,6 @@ pub use add_quest::*;
 
 mod update_quest;
 pub use update_quest::*;
+
+mod delete_quest;
+pub use delete_quest::*;
