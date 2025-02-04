@@ -1,19 +1,10 @@
-import { createQuery } from "@tanstack/solid-query";
 import { For, Match, Switch } from "solid-js";
 import { match } from "ts-pattern";
-import { commands } from "~/bindings";
+import { useQuests } from "~/data/quests";
 import { QuestCard } from "./quest-card";
 
 export const QuestsList = () => {
-	const query = createQuery(() => ({
-		queryKey: ["quests"],
-		queryFn: async () => commands.getQuests(),
-		throwOnError: true,
-	}));
-
-	const revalidateQuests = () => {
-		query.refetch();
-	};
+	const query = useQuests();
 
 	return (
 		<Switch>
@@ -25,11 +16,7 @@ export const QuestsList = () => {
 					.with({ status: "error" }, ({ error }) => <div>error: {error}</div>)
 					.with({ status: "ok" }, ({ data }) => {
 						return (
-							<For each={data}>
-								{(item) => (
-									<QuestCard quest={item} onQuestUpdated={revalidateQuests} />
-								)}
-							</For>
+							<For each={data}>{(item) => <QuestCard quest={item} />}</For>
 						);
 					})
 					.otherwise(() => (

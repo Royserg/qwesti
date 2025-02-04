@@ -1,5 +1,4 @@
-import { queryClient } from "~/.";
-import { commands } from "~/bindings";
+import { addQuest } from "~/actions";
 
 export const AddQuestForm = () => {
 	let inputRef!: HTMLInputElement;
@@ -8,11 +7,7 @@ export const AddQuestForm = () => {
 		const title = inputRef.value;
 
 		try {
-			await commands.addQuest({
-				title,
-			});
-
-			queryClient.invalidateQueries({ queryKey: ["quests"] });
+			await addQuest({ title });
 
 			// clear input
 			inputRef.value = "";

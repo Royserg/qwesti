@@ -1,22 +1,20 @@
 import SquareIcon from "lucide-solid/icons/square";
 import SquareCheckIcon from "lucide-solid/icons/square-check";
 import type { Component } from "solid-js";
-import { toggleQuestCompleted } from "~/actions";
+import { setQuestCompleted } from "~/actions";
 import type { Quest } from "~/bindings";
 import { Card, CardContent } from "~/components/ui/card";
 
 interface Props {
 	quest: Quest;
-	onQuestUpdated: () => void;
 }
 
 export const QuestCard: Component<Props> = (props) => {
 	const handleQuestToggle = async () => {
-		await toggleQuestCompleted({
+		await setQuestCompleted({
 			questId: props.quest.id,
 			completed: !props.quest.completed,
 		});
-		props.onQuestUpdated();
 	};
 
 	return (
