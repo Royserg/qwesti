@@ -1,24 +1,16 @@
 import SquareIcon from "lucide-solid/icons/square";
 import SquareCheckIcon from "lucide-solid/icons/square-check";
-import {
-	createEffect,
-	createSignal,
-	onCleanup,
-	type Component,
-} from "solid-js";
+import type { Component } from "solid-js";
 import { deleteQuest, setQuestCompleted } from "~/actions";
 import type { Quest } from "~/bindings";
 import { Card, CardContent } from "~/components/ui/card";
+import { DeleteButton } from "./delete-button";
 
 interface Props {
 	quest: Quest;
 }
 
 export const QuestCard: Component<Props> = (props) => {
-	let deleteConfirmTimeout: NodeJS.Timeout;
-	const [deleteBtnPressed, setDeleteButtonPressed] = createSignal(false);
-	const [deleteProgress, setDeleteProgress] = createSignal(0); // percent progress - bg gradient
-
 	const handleQuestToggle = async () => {
 		await setQuestCompleted({
 			questId: props.quest.id,
@@ -28,45 +20,6 @@ export const QuestCard: Component<Props> = (props) => {
 
 	const handleDeleteQuest = async () => {
 		await deleteQuest({ questId: props.quest.id });
-	};
-
-	const handleDeletePress = () => {
-		setDeleteButtonPressed(true);
-
-		deleteConfirmTimeout = setInterval(() => {
-			console.log("setting progress");
-			setDeleteProgress((prev) => {
-				if (prev < 100) {
-					return prev + 2;
-				}
-				return prev;
-			});
-		}, 20);
-	};
-
-	const handleDeleteRelease = () => {
-		setDeleteButtonPressed(false);
-		// Reset delete confirm progress
-		clearTimeout(deleteConfirmTimeout);
-		setDeleteProgress(0);
-	};
-
-	createEffect(() => {
-		if (deleteProgress() >= 100) {
-			handleDeleteQuest();
-		}
-	});
-
-	onCleanup(() => {
-		clearTimeout(deleteConfirmTimeout);
-	});
-
-	const deleteBtnLinearGradient = () => {
-		return `linear-gradient(
-		          0deg,
-							var(--color-red-800) 0%,
-							var(--color-red-800) ${deleteProgress()}%, var(--color-white) ${deleteProgress() + 2}%
-						)`;
 	};
 
 	return (
@@ -82,17 +35,7 @@ export const QuestCard: Component<Props> = (props) => {
 
 				<h5>{props.quest.title}</h5>
 
-				<button
-					type="button"
-					onMouseDown={handleDeletePress}
-					onMouseUp={handleDeleteRelease}
-					style={{
-						background: deleteBtnPressed()
-							? deleteBtnLinearGradient()
-							: "var(--color-red-300)",
-					}}
-					class="w-5 h-5 ml-auto cursor-pointer border-1"
-				/>
+				<DeleteButton onDelete={handleDeleteQuest} />
 			</CardContent>
 		</Card>
 	);
