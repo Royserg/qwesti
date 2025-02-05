@@ -7,6 +7,7 @@ import {
 
 interface Props {
 	onDelete: () => void;
+	tabIndex?: number;
 }
 
 export const DeleteButton: Component<Props> = (props) => {
@@ -76,6 +77,7 @@ export const DeleteButton: Component<Props> = (props) => {
 	return (
 		<button
 			type="button"
+			tabIndex={props.tabIndex ?? 0}
 			onKeyDown={handleKeyDown}
 			onKeyUp={handleKeyUp}
 			onMouseDown={handlePress}
