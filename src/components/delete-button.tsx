@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const DeleteButton: Component<Props> = (props) => {
-	let deleteConfirmTimeout: NodeJS.Timeout;
+	let deleteConfirmTimeout: NodeJS.Timeout | null;
 	const [deleteBtnPressed, setDeleteButtonPressed] = createSignal(false);
 	const [deleteProgress, setDeleteProgress] = createSignal(0); // percent progress - bg gradient
 
@@ -18,7 +18,6 @@ export const DeleteButton: Component<Props> = (props) => {
 		setDeleteButtonPressed(true);
 
 		deleteConfirmTimeout = setInterval(() => {
-			console.log("setting progress");
 			setDeleteProgress((prev) => {
 				if (prev < 100) {
 					return prev + 2;
@@ -31,7 +30,10 @@ export const DeleteButton: Component<Props> = (props) => {
 	const handleRelease = () => {
 		setDeleteButtonPressed(false);
 		// Reset delete confirm progress
-		clearTimeout(deleteConfirmTimeout);
+		if (deleteConfirmTimeout) {
+			clearTimeout(deleteConfirmTimeout);
+			deleteConfirmTimeout = null;
+		}
 		setDeleteProgress(0);
 	};
 
@@ -50,13 +52,32 @@ export const DeleteButton: Component<Props> = (props) => {
 							)`;
 	};
 
+	const handleKeyDown = (e: KeyboardEvent) => {
+		if (e.key === "Enter") {
+			if (deleteConfirmTimeout) {
+				clearTimeout(deleteConfirmTimeout);
+			}
+			deleteConfirmTimeout = null;
+			handlePress();
+		}
+	};
+	const handleKeyUp = (e: KeyboardEvent) => {
+		if (e.key === "Enter") {
+			handleRelease();
+		}
+	};
+
 	onCleanup(() => {
-		clearTimeout(deleteConfirmTimeout);
+		if (deleteConfirmTimeout) {
+			clearTimeout(deleteConfirmTimeout);
+		}
 	});
 
 	return (
 		<button
 			type="button"
+			onKeyDown={handleKeyDown}
+			onKeyUp={handleKeyUp}
 			onMouseDown={handlePress}
 			onMouseUp={handleRelease}
 			style={{
