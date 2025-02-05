@@ -18,7 +18,7 @@ export const AddQuestForm = () => {
 
 	return (
 		<form
-			class="w-full rounded-t-xs border border-[#dedede] p-3 py-4 text-2xl"
+			class="focus-within:border-[#222] focus-within:shadow-inner w-[98%] mx-auto rounded-t-xs border border-[#dedede]  text-2xl"
 			onSubmit={(e) => {
 				e.preventDefault();
 				if (!inputRef.value.trim()) {
@@ -28,8 +28,11 @@ export const AddQuestForm = () => {
 			}}
 		>
 			<input
+				autocomplete="off"
+				autoCapitalize="off"
+				autocorrect="off"
 				name="title"
-				class="h-full w-full text-center outline-none"
+				class="h-[65px] w-full outline-none p-3 py-4"
 				placeholder="Something need doing?"
 				ref={inputRef}
 				autofocus
