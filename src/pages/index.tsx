@@ -4,8 +4,10 @@ import { TodayDate } from "~/components/today-date";
 
 export const Home = () => {
 	return (
-		<main>
+		<main class="py-2">
 			<TodayDate />
+
+			<div class="py-1" />
 
 			<div class="flex flex-col gap-2">
 				<section class="my-2 px-4">
