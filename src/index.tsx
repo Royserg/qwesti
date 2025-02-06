@@ -1,7 +1,7 @@
 /* @refresh reload */
 import { Router } from "@solidjs/router";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
-import { lazy } from "solid-js";
+import { lazy, onMount } from "solid-js";
 import { render } from "solid-js/web";
 import "./index.css";
 import Home from "./pages/index.tsx";
@@ -25,6 +25,18 @@ const routes = [
 
 export const queryClient = new QueryClient();
 const Root = () => {
+	// TODO: only in development for refreshing the app
+	onMount(() => {
+		const body = document.querySelector("body");
+		body?.addEventListener("keydown", (e) => {
+			if (e.code === "KeyR") {
+				if (e.metaKey) {
+					window.location.reload();
+				}
+			}
+		});
+	});
+
 	return (
 		<QueryClientProvider client={queryClient}>
 			<Router>{routes}</Router>
