@@ -40,8 +40,7 @@ pub async fn run() -> anyhow::Result<()> {
         ]);
 
     // Export config
-    let mut default_ts_config = Typescript::default();
-    default_ts_config = default_ts_config.bigint(BigIntExportBehavior::Number);
+    let default_ts_config = Typescript::default().bigint(BigIntExportBehavior::Number);
 
     #[cfg(debug_assertions)] // <- Only export on non-release builds
     builder
