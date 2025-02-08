@@ -1,5 +1,5 @@
 import { createSignal, type Component } from "solid-js";
-import { deleteQuest, setQuestCompleted } from "~/actions";
+import { deleteQuest, updateQuestCompleted, updateQuestTitle } from "~/actions";
 import type { Quest } from "~/bindings";
 import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
@@ -21,16 +21,26 @@ export const QuestCard: Component<Props> = (props) => {
 
 	const [selected, setSelected] = createSignal(false);
 	const [completed, setCompleted] = createSignal(props.quest.completed);
+	const [title, setTitle] = createSignal(props.quest.title);
 
 	const handleQuestToggle = async () => {
 		try {
 			const newCompleted = !completed();
 
-			await setQuestCompleted({
+			const res = await updateQuestCompleted({
 				questId: props.quest.id,
 				completed: newCompleted,
 			});
-			setCompleted(newCompleted);
+			setCompleted(res.completed);
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
+	const handleTitleChange = async (title: string) => {
+		try {
+			const res = await updateQuestTitle({ questId: props.quest.id, title });
+			setTitle(res.title);
 		} catch (err) {
 			console.error(err);
 		}
@@ -89,7 +99,11 @@ export const QuestCard: Component<Props> = (props) => {
 				/>
 
 				<div class="w-full h-full flex p-3 pr-3 gap-2 items-center">
-					<EditableText value={props.quest.title} focusable={selected} />
+					<EditableText
+						value={title()}
+						focusable={selected}
+						onSubmit={handleTitleChange}
+					/>
 
 					<DeleteButton
 						tabIndex={selected() ? 0 : -1}

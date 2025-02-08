@@ -4,6 +4,7 @@ import { cn } from "~/lib/utils";
 interface Props {
 	value: string;
 	focusable: Accessor<boolean>;
+	onSubmit: (value: string) => Promise<void>;
 }
 
 export const EditableText: Component<Props> = (props) => {
@@ -14,17 +15,34 @@ export const EditableText: Component<Props> = (props) => {
 	const [newValue, setNewValue] = createSignal(props.value);
 
 	const handleKeyUp = (e: KeyboardEvent) => {
-		e.stopPropagation();
-
 		if (e.key === "Enter") {
+			e.stopPropagation();
 			setEditEnabled(true);
 			input.focus();
 		}
 	};
-	const handleInputKeyUp = (e: KeyboardEvent) => {
+
+	const handleInputKeyUp = async (e: KeyboardEvent) => {
 		e.stopPropagation();
 
+		// submit change
+		if (e.key === "Enter") {
+			if (newValue() !== props.value) {
+				// Prevent empty string
+				if (newValue().trim().length > 0) {
+					try {
+						await props.onSubmit(newValue());
+						setEditEnabled(false);
+						textDisplay.focus();
+					} catch (err) {
+						console.error(err);
+					}
+				}
+			}
+		}
 		if (e.key === "Escape") {
+			// reset
+			setNewValue(props.value);
 			setEditEnabled(false);
 			textDisplay.focus();
 		}
@@ -49,6 +67,7 @@ export const EditableText: Component<Props> = (props) => {
 				class={cn("w-full ", {
 					hidden: !editEnabled(),
 				})}
+				onInput={(e) => setNewValue(e.currentTarget.value)}
 				value={newValue()}
 			/>
 		</>
