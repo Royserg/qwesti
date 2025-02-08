@@ -22,23 +22,30 @@ export const EditableText: Component<Props> = (props) => {
 		}
 	};
 
+	const handleSubmit = async () => {
+		if (newValue() !== props.value) {
+			// Prevent empty string
+			if (newValue().trim().length > 0) {
+				try {
+					await props.onSubmit(newValue());
+					setEditEnabled(false);
+					textDisplay.focus();
+				} catch (err) {
+					console.error(err);
+				}
+			} else {
+				// reset form value
+				setNewValue(props.value);
+			}
+		}
+	};
+
 	const handleInputKeyUp = async (e: KeyboardEvent) => {
 		e.stopPropagation();
 
 		// submit change
 		if (e.key === "Enter") {
-			if (newValue() !== props.value) {
-				// Prevent empty string
-				if (newValue().trim().length > 0) {
-					try {
-						await props.onSubmit(newValue());
-						setEditEnabled(false);
-						textDisplay.focus();
-					} catch (err) {
-						console.error(err);
-					}
-				}
-			}
+			handleSubmit();
 		}
 		if (e.key === "Escape") {
 			// reset
@@ -52,6 +59,7 @@ export const EditableText: Component<Props> = (props) => {
 		<>
 			<Show when={!editEnabled()}>
 				<div
+					onDblClick={() => setEditEnabled(true)}
 					ref={textDisplay}
 					class="w-full"
 					tabIndex={props.focusable() ? 0 : -1}
@@ -63,6 +71,10 @@ export const EditableText: Component<Props> = (props) => {
 
 			<input
 				onKeyUp={handleInputKeyUp}
+				onBlur={() => {
+					handleSubmit();
+					setEditEnabled(false);
+				}}
 				ref={input}
 				class={cn("w-full ", {
 					hidden: !editEnabled(),
