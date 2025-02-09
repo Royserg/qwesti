@@ -6,10 +6,7 @@
 # will have schema files for capabilities auto-completion
 /gen/schemas
 
-database.db
-database.db-shm
-database.db-wal
-
-qwesti.sqlite
-qwesti.sqlite-shm
-qwesti.sqlite-wal
+*.db
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

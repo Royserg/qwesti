@@ -1,50 +1,50 @@
-use std::path::Path;
+use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Sqlite};
+use std::fs::create_dir_all;
+use tauri::{AppHandle, Manager};
 
-use sqlx::{
-    migrate::MigrateDatabase,
-    sqlite::{SqlitePool, SqlitePoolOptions},
-    Sqlite,
-};
+pub async fn setup_db(app: &AppHandle) -> Pool<Sqlite> {
+    let db_name = "sqlite:qwesti.sqlite";
+    let app_path = app
+        .path()
+        .app_config_dir()
+        .expect("No App config path was found!");
 
-fn verify_folders() -> Result<String, std::io::Error> {
-    let db_name = "database.db";
-    let home_dir = dirs::home_dir().unwrap();
+    create_dir_all(&app_path).expect("Couldn't create app config dir");
 
-    let config_dir = home_dir.to_str().unwrap().to_string() + "/.config";
-    let config_dir_exists: bool = Path::new(&config_dir).is_dir();
-    dbg!("config dir exists: {?:}", config_dir_exists);
+    let conn_url = &path_mapper(app_path, db_name);
 
-    let db_dir = home_dir.to_str().unwrap().to_string() + "/.config/qwesti";
-    let db_dir_exists: bool = Path::new(&db_dir).is_dir();
+    #[cfg(all(target_os = "macos", debug_assertions))]
+    let conn_url = "qwesti-dev.sqlite";
 
-    if !db_dir_exists {
-        std::fs::create_dir_all(&db_dir)?;
+    if !Sqlite::database_exists(conn_url).await.unwrap_or(false) {
+        Sqlite::create_database(conn_url)
+            .await
+            .expect("Failed to created DB");
     }
-
-    Ok(db_dir + "/" + db_name)
-}
-
-pub async fn init_db() -> anyhow::Result<SqlitePool> {
-    #[cfg(not(debug_assertions))]
-    let db_path = verify_folders().unwrap();
-
-    #[cfg(debug_assertions)]
-    let db_path = "database.db".to_string();
-
-    if !Path::new(&db_path).exists() {
-        dbg!("DB file didn't exist, creating at: {:?}", &db_path);
-
-        Sqlite::create_database(&db_path).await?;
-    }
-
-    dbg!("Initializing database: {:?}", &db_path);
 
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
-        .connect(&db_path)
-        .await?;
+        .connect(conn_url)
+        .await
+        .unwrap();
 
-    sqlx::migrate!().run(&pool).await?;
+    sqlx::migrate!().run(&pool).await.unwrap();
 
-    Ok(pool)
+    pool
+}
+
+fn path_mapper(mut app_path: std::path::PathBuf, connection_string: &str) -> String {
+    app_path.push(
+        connection_string
+            .split_once(':')
+            .expect("Couldn't parse the connection string for DB!")
+            .1,
+    );
+
+    format!(
+        "sqlite:{}",
+        app_path
+            .to_str()
+            .expect("Problem creating fully qualified path to Database file!")
+    )
 }

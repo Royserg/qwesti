@@ -1,5 +1,6 @@
 mod commands;
 use commands::{add_quest, delete_quest, get_quests, update_quest};
+use futures::executor::block_on;
 
 mod db;
 mod entities;
@@ -9,7 +10,8 @@ mod utils;
 use specta_typescript::{BigIntExportBehavior, Typescript};
 use sqlx::{Pool, Sqlite};
 
-use db::init_db;
+use db::setup_db;
+use tauri::Manager;
 use tauri_specta::{collect_commands, Builder};
 
 struct DbConnection {
@@ -18,18 +20,6 @@ struct DbConnection {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> anyhow::Result<()> {
-    let init_db_res = init_db().await;
-    let db_pool = match init_db_res {
-        Ok(pool) => {
-            println!("DB init");
-            pool
-        }
-        Err(_err) => {
-            println!("Failed to init DB");
-            panic!("Failed to init db")
-        }
-    };
-
     let builder = Builder::<tauri::Wry>::new()
         // Then register them (separated by a comma)
         .commands(collect_commands![
@@ -42,16 +32,22 @@ pub async fn run() -> anyhow::Result<()> {
     // Export config
     let default_ts_config = Typescript::default().bigint(BigIntExportBehavior::Number);
 
-    #[cfg(debug_assertions)] // <- Only export on non-release builds
+    #[cfg(all(target_os = "macos", debug_assertions))] // <- Only export on non-release builds
     builder
         .export(default_ts_config, "../src/bindings.ts")
         .expect("Failed to export typescript bindings");
 
     tauri::Builder::default()
-        .manage(DbConnection { db: db_pool })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
+            let handle = app.handle().clone();
+
+            block_on(async {
+                let db = setup_db(&handle).await;
+                handle.manage(DbConnection { db });
+            });
+
             // This is required if you want to use events
             builder.mount_events(app);
             Ok(())
