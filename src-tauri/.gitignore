@@ -9,3 +9,7 @@
 database.db
 database.db-shm
 database.db-wal
+
+qwesti.sqlite
+qwesti.sqlite-shm
+qwesti.sqlite-wal

@@ -23,7 +23,6 @@ tauri = { version = "2.2.5", features = [] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.138"
-dirs = "6.0.0"
 sqlx = { version = "0.8.3", features = [
     "runtime-tokio",
     "tls-native-tls",
@@ -39,3 +38,4 @@ specta-typescript = "0.0.9"
 tauri-specta = { version = "=2.0.0-rc.21", features = ["derive", "typescript"] }
 chrono = "0.4.39"
 uuid = { version = "1.12.1", features = ["v7"] }
+futures = "0.3.31"
