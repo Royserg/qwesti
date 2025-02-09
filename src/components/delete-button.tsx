@@ -82,14 +82,14 @@ export const DeleteButton: Component<Props> = (props) => {
       tabIndex={props.tabIndex ?? 0}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
-      onMouseDown={handlePress}
-      onMouseUp={handleRelease}
+      onPointerDown={handlePress}
+      onPointerUp={handleRelease}
       style={{
         background: deleteBtnPressed()
           ? deleteBtnLinearGradient()
           : "var(--color-red-300)",
       }}
-      class="w-5 h-5 ml-auto cursor-pointer border-1"
+      class="ml-auto h-5 w-5 cursor-pointer border-1"
     />
   );
 };
