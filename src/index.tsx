@@ -1,6 +1,5 @@
 /* @refresh reload */
 import { Router } from "@solidjs/router";
-import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { lazy, onMount } from "solid-js";
 import { render } from "solid-js/web";
 import "./index.css";
@@ -23,7 +22,6 @@ const routes = [
 	},
 ];
 
-export const queryClient = new QueryClient();
 const Root = () => {
 	// TODO: only in development for refreshing the app
 	onMount(() => {
@@ -37,11 +35,7 @@ const Root = () => {
 		});
 	});
 
-	return (
-		<QueryClientProvider client={queryClient}>
-			<Router>{routes}</Router>
-		</QueryClientProvider>
-	);
+	return <Router>{routes}</Router>;
 };
 
 render(Root, wrapper);
