@@ -1,28 +1,21 @@
-import { For, Match, Switch } from "solid-js";
-import { match } from "ts-pattern";
-import { useQuests } from "~/data/quests";
+import { createAutoAnimate } from "@formkit/auto-animate/solid";
+import { createAsyncStore } from "@solidjs/router";
+import { ErrorBoundary, For, Suspense } from "solid-js";
+import { getQuests } from "~/actions";
 import { QuestCard } from "./quest-card";
 
 export const QuestsList = () => {
-	const query = useQuests();
+	const data = createAsyncStore(() => getQuests());
+
+	const [parent] = createAutoAnimate();
 
 	return (
-		<Switch>
-			<Match when={query.isLoading}>
-				<div>Loading...</div>
-			</Match>
-			<Match when={query.isSuccess}>
-				{match(query.data)
-					.with({ status: "error" }, ({ error }) => <div>error: {error}</div>)
-					.with({ status: "ok" }, ({ data }) => {
-						return (
-							<For each={data}>{(item) => <QuestCard quest={item} />}</For>
-						);
-					})
-					.otherwise(() => (
-						<div>No quests</div>
-					))}
-			</Match>
-		</Switch>
+		<ul ref={parent} class="flex flex-col gap-1">
+			<Suspense fallback={<div>Loading...</div>}>
+				<ErrorBoundary fallback={<div>Error</div>}>
+					<For each={data()}>{(item) => <QuestCard quest={item} />}</For>
+				</ErrorBoundary>
+			</Suspense>
+		</ul>
 	);
 };

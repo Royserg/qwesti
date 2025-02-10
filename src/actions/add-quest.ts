@@ -1,6 +1,6 @@
-import { queryClient } from "~/.";
+import { revalidate } from "@solidjs/router";
 import { commands } from "~/bindings";
-import { QUERY_KEY } from "~/data/quests";
+import { getQuests } from "./get-quests";
 
 interface Request {
 	title: string;
@@ -12,6 +12,6 @@ export const addQuest = async (data: Request) => {
 	});
 
 	if (res.status === "ok") {
-		queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+		revalidate(getQuests.key);
 	}
 };
