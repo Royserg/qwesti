@@ -1,21 +1,118 @@
 import { createAutoAnimate } from "@formkit/auto-animate/solid";
-import { createAsyncStore } from "@solidjs/router";
-import { ErrorBoundary, For, Suspense } from "solid-js";
+import { A, createAsyncStore, Location } from "@solidjs/router";
+import {
+  Component,
+  ErrorBoundary,
+  For,
+  ParentComponent,
+  Show,
+  Suspense,
+} from "solid-js";
 import { getQuests } from "~/actions";
 import { QuestCard } from "./quest-card";
+import { cn } from "~/lib/utils";
+import { Quest } from "~/bindings";
 
-export const QuestsList = () => {
-	const data = createAsyncStore(() => getQuests());
+enum Filter {
+  All = "all",
+  Active = "active",
+  Completed = "completed",
+}
 
-	const [parent] = createAutoAnimate();
+interface Props {
+  location: Location;
+}
+export const QuestsList: Component<Props> = (props) => {
+  const data = createAsyncStore(() => getQuests(), { initialValue: [] });
 
-	return (
-		<ul ref={parent} class="flex flex-col gap-1">
-			<Suspense fallback={<div>Loading...</div>}>
-				<ErrorBoundary fallback={<div>Error</div>}>
-					<For each={data()}>{(item) => <QuestCard quest={item} />}</For>
-				</ErrorBoundary>
-			</Suspense>
-		</ul>
-	);
+  const [parent] = createAutoAnimate();
+
+  const location = props.location;
+
+  const filteredList = (quests: Quest[]) => {
+    if (location.query.filter === Filter.Active) {
+      return quests.filter((quest) => !quest.completed);
+    }
+    if (location.query.filter === Filter.Completed) {
+      return quests.filter((quest) => quest.completed);
+    }
+
+    return quests;
+  };
+
+  return (
+    <div class="flex flex-col gap-5">
+      <Show when={data().length > 0}>
+        <Filters filter={(location.query.filter as string) ?? "all"} />
+      </Show>
+
+      <ul ref={parent} class="flex flex-col gap-1">
+        <Suspense fallback={<div>Loading...</div>}>
+          <ErrorBoundary fallback={<div>Error</div>}>
+            <For each={filteredList(data())}>
+              {(item) => <QuestCard quest={item} />}
+            </For>
+          </ErrorBoundary>
+        </Suspense>
+      </ul>
+    </div>
+  );
+};
+
+// -- Filter Button --
+interface FiltersProps {
+  filter: string;
+}
+const Filters: Component<FiltersProps> = (props) => {
+  const filters = [
+    {
+      value: "all",
+      label: "all",
+    },
+    {
+      value: "active",
+      label: "active",
+    },
+    {
+      value: "completed",
+      label: "completed",
+    },
+  ];
+
+  return (
+    <div class="mx-auto flex w-full justify-center gap-3">
+      <For each={filters}>
+        {(filter) => (
+          <FilterButton
+            value={filter.value}
+            active={filter.value === props.filter}
+          >
+            {filter.label}
+          </FilterButton>
+        )}
+      </For>
+    </div>
+  );
+};
+
+interface FilterButtonProps {
+  active?: boolean;
+  value: string;
+}
+const FilterButton: ParentComponent<FilterButtonProps> = (props) => {
+  return (
+    <A
+      href={`?filter=${props.value}`}
+      class={cn(
+        "bg-background flex-1 cursor-pointer rounded-xs border px-4 py-1 transition-colors",
+        {
+          "bg-amber-200 font-medium shadow-md": props.active,
+          "focus:bg-background focus:text-foreground hover:bg-background hover:text-foreground bg-gray-200/30 text-gray-400":
+            !props.active,
+        },
+      )}
+    >
+      {props.children}
+    </A>
+  );
 };
