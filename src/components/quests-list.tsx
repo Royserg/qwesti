@@ -1,5 +1,5 @@
 import { createAutoAnimate } from "@formkit/auto-animate/solid";
-import { A, createAsyncStore, Location } from "@solidjs/router";
+import { A, createAsyncStore, useSearchParams } from "@solidjs/router";
 import {
   Component,
   ErrorBoundary,
@@ -9,9 +9,9 @@ import {
   Suspense,
 } from "solid-js";
 import { getQuests } from "~/actions";
-import { QuestCard } from "./quest-card";
-import { cn } from "~/lib/utils";
 import { Quest } from "~/bindings";
+import { cn } from "~/lib/utils";
+import { QuestCard } from "./quest-card";
 
 enum Filter {
   All = "all",
@@ -19,21 +19,18 @@ enum Filter {
   Completed = "completed",
 }
 
-interface Props {
-  location: Location;
-}
-export const QuestsList: Component<Props> = (props) => {
+interface Props {}
+export const QuestsList: Component<Props> = (_props) => {
   const data = createAsyncStore(() => getQuests(), { initialValue: [] });
 
   const [parent] = createAutoAnimate();
-
-  const location = props.location;
+  const [searchParams] = useSearchParams();
 
   const filteredList = (quests: Quest[]) => {
-    if (location.query.filter === Filter.Active) {
+    if (searchParams.filter === Filter.Active) {
       return quests.filter((quest) => !quest.completed);
     }
-    if (location.query.filter === Filter.Completed) {
+    if (searchParams.filter === Filter.Completed) {
       return quests.filter((quest) => quest.completed);
     }
 
@@ -43,7 +40,7 @@ export const QuestsList: Component<Props> = (props) => {
   return (
     <div class="flex flex-col gap-5">
       <Show when={data().length > 0}>
-        <Filters filter={(location.query.filter as string) ?? "all"} />
+        <Filters filter={(searchParams.filter as string) ?? "all"} />
       </Show>
 
       <ul ref={parent} class="flex flex-col gap-1">

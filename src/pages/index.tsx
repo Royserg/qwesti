@@ -3,9 +3,7 @@ import { AddQuestForm } from "~/components/add-quest-form";
 import { QuestsList } from "~/components/quests-list";
 import { TodayDate } from "~/components/today-date";
 
-export const Home = (props: RouteSectionProps) => {
-  const location = props.location;
-
+export const Home = (_props: RouteSectionProps) => {
   return (
     <main class="py-2">
       <TodayDate />
@@ -18,7 +16,7 @@ export const Home = (props: RouteSectionProps) => {
         </section>
 
         <section class="flex flex-col gap-1 px-4">
-          <QuestsList location={location} />
+          <QuestsList />
         </section>
       </div>
     </main>
