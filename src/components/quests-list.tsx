@@ -103,7 +103,7 @@ interface FilterButtonProps {
 const FilterButton: ParentComponent<FilterButtonProps> = (props) => {
   const navigate = useNavigate();
   const handleClick = () => {
-    navigate(`?filter=${props.value}`);
+    navigate(`?filter=${props.value}`, { replace: true });
   };
 
   return (
