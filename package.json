@@ -15,7 +15,6 @@
     "t:b:d": "pnpm tauri build",
     "t:b:m:android": "pnpm tauri android build --apk --target aarch64"
   },
-  "license": "MIT",
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
     "@generouted/solid-router": "^1.19.10",
