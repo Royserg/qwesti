@@ -6,7 +6,7 @@
   "scripts": {
     "d": "pnpm tauri dev",
     "d:android": "pnpm tauri android dev",
-    "d:ios": "pnpm tauri android ios",
+    "d:ios": "pnpm tauri ios dev",
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
