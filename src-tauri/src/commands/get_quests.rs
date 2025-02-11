@@ -17,6 +17,8 @@ pub async fn get_quests(state: State<'_, DbConnection>) -> Result<Vec<Quest>, St
             created_at
         FROM
             quests
+        ORDER BY
+            created_at DESC
         "#
     )
     .fetch_all(&state.db)
