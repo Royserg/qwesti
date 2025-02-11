@@ -1,5 +1,9 @@
 import { createAutoAnimate } from "@formkit/auto-animate/solid";
-import { A, createAsyncStore, useSearchParams } from "@solidjs/router";
+import {
+  createAsyncStore,
+  useNavigate,
+  useSearchParams,
+} from "@solidjs/router";
 import {
   Component,
   ErrorBoundary,
@@ -97,9 +101,14 @@ interface FilterButtonProps {
   value: string;
 }
 const FilterButton: ParentComponent<FilterButtonProps> = (props) => {
+  const navigate = useNavigate();
+  const handleClick = () => {
+    navigate(`?filter=${props.value}`);
+  };
+
   return (
-    <A
-      href={`?filter=${props.value}`}
+    <button
+      onClick={handleClick}
       class={cn(
         "bg-background flex-1 cursor-pointer rounded-xs border px-4 py-1 transition-colors",
         {
@@ -110,6 +119,6 @@ const FilterButton: ParentComponent<FilterButtonProps> = (props) => {
       )}
     >
       {props.children}
-    </A>
+    </button>
   );
 };
