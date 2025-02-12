@@ -8,34 +8,35 @@ import Home from "./pages/index.tsx";
 const wrapper = document.getElementById("app");
 
 if (!wrapper) {
-	throw new Error("Wrapper div not found");
+  throw new Error("Wrapper div not found");
 }
 
 const routes = [
-	{
-		path: "/",
-		component: Home,
-	},
-	{
-		path: "/about",
-		component: lazy(() => import("./pages/about.tsx")),
-	},
+  {
+    path: "/",
+    component: Home,
+  },
+  {
+    path: "/about",
+    component: lazy(() => import("./pages/about.tsx")),
+  },
 ];
 
 const Root = () => {
-	// TODO: only in development for refreshing the app
-	onMount(() => {
-		const body = document.querySelector("body");
-		body?.addEventListener("keydown", (e) => {
-			if (e.code === "KeyR") {
-				if (e.metaKey) {
-					window.location.reload();
-				}
-			}
-		});
-	});
+  // TODO: only in development for refreshing the app
+  // remove when app v1 ready
+  onMount(() => {
+    const body = document.querySelector("body");
+    body?.addEventListener("keydown", (e) => {
+      if (e.code === "KeyR") {
+        if (e.metaKey) {
+          window.location.reload();
+        }
+      }
+    });
+  });
 
-	return <Router>{routes}</Router>;
+  return <Router>{routes}</Router>;
 };
 
 render(Root, wrapper);
