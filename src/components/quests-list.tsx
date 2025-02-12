@@ -42,12 +42,12 @@ export const QuestsList: Component<Props> = (_props) => {
   };
 
   return (
-    <div class="flex flex-col gap-5">
+    <div class="flex flex-col gap-5 overflow-hidden">
       <Show when={data().length > 0}>
         <Filters filter={(searchParams.filter as string) ?? "all"} />
       </Show>
 
-      <ul ref={parent} class="flex flex-col gap-1">
+      <ul ref={parent} class="flex flex-col gap-1 overflow-y-auto">
         <Suspense fallback={<div>Loading...</div>}>
           <ErrorBoundary fallback={<div>Error</div>}>
             <For each={filteredList(data())}>
