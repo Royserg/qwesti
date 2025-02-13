@@ -1,42 +1,48 @@
+import { Component } from "solid-js";
 import { addQuest } from "~/actions";
 
-export const AddQuestForm = () => {
-	let inputRef!: HTMLInputElement;
+interface Props {
+  onQuestAdded: () => void;
+}
+export const AddQuestForm: Component<Props> = (props) => {
+  let inputRef!: HTMLInputElement;
 
-	const handleAddQuest = async () => {
-		const title = inputRef.value;
+  const handleAddQuest = async () => {
+    const title = inputRef.value;
 
-		try {
-			await addQuest({ title });
+    try {
+      await addQuest({ title });
 
-			// clear input
-			inputRef.value = "";
-		} catch (err) {
-			console.error(err);
-		}
-	};
+      // clear input
+      inputRef.value = "";
+      props.onQuestAdded();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-	return (
-		<form
-			class="focus-within:border-[#222] focus-within:shadow-inner w-[98%] mx-auto rounded-t-xs border border-[#dedede]  text-2xl"
-			onSubmit={(e) => {
-				e.preventDefault();
-				if (!inputRef.value.trim()) {
-					return;
-				}
-				handleAddQuest();
-			}}
-		>
-			<input
-				autocomplete="off"
-				autoCapitalize="off"
-				autocorrect="off"
-				name="title"
-				class="h-[65px] w-full outline-none p-3 py-4"
-				placeholder="Something need doing?"
-				ref={inputRef}
-				autofocus
-			/>
-		</form>
-	);
+  return (
+    <form
+      class="w-full mx-auto rounded-t-xs bg-background text-2xl py-8 border-b px-6"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!inputRef.value.trim()) {
+          return;
+        }
+        handleAddQuest();
+      }}
+    >
+      <h4 class="text-center text-3xl pb-2">Create quest</h4>
+      <input
+        autocomplete="off"
+        autoCapitalize="off"
+        autocorrect="off"
+        name="title"
+        class="h-[65px] w-full outline-none p-3 py-4 focus-within:border-[#222] focus-within:shadow-inner border-[#dedede] border"
+        placeholder="Quest..."
+        ref={inputRef}
+        autofocus
+      />
+    </form>
+  );
 };

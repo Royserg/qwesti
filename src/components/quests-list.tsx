@@ -42,7 +42,7 @@ export const QuestsList: Component<Props> = (_props) => {
   };
 
   return (
-    <div class="flex flex-col gap-5 overflow-hidden">
+    <div class="flex flex-col gap-6 overflow-hidden">
       <Show when={data().length > 0}>
         <Filters filter={(searchParams.filter as string) ?? "all"} />
       </Show>
@@ -55,6 +55,7 @@ export const QuestsList: Component<Props> = (_props) => {
             </For>
           </ErrorBoundary>
         </Suspense>
+        <div class="py-2" />
       </ul>
     </div>
   );
