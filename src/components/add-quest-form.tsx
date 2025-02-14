@@ -1,4 +1,4 @@
-import { Component } from "solid-js";
+import { Component, onMount } from "solid-js";
 import { addQuest } from "~/actions";
 
 interface Props {
@@ -20,6 +20,10 @@ export const AddQuestForm: Component<Props> = (props) => {
       console.error(err);
     }
   };
+
+  onMount(() => {
+    inputRef.focus();
+  })
 
   return (
     <form
