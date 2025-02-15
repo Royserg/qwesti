@@ -1,5 +1,11 @@
 import { Component, onMount, Setter } from "solid-js";
+import { DOMElement } from "solid-js/jsx-runtime";
 import { addQuest } from "~/actions";
+
+type DialogClickEvent = MouseEvent & {
+  currentTarget: HTMLDialogElement;
+  target: DOMElement;
+};
 
 interface Props {
   dialogRef: Setter<HTMLDialogElement | undefined>;
@@ -27,8 +33,21 @@ export const AddQuestDialog: Component<Props> = (props) => {
     inputRef.focus();
   })
 
+  // Closes dialog when backdrop is clicked
+  const handleDialogClick = (e: DialogClickEvent) => {
+    let rect = e.target.getBoundingClientRect();
+
+    if (rect.left > e.clientX ||
+      rect.right < e.clientX ||
+      rect.top > e.clientY ||
+      rect.bottom < e.clientY
+    ) {
+      props.onClose()
+    }
+  }
+
   return (
-    <dialog ref={props.dialogRef} class="w-full overflow-hidden backdrop:bg-black/70 max-w-full">
+    <dialog onClick={handleDialogClick} ref={props.dialogRef} class={`w-full overflow-hidden backdrop:bg-black/70 max-w-full animate-in slide-in-from-top-36 duration-300`}>
       <button onClick={props.onClose} class="absolute right-5 top-3 cursor-pointer rounded-xs border-2 px-2 grid place-items-center">X</button>
 
       <form

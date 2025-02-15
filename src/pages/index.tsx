@@ -1,7 +1,7 @@
 import { createAutoAnimate } from "@formkit/auto-animate/solid";
 import { RouteSectionProps } from "@solidjs/router";
 import { createSignal } from "solid-js";
-import { AddQuestDialog } from "~/components/add-quest-dialog";
+import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
 import { QuestsList } from "~/components/quests-list";
 import { TodayDate } from "~/components/today-date";
 import { Button } from "~/components/ui/button";
