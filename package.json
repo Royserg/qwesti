@@ -13,7 +13,7 @@
     "serve": "vite preview",
     "tauri": "tauri",
     "t:b:d": "pnpm tauri build",
-    "t:b:m:android": "pnpm tauri android build --apk --target aarch64"
+    "t:b:android": "pnpm tauri android build --apk --target aarch64"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",

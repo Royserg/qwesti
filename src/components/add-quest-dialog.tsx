@@ -3,7 +3,6 @@ import { addQuest } from "~/actions";
 
 interface Props {
   dialogRef: Setter<HTMLDialogElement | undefined>;
-  open?: boolean;
   onClose: () => void;
   onQuestAdded: () => void;
 }
@@ -29,8 +28,8 @@ export const AddQuestDialog: Component<Props> = (props) => {
   })
 
   return (
-    <dialog ref={props.dialogRef} class="w-full h-full z-50 overflow-hidden">
-      <button onClick={props.onClose} class="absolute right-5 top-3 cursor-pointer border-2 p-2">x</button>
+    <dialog ref={props.dialogRef} class="w-full overflow-hidden backdrop:bg-black/70 max-w-full">
+      <button onClick={props.onClose} class="absolute right-5 top-3 cursor-pointer rounded-xs border-2 px-2 grid place-items-center">X</button>
 
       <form
         class="w-full mx-auto rounded-t-xs bg-background text-2xl py-8 border-b px-6"
@@ -54,10 +53,7 @@ export const AddQuestDialog: Component<Props> = (props) => {
           autofocus
         />
       </form>
-
     </dialog>
-
-
   );
 };
 
