@@ -9,6 +9,8 @@ pub struct Quest {
     pub title: String,
     pub completed: bool,
     pub created_at: String,
+    pub completed_at: Option<String>,
+    pub order_index: i64,
 }
 
 fn i64_to_bool(value: i64) -> bool {
@@ -26,6 +28,8 @@ impl From<QuestRow> for Quest {
             title: qr.title,
             completed: i64_to_bool(qr.completed),
             created_at: qr.created_at,
+            completed_at: qr.completed_at,
+            order_index: qr.order_index,
         }
     }
 }

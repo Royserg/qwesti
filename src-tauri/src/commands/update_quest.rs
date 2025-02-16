@@ -45,6 +45,12 @@ pub async fn update_quest(
         query.push(" completed = ");
         let completed_as_int = if completed { 1 } else { 0 };
         query.push_bind(completed_as_int);
+
+        if completed {
+            query.push(", completed_at = CURRENT_TIMESTAMP ");
+        } else {
+            query.push(", completed_at = NULL ");
+        };
     } else {
         query.push(" completed = completed ");
     }
@@ -52,7 +58,7 @@ pub async fn update_quest(
     query.push(" WHERE id = ");
     query.push_bind(props.id);
 
-    query.push(" RETURNING id, title, completed, created_at;");
+    query.push(" RETURNING id, title, completed, created_at, completed_at, order_index;");
 
     let query = query.build_query_as::<QuestRow>();
     let quest_row = query

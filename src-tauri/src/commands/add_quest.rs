@@ -28,7 +28,9 @@ pub async fn add_quest(
                 id,
                 title,
                 completed,
-                created_at
+                created_at,
+                completed_at,
+                order_index
         "#,
         id,
         props.title,

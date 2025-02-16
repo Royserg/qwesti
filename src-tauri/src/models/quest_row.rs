@@ -6,4 +6,6 @@ pub struct QuestRow {
     pub title: String,
     pub completed: i64,
     pub created_at: String,
+    pub completed_at: Option<String>,
+    pub order_index: i64,
 }

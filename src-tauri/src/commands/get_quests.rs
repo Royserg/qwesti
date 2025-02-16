@@ -14,9 +14,15 @@ pub async fn get_quests(state: State<'_, DbConnection>) -> Result<Vec<Quest>, St
             id,
             title,
             completed,
-            created_at
+            created_at,
+            completed_at,
+            order_index
         FROM
             quests
+        WHERE
+            completed_at IS NULL
+            OR
+            Date(completed_at) = DATE('now')
         ORDER BY
             created_at DESC
         "#
