@@ -34,7 +34,7 @@ export const Home = (_props: RouteSectionProps) => {
 
       <section class="mt-auto flex h-[60px] w-full items-center justify-center border-t pb-1">
         <Button
-          class="h-[50px] w-3/5 rounded-sm"
+          class="h-[50px] w-3/5 rounded-xs"
           onClick={() => {
             dialogRef()?.showModal();
           }}
