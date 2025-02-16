@@ -8,6 +8,7 @@ import {
 interface Props {
   onDelete: () => void;
   tabIndex?: number;
+  onDeleteProgressChange?: (progress: number) => void;
 }
 
 export const DeleteButton: Component<Props> = (props) => {
@@ -25,6 +26,7 @@ export const DeleteButton: Component<Props> = (props) => {
         }
         return prev;
       });
+      props.onDeleteProgressChange?.(deleteProgress());
     }, 20);
   };
 
@@ -36,12 +38,14 @@ export const DeleteButton: Component<Props> = (props) => {
       deleteConfirmTimeout = null;
     }
     setDeleteProgress(0);
+    props.onDeleteProgressChange?.(deleteProgress());
   };
 
   createEffect(() => {
     if (deleteProgress() >= 100) {
       props.onDelete();
       setDeleteProgress(0);
+      props.onDeleteProgressChange?.(deleteProgress());
     }
   });
 

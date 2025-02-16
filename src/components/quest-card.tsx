@@ -7,110 +7,125 @@ import { DeleteButton } from "./delete-button";
 import { EditableText } from "./editable-text";
 
 type FocusOutEvent = FocusEvent & {
-	currentTarget: HTMLDivElement;
-	target: Element;
+  currentTarget: HTMLDivElement;
+  target: Element;
 };
 
 interface Props {
-	quest: Quest;
+  quest: Quest;
 }
 
 export const QuestCard: Component<Props> = (props) => {
-	let completedBtn!: HTMLButtonElement;
-	let card!: HTMLDivElement;
+  let completedBtn!: HTMLButtonElement;
+  let card!: HTMLDivElement;
 
-	const [selected, setSelected] = createSignal(false);
-	const [completed, setCompleted] = createSignal(props.quest.completed);
-	const [title, setTitle] = createSignal(props.quest.title);
+  const [selected, setSelected] = createSignal(false);
+  const [completed, setCompleted] = createSignal(props.quest.completed);
+  const [title, setTitle] = createSignal(props.quest.title);
+  const [deleteProgress, setDeleteProgress] = createSignal(0);
 
-	const handleQuestToggle = async () => {
-		try {
-			const newCompleted = !completed();
+  const handleQuestToggle = async () => {
+    try {
+      const newCompleted = !completed();
 
-			const res = await updateQuestCompleted({
-				questId: props.quest.id,
-				completed: newCompleted,
-			});
-			setCompleted(res.completed);
-		} catch (err) {
-			console.error(err);
-		}
-	};
+      const res = await updateQuestCompleted({
+        questId: props.quest.id,
+        completed: newCompleted,
+      });
+      setCompleted(res.completed);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-	const handleTitleChange = async (title: string) => {
-		try {
-			const res = await updateQuestTitle({ questId: props.quest.id, title });
-			setTitle(res.title);
-		} catch (err) {
-			console.error(err);
-		}
-	};
+  const handleTitleChange = async (title: string) => {
+    try {
+      const res = await updateQuestTitle({ questId: props.quest.id, title });
+      setTitle(res.title);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-	const handleDeleteQuest = async () => {
-		await deleteQuest({ questId: props.quest.id });
-	};
+  const handleDeleteQuest = async () => {
+    await deleteQuest({ questId: props.quest.id });
+  };
 
-	const handleKeyUp = (event: KeyboardEvent) => {
-		// enable children to be focusable
-		if (event.key === "Enter") {
-			setSelected(true);
-			completedBtn.focus();
-		}
+  const handleKeyUp = (event: KeyboardEvent) => {
+    // enable children to be focusable
+    if (event.key === "Enter") {
+      setSelected(true);
+      completedBtn.focus();
+    }
 
-		if (event.key === "Escape") {
-			setSelected(false);
-			card.focus();
-		}
-	};
+    if (event.key === "Escape") {
+      setSelected(false);
+      card.focus();
+    }
+  };
 
-	const handleFocusOut = (e: FocusOutEvent) => {
-		if (!e.relatedTarget) {
-			return;
-		}
+  const handleFocusOut = (e: FocusOutEvent) => {
+    if (!e.relatedTarget) {
+      return;
+    }
 
-		if (!card.contains(e.relatedTarget as Node)) {
-			setSelected(false);
-		}
-	};
+    if (!card.contains(e.relatedTarget as Node)) {
+      setSelected(false);
+    }
+  };
 
-	return (
-		<Card
-			ref={card}
-			class={cn("h-[50px]", {
-				"bg-gray-100": selected(),
-			})}
-			tabIndex={0}
-			onKeyUp={handleKeyUp}
-			onFocusOut={handleFocusOut}
-		>
-			<CardContent class="flex h-full w-full justify-start align-middle p-0">
-				<button
-					ref={completedBtn}
-					tabIndex={selected() ? 0 : -1}
-					type="button"
-					class={cn(
-						"cursor-pointer flex justify-center w-12 shadow-inner shadow-black/20",
-						{
-							"bg-amber-300": completed(),
-							"bg-card": !completed(),
-						},
-					)}
-					onClick={handleQuestToggle}
-				/>
+  const deleteBtnLinearGradient = () => {
+    return `linear-gradient(
+			          0deg,
+								var(--color-red-300) 0%,
+								var(--color-red-700) ${deleteProgress()}%, var(--color-white) ${deleteProgress() + 2}%
+							)`;
+  };
 
-				<div class="w-full h-full flex p-3 pr-3 gap-2 items-center">
-					<EditableText
-						value={title()}
-						focusable={selected}
-						onSubmit={handleTitleChange}
-					/>
+  return (
+    <Card
+      ref={card}
+      class={cn("h-[50px]", {
+        "bg-gray-100": selected(),
+      })}
+      style={{
+        background: deleteProgress() > 0
+          ? deleteBtnLinearGradient()
+          : "var(--color-background)",
+      }}
+      tabIndex={0}
+      onKeyUp={handleKeyUp}
+      onFocusOut={handleFocusOut}
+    >
+      <CardContent class="flex h-full w-full justify-start align-middle p-0">
+        <button
+          ref={completedBtn}
+          tabIndex={selected() ? 0 : -1}
+          type="button"
+          class={cn(
+            "cursor-pointer flex justify-center w-12 shadow-inner shadow-black/20",
+            {
+              "bg-amber-300": completed(),
+              "bg-card": !completed(),
+            },
+          )}
+          onClick={handleQuestToggle}
+        />
 
-					<DeleteButton
-						tabIndex={selected() ? 0 : -1}
-						onDelete={handleDeleteQuest}
-					/>
-				</div>
-			</CardContent>
-		</Card>
-	);
+        <div class="w-full h-full flex p-3 pr-3 gap-2 items-center">
+          <EditableText
+            value={title()}
+            focusable={selected}
+            onSubmit={handleTitleChange}
+          />
+
+          <DeleteButton
+            tabIndex={selected() ? 0 : -1}
+            onDelete={handleDeleteQuest}
+            onDeleteProgressChange={setDeleteProgress}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
