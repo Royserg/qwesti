@@ -23,7 +23,7 @@ enum Filter {
   Completed = "completed",
 }
 
-interface Props {}
+interface Props { }
 export const QuestsList: Component<Props> = (_props) => {
   const data = createAsyncStore(() => getQuests(), { initialValue: [] });
 
@@ -50,6 +50,9 @@ export const QuestsList: Component<Props> = (_props) => {
       <ul ref={parent} class="flex flex-col gap-1 overflow-y-auto">
         <Suspense fallback={<div>Loading...</div>}>
           <ErrorBoundary fallback={<div>Error</div>}>
+            <Show when={filteredList(data()).length === 0}>
+              <h3 class="h-full text-center mt-10 text-3xl text-accent">No quests planned yet</h3>
+            </Show>
             <For each={filteredList(data())}>
               {(item) => <QuestCard quest={item} />}
             </For>
