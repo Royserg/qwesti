@@ -5,9 +5,9 @@
 
 
 export const commands = {
-async getQuests() : Promise<Result<Quest[], string>> {
+async getQuests(date: string | null) : Promise<Result<Quest[], string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("get_quests") };
+    return { status: "ok", data: await TAURI_INVOKE("get_quests", { date }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

@@ -16,6 +16,8 @@ import { getQuests } from "~/actions";
 import { Quest } from "~/bindings";
 import { cn } from "~/lib/utils";
 import { QuestCard } from "./quest-card";
+import { BE_DATE_FROMAT, selectedDate } from "~/stores/date";
+import { format } from "date-fns";
 
 enum Filter {
   All = "all",
@@ -25,7 +27,8 @@ enum Filter {
 
 interface Props { }
 export const QuestsList: Component<Props> = (_props) => {
-  const data = createAsyncStore(() => getQuests(), { initialValue: [] });
+  const date = format(selectedDate(), BE_DATE_FROMAT);
+  const data = createAsyncStore(() => getQuests({ date }), { initialValue: [] });
 
   const [parent] = createAutoAnimate();
   const [searchParams] = useSearchParams();

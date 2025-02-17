@@ -1,11 +1,15 @@
 import { query } from "@solidjs/router";
 import { commands } from "~/bindings";
 
-export const getQuests = query(async () => {
-	const res = await commands.getQuests();
-	if (res.status === "error") {
-		throw new Error(res.error);
-	}
+interface Request {
+  date: string;
+}
+export const getQuests = query(async (data: Request) => {
+  const res = await commands.getQuests(data.date);
 
-	return res.data;
+  if (res.status === "error") {
+    throw new Error(res.error);
+  }
+
+  return res.data;
 }, "loadQuests");

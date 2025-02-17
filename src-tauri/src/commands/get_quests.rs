@@ -6,7 +6,14 @@ use crate::DbConnection;
 
 #[command]
 #[specta::specta]
-pub async fn get_quests(state: State<'_, DbConnection>) -> Result<Vec<Quest>, String> {
+pub async fn get_quests(
+    state: State<'_, DbConnection>,
+    date: Option<String>,
+) -> Result<Vec<Quest>, String> {
+    let date = date.unwrap_or_else(|| "2025-02-17".to_string());
+
+    println!("REQUESTED DATE: {}", date);
+
     let quests = sqlx::query_as!(
         QuestRow,
         r#"
