@@ -10,10 +10,14 @@ pub async fn get_quests(
     state: State<'_, DbConnection>,
     date: Option<String>,
 ) -> Result<Vec<Quest>, String> {
-    let date = date.unwrap_or_else(|| "2025-02-17".to_string());
+    let date = date.unwrap_or_else(|| "now".to_string());
 
     println!("REQUESTED DATE: {}", date);
 
+    // WHERE
+    //     completed_at IS NULL
+    //     OR
+    //     Date(completed_at) = DATE($1)
     let quests = sqlx::query_as!(
         QuestRow,
         r#"
@@ -27,12 +31,15 @@ pub async fn get_quests(
         FROM
             quests
         WHERE
-            completed_at IS NULL
+            Date(completed_at) = DATE($1)
             OR
-            Date(completed_at) = DATE('now')
+            Date(created_at) = DATE($1) AND completed_at IS NOT NULL
+            OR
+            (completed_at IS NULL AND Date(created_at) <= Date($1))
         ORDER BY
             created_at DESC
-        "#
+        "#,
+        date,
     )
     .fetch_all(&state.db)
     .await
