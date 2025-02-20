@@ -11,9 +11,8 @@ pub async fn get_quests(
     state: State<'_, DbConnection>,
     date: Option<String>,
 ) -> Result<Vec<Quest>, String> {
-    let date = date.unwrap_or_else(|| "now".to_string());
-
     let today_date = Local::now().format("%Y-%m-%d").to_string();
+    let date = date.unwrap_or_else(|| today_date.clone());
 
     // For dates in the past, show only completed Quests
     // Not completed carry over to the current date
