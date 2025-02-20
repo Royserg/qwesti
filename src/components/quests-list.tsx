@@ -4,7 +4,6 @@ import {
   useNavigate,
   useSearchParams
 } from "@solidjs/router";
-import { format } from "date-fns";
 import {
   Component,
   ErrorBoundary,
@@ -16,7 +15,6 @@ import {
 import { getQuests } from "~/actions";
 import { Quest } from "~/bindings";
 import { cn } from "~/lib/utils";
-import { BE_DATE_FROMAT, selectedDate } from "~/stores/date";
 import { QuestCard } from "./quest-card";
 
 enum Filter {
@@ -50,16 +48,14 @@ export const QuestsList: Component<Props> = (_props) => {
       </Show>
 
       <ul ref={parent} class="h-full flex flex-col gap-1 overflow-y-auto">
-        <Suspense fallback={<div>Loading...</div>}>
-          <ErrorBoundary fallback={<div>Error</div>}>
-            <Show when={filteredList(data()).length === 0}>
-              <h3 class="h-full text-center mt-10 text-3xl text-accent">No quests</h3>
-            </Show>
-            <For each={filteredList(data())}>
-              {(item) => <QuestCard quest={item} />}
-            </For>
-          </ErrorBoundary>
-        </Suspense>
+        <ErrorBoundary fallback={<div>Error</div>}>
+          <Show when={filteredList(data()).length === 0}>
+            <h3 class="h-full text-center mt-10 text-3xl text-accent">No quests</h3>
+          </Show>
+          <For each={filteredList(data())}>
+            {(item) => <QuestCard quest={item} />}
+          </For>
+        </ErrorBoundary>
         <div class="py-2" />
       </ul>
     </div>
