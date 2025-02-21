@@ -47,7 +47,7 @@ export const QuestsList: Component<Props> = (_props) => {
         <Filters filter={(searchParams.filter as string) ?? "all"} />
       </Show>
 
-      <ul ref={parent} class="h-full flex flex-col gap-1 overflow-y-auto">
+      <ul ref={parent} class="h-full flex flex-col gap-1 overflow-y-auto pb-2 scrollbar-hide">
         <ErrorBoundary fallback={<div>Error</div>}>
           <Show when={filteredList(data()).length === 0}>
             <h3 class="h-full text-center mt-10 text-3xl text-accent">No quests</h3>
@@ -56,7 +56,6 @@ export const QuestsList: Component<Props> = (_props) => {
             {(item) => <QuestCard quest={item} />}
           </For>
         </ErrorBoundary>
-        <div class="py-2" />
       </ul>
     </div>
   );
