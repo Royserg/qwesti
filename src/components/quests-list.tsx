@@ -10,7 +10,6 @@ import {
   For,
   ParentComponent,
   Show,
-  Suspense,
 } from "solid-js";
 import { getQuests } from "~/actions";
 import { Quest } from "~/bindings";
