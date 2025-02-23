@@ -1,7 +1,10 @@
 import { revalidate } from "@solidjs/router";
 import { format } from "date-fns";
+import ChevronLeft from 'icons/chevron-left';
+import ChevronRight from 'icons/chevron-right';
 import { getQuests } from "~/actions";
-import { changeToNextDay, changeToPreviousDay, FE_DATE_FORMAT, selectedDate } from "~/stores/date";
+import { cn } from "~/lib/utils";
+import { changeToNextDay, changeToPreviousDay, FE_DATE_FORMAT, isTodaySelected, selectedDate } from "~/stores/date";
 
 export const TodayDate = () => {
 
@@ -23,20 +26,22 @@ export const TodayDate = () => {
     <div class="flex mx-auto gap-2">
       <button
         onClick={handlePrevClick}
-        class="border cursor-pointer"
+        class="cursor-pointer"
       >
-        Prev
+        <ChevronLeft />
       </button>
 
-      <h3 class="text-center text-4xl font-semibold">
+      <h3 class="text-center text-4xl font-semibold w-[250px]">
         {format(selectedDate(), FE_DATE_FORMAT)}
       </h3>
 
       <button
         onClick={handleNextClick}
-        class="border cursor-pointer"
+        class={cn("cursor-pointer", {
+          "invisible": isTodaySelected()
+        })}
       >
-        Next
+        <ChevronRight />
       </button>
     </div>
   );
