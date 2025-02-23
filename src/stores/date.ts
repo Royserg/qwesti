@@ -1,15 +1,18 @@
-import { addDays } from "date-fns";
-import { createStore, reconcile } from "solid-js/store";
+import { addDays, isToday } from "date-fns";
+import { createStore } from "solid-js/store";
 
 
 export const BE_DATE_FROMAT = "yyyy-MM-dd";
 export const FE_DATE_FORMAT = "dd / MM / yyyy";
 
 const [store, setStore] = createStore({
-  selectedDate: new Date()
+  selectedDate: new Date(),
 })
 
 export const selectedDate = () => store.selectedDate;
+export const isTodaySelected = (): boolean => {
+  return isToday(store.selectedDate)
+}
 
 
 export const changeToNextDay = () => {

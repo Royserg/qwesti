@@ -15,7 +15,7 @@ export const Home = (_props: RouteSectionProps) => {
   }
 
   return (
-    <main ref={parent} class="relative h-screen flex flex-col pt-2 ">
+    <main ref={parent} class="relative h-screen flex flex-col pt-2">
       <div class="py-2" />
 
       <TodayDate />

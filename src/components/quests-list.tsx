@@ -15,6 +15,7 @@ import { getQuests } from "~/actions";
 import { Quest } from "~/bindings";
 import { cn } from "~/lib/utils";
 import { QuestCard } from "./quest-card";
+import { isTodaySelected } from "~/stores/date";
 
 enum Filter {
   All = "all",
@@ -40,9 +41,10 @@ export const QuestsList: Component<Props> = (_props) => {
     return quests;
   };
 
+
   return (
     <div class="h-full flex flex-col gap-6 overflow-hidden">
-      <Show when={data().length > 0}>
+      <Show when={data().length > 0 && isTodaySelected()}>
         <Filters filter={(searchParams.filter as string) ?? "all"} />
       </Show>
 
