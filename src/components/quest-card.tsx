@@ -5,6 +5,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
 import { DeleteButton } from "./delete-button";
 import { EditableText } from "./editable-text";
+import { isTodaySelected } from "~/stores/date";
 
 type FocusOutEvent = FocusEvent & {
   currentTarget: HTMLDivElement;
@@ -107,9 +108,11 @@ export const QuestCard: Component<Props> = (props) => {
             {
               "bg-amber-300": completed(),
               "bg-card": !completed(),
+              "border-8 border-gray-200 cursor-not-allowed": !isTodaySelected(),
             },
           )}
           onClick={handleQuestToggle}
+          disabled={!isTodaySelected()}
         />
 
         <div class="w-full h-full flex p-3 pr-3 gap-2 items-center">
