@@ -19,7 +19,7 @@ import { isTodaySelected } from "~/stores/date";
 
 enum Filter {
   All = "all",
-  Active = "active",
+  Pending = "pending",
   Completed = "completed",
 }
 
@@ -31,7 +31,7 @@ export const QuestsList: Component<Props> = (_props) => {
   const [searchParams] = useSearchParams();
 
   const filteredList = (quests: Quest[]) => {
-    if (searchParams.filter === Filter.Active) {
+    if (searchParams.filter === Filter.Pending) {
       return quests.filter((quest) => !quest.completed);
     }
     if (searchParams.filter === Filter.Completed) {
@@ -73,8 +73,8 @@ const Filters: Component<FiltersProps> = (props) => {
       label: "all",
     },
     {
-      value: "active",
-      label: "active",
+      value: "pending",
+      label: "pending",
     },
     {
       value: "completed",
