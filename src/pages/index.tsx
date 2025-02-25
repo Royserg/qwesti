@@ -5,8 +5,10 @@ import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
 import { QuestsList } from "~/components/quests-list";
 import { TodayDate } from "~/components/today-date";
 import { Button } from "~/components/ui/button";
+import { BaseLayout } from "~/layouts/base";
 
 export const Home = (_props: RouteSectionProps) => {
+
   const [parent] = createAutoAnimate();
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>()
 
@@ -15,7 +17,7 @@ export const Home = (_props: RouteSectionProps) => {
   }
 
   return (
-    <main ref={parent} class="relative h-screen flex flex-col pt-2">
+    <BaseLayout ref={parent} class="relative h-screen flex flex-col pt-2">
       <div class="py-2" />
 
       <TodayDate />
@@ -42,7 +44,7 @@ export const Home = (_props: RouteSectionProps) => {
           Add
         </Button>
       </section>
-    </main>
+    </BaseLayout>
   );
 };
 
