@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
-    "@generouted/solid-router": "^1.19.10",
     "@kobalte/core": "^0.13.7",
     "@solidjs/router": "^0.15.3",
     "@tailwindcss/vite": "^4.0.0",
