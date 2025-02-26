@@ -6,6 +6,7 @@ import { cn } from "~/lib/utils";
 import { DeleteButton } from "./delete-button";
 import { EditableText } from "./editable-text";
 import { isTodaySelected } from "~/stores/date";
+import { useNavigate } from '@solidjs/router'
 
 type FocusOutEvent = FocusEvent & {
   currentTarget: HTMLDivElement;
@@ -17,6 +18,8 @@ interface Props {
 }
 
 export const QuestCard: Component<Props> = (props) => {
+  const navigate = useNavigate();
+
   let completedBtn!: HTMLButtonElement;
   let card!: HTMLDivElement;
 
@@ -85,6 +88,9 @@ export const QuestCard: Component<Props> = (props) => {
 
   return (
     <Card
+      onClick={() => {
+        navigate(`/quests/${props.quest.id}`)
+      }}
       ref={card}
       class={cn("h-[50px]", {
         "bg-gray-100": selected(),
