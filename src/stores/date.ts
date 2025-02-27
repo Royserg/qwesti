@@ -9,7 +9,11 @@ const [store, setStore] = createStore({
   selectedDate: new Date(),
 })
 
+/**
+ * Today's date by default
+ */
 export const selectedDate = () => store.selectedDate;
+
 export const isTodaySelected = (): boolean => {
   return isToday(store.selectedDate)
 }

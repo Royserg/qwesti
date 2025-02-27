@@ -1,7 +1,13 @@
 import { Transition } from 'solid-transition-group'
-import { Component, ParentProps } from 'solid-js';
+import { Component, onMount, ParentProps } from 'solid-js';
+import { initStore } from '~/stores/quests';
 
 export const RootRoute: Component<ParentProps> = (props) => {
+
+  onMount(() => {
+    initStore();
+  })
+
   return (
     <Transition
       mode="outin"

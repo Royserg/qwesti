@@ -15,7 +15,9 @@ import { getQuests } from "~/actions";
 import { Quest } from "~/bindings";
 import { cn } from "~/lib/utils";
 import { QuestCard } from "./quest-card";
-import { isTodaySelected } from "~/stores/date";
+import { isTodaySelected, selectedDate } from "~/stores/date";
+import { getQuestsForDate } from "~/stores/quests";
+import { format } from "date-fns";
 
 enum Filter {
   All = "all",
@@ -25,7 +27,9 @@ enum Filter {
 
 interface Props { }
 export const QuestsList: Component<Props> = (_props) => {
-  const data = createAsyncStore(() => getQuests(), { initialValue: [] });
+  // const data = createAsyncStore(() => getQuests(), { initialValue: [] });
+  //
+  const data = getQuestsForDate(selectedDate())
 
   const [parent] = createAutoAnimate();
   const [searchParams] = useSearchParams();
@@ -44,16 +48,16 @@ export const QuestsList: Component<Props> = (_props) => {
 
   return (
     <div class="h-full flex flex-col gap-6 overflow-hidden">
-      <Show when={data().length > 0 && isTodaySelected()}>
+      <Show when={data.length > 0 && isTodaySelected()}>
         <Filters filter={(searchParams.filter as string) ?? "all"} />
       </Show>
 
       <ul ref={parent} class="h-full flex flex-col gap-1 overflow-y-auto pb-2 scrollbar-hide">
         <ErrorBoundary fallback={<div>Error</div>}>
-          <Show when={filteredList(data()).length === 0}>
+          <Show when={filteredList(data).length === 0}>
             <h3 class="h-full text-center mt-10 text-3xl text-accent">No quests</h3>
           </Show>
-          <For each={filteredList(data())}>
+          <For each={filteredList(data)}>
             {(item) => <QuestCard quest={item} />}
           </For>
         </ErrorBoundary>
