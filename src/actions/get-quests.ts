@@ -17,3 +17,13 @@ export const getQuests = query(async () => {
 
   return res.data;
 }, "loadQuests");
+
+export const loadQuestsForDate = async (dateString: string) => {
+  const res = await commands.getQuests(dateString);
+
+  if (res.status === "error") {
+    throw new Error(res.error);
+  }
+
+  return res.data;
+}

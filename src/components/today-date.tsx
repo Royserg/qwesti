@@ -2,9 +2,11 @@ import { revalidate } from "@solidjs/router";
 import { format } from "date-fns";
 import ChevronLeft from 'icons/chevron-left';
 import ChevronRight from 'icons/chevron-right';
-import { getQuests } from "~/actions";
+import { createEffect } from "solid-js";
+import { getQuests, loadQuestsForDate } from "~/actions";
 import { cn } from "~/lib/utils";
-import { changeToNextDay, changeToPreviousDay, FE_DATE_FORMAT, isTodaySelected, selectedDate } from "~/stores/date";
+import { BE_DATE_FROMAT, changeToNextDay, changeToPreviousDay, FE_DATE_FORMAT, isTodaySelected, selectedDate } from "~/stores/date";
+import { setStore } from "~/stores/quests";
 
 export const TodayDate = () => {
 
@@ -20,6 +22,12 @@ export const TodayDate = () => {
     changeToNextDay();
     revalidateQuests()
   }
+
+  createEffect(async () => {
+    const dateString = format(selectedDate(), BE_DATE_FROMAT);
+    const quests = await loadQuestsForDate(dateString);
+    setStore(dateString, quests.length > 0 ? quests : []);
+  })
 
 
   return (

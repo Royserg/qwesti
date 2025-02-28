@@ -1,14 +1,14 @@
+import { format } from "date-fns";
 import { createStore } from "solid-js/store";
+import { getQuests } from "~/actions";
 import { Quest } from "~/bindings";
 import { BE_DATE_FROMAT, selectedDate } from "./date";
-import { format } from "date-fns";
-import { getQuests } from "~/actions";
 
 interface QuestStore {
   [dateBEFormat: string]: Quest[];
 }
 
-const [store, setStore] = createStore<QuestStore>({
+export const [store, setStore] = createStore<QuestStore>({
   [format(selectedDate(), BE_DATE_FROMAT)]: []
 })
 
@@ -18,11 +18,12 @@ export const initStore = async () => {
 
   const quests = await getQuests();
 
-  setStore(todayString, quests)
+  setStore(todayString, quests.length > 0 ? quests : []);
 }
 
 export const getQuestsForDate = (date: Date) => {
   const dateString = format(date, BE_DATE_FROMAT);
-
-  return store[dateString];
+  return store[dateString]
 }
+
+
