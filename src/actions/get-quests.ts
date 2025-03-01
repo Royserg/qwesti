@@ -1,22 +1,22 @@
-import { query } from "@solidjs/router";
-import { format } from "date-fns";
 import { commands } from "~/bindings";
-import { BE_DATE_FROMAT, selectedDate } from "~/stores/date";
+import { selectedDateBEFormat } from "~/stores/date";
+import { setStore } from "~/stores/quests";
 
 interface Request {
   date: string;
 }
-export const getQuests = query(async () => {
-  const date = format(selectedDate(), BE_DATE_FROMAT);
-
-  const res = await commands.getQuests(date);
+export const loadQuests = async () => {
+  const dateString = selectedDateBEFormat();
+  const res = await commands.getQuests(dateString);
 
   if (res.status === "error") {
     throw new Error(res.error);
   }
 
+  setStore(dateString, res.data)
+
   return res.data;
-}, "loadQuests");
+};
 
 export const loadQuestsForDate = async (dateString: string) => {
   const res = await commands.getQuests(dateString);
@@ -24,6 +24,8 @@ export const loadQuestsForDate = async (dateString: string) => {
   if (res.status === "error") {
     throw new Error(res.error);
   }
+
+  setStore(dateString, res.data)
 
   return res.data;
 }

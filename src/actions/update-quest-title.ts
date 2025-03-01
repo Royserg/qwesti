@@ -1,6 +1,5 @@
-import { revalidate } from "@solidjs/router";
 import { commands } from "~/bindings";
-import { getQuests } from "./get-quests";
+import { loadQuests } from "./get-quests";
 
 interface Request {
   questId: string;
@@ -19,7 +18,7 @@ export const updateQuestTitle = async (data: Request) => {
     throw new Error(res.error);
   }
   if (res.status === "ok") {
-    revalidate(getQuests.key);
+    await loadQuests();
   }
 
   return res.data;

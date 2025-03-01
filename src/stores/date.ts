@@ -1,4 +1,4 @@
-import { addDays, isToday } from "date-fns";
+import { addDays, format, isToday } from "date-fns";
 import { createStore } from "solid-js/store";
 
 
@@ -13,6 +13,8 @@ const [store, setStore] = createStore({
  * Today's date by default
  */
 export const selectedDate = () => store.selectedDate;
+
+export const selectedDateBEFormat = () => format(store.selectedDate, BE_DATE_FROMAT);
 
 export const isTodaySelected = (): boolean => {
   return isToday(store.selectedDate)

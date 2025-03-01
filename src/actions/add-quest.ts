@@ -1,17 +1,19 @@
 import { revalidate } from "@solidjs/router";
 import { commands } from "~/bindings";
-import { getQuests } from "./get-quests";
+import { loadQuests } from "./get-quests";
+import { setStore } from "~/stores/quests";
 
 interface Request {
-	title: string;
+  title: string;
 }
 
+// NOTE: currently adds quest to 'Today' date
 export const addQuest = async (data: Request) => {
-	const res = await commands.addQuest({
-		title: data.title,
-	});
+  const res = await commands.addQuest({
+    title: data.title,
+  });
 
-	if (res.status === "ok") {
-		revalidate(getQuests.key);
-	}
+  if (res.status === "ok") {
+    await loadQuests();
+  }
 };

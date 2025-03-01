@@ -88,6 +88,8 @@ export const DeleteButton: Component<Props> = (props) => {
       onKeyUp={handleKeyUp}
       onPointerDown={handlePress}
       onPointerUp={handleRelease}
+      onPointerCancel={handleRelease}
+      onPointerLeave={handleRelease}
       style={{
         background: deleteBtnPressed()
           ? deleteBtnLinearGradient()

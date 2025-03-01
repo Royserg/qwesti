@@ -89,7 +89,7 @@ export const QuestCard: Component<Props> = (props) => {
   return (
     <Card
       onClick={() => {
-        navigate(`/quests/${props.quest.id}`)
+        // navigate(`/quests/${props.quest.id}`)
       }}
       ref={card}
       class={cn("h-[50px]", {

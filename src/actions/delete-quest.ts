@@ -1,15 +1,14 @@
-import { revalidate } from "@solidjs/router";
 import { commands } from "~/bindings";
-import { getQuests } from "./get-quests";
+import { loadQuests } from "./get-quests";
 
 interface Request {
-	questId: string;
+  questId: string;
 }
 
 export const deleteQuest = async ({ questId }: Request) => {
-	const res = await commands.deleteQuest({ id: questId });
+  const res = await commands.deleteQuest({ id: questId });
 
-	if (res.status === "ok") {
-		revalidate(getQuests.key);
-	}
+  if (res.status === "ok") {
+    await loadQuests();
+  }
 };
