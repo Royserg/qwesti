@@ -1,7 +1,5 @@
-import { revalidate } from "@solidjs/router";
 import { commands } from "~/bindings";
 import { loadQuests } from "./get-quests";
-import { setStore } from "~/stores/quests";
 
 interface Request {
   title: string;
