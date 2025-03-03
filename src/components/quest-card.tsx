@@ -1,12 +1,11 @@
+import { A } from '@solidjs/router';
 import { createSignal, type Component } from "solid-js";
-import { deleteQuest, updateQuestCompleted, updateQuestTitle } from "~/actions";
+import { deleteQuest, updateQuestCompleted } from "~/actions";
 import type { Quest } from "~/bindings";
 import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
-import { DeleteButton } from "./delete-button";
-import { EditableText } from "./editable-text";
 import { isTodaySelected } from "~/stores/date";
-import { useNavigate } from '@solidjs/router'
+import { DeleteButton } from "./delete-button";
 
 type FocusOutEvent = FocusEvent & {
   currentTarget: HTMLDivElement;
@@ -18,14 +17,12 @@ interface Props {
 }
 
 export const QuestCard: Component<Props> = (props) => {
-  const navigate = useNavigate();
 
   let completedBtn!: HTMLButtonElement;
   let card!: HTMLDivElement;
 
   const [selected, setSelected] = createSignal(false);
   const [completed, setCompleted] = createSignal(props.quest.completed);
-  const [title, setTitle] = createSignal(props.quest.title);
   const [deleteProgress, setDeleteProgress] = createSignal(0);
 
   const handleQuestToggle = async () => {
@@ -37,15 +34,6 @@ export const QuestCard: Component<Props> = (props) => {
         completed: newCompleted,
       });
       setCompleted(res.completed);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleTitleChange = async (title: string) => {
-    try {
-      const res = await updateQuestTitle({ questId: props.quest.id, title });
-      setTitle(res.title);
     } catch (err) {
       console.error(err);
     }
@@ -88,9 +76,6 @@ export const QuestCard: Component<Props> = (props) => {
 
   return (
     <Card
-      onClick={() => {
-        // navigate(`/quests/${props.quest.id}`)
-      }}
       ref={card}
       class={cn("h-[50px]", {
         "bg-gray-100": selected(),
@@ -121,18 +106,18 @@ export const QuestCard: Component<Props> = (props) => {
           disabled={!isTodaySelected()}
         />
 
-        <div class="w-full h-full flex p-3 pr-3 gap-2 items-center">
-          <EditableText
-            value={title()}
-            focusable={selected}
-            onSubmit={handleTitleChange}
-          />
+        <div class="w-full h-full flex gap-2 items-center">
+          <A href={`/quests/${props.quest.id}`} class="w-full h-full pl-4 flex items-center">
+            {props.quest.title}
+          </A>
 
-          <DeleteButton
-            tabIndex={selected() ? 0 : -1}
-            onDelete={handleDeleteQuest}
-            onDeleteProgressChange={setDeleteProgress}
-          />
+          <div class="p-3 grid place-items-center">
+            <DeleteButton
+              tabIndex={selected() ? 0 : -1}
+              onDelete={handleDeleteQuest}
+              onDeleteProgressChange={setDeleteProgress}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

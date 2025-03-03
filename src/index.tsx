@@ -5,6 +5,7 @@ import { render } from "solid-js/web";
 import "./index.css";
 import QuestDetails from "./pages/quest-details";
 import { RootRoute } from "./pages/root.tsx";
+import Quests from "./pages/quests.tsx";
 
 const wrapper = document.getElementById("app");
 
@@ -19,7 +20,7 @@ const routes = [
     children: [
       {
         path: "/",
-        component: lazy(() => import("./pages/quests.tsx")),
+        component: Quests,
       },
       {
         path: "/quests/:id",
