@@ -7,7 +7,7 @@ interface Props extends ParentProps {
 
 export const BaseLayout: Component<Props> = (props) => {
   return (
-    <main class={cn(props.class)}>
+    <main class={cn('h-full w-full', props.class)}>
       {props.children}
     </main>
   )
