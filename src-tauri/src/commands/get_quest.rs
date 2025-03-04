@@ -28,9 +28,5 @@ pub async fn get_quest(state: State<'_, DbConnection>, id: String) -> Result<Que
     .await
     .expect("Failed to fetch quests");
 
-    println!("Quest: {:?}", quest);
-
-    // let quest = quest.into_iter().map(Quest::from).collect();
-
     Ok(quest.into())
 }
