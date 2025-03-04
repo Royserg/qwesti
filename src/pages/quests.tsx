@@ -1,4 +1,3 @@
-import { createAutoAnimate } from "@formkit/auto-animate/solid";
 import { RouteSectionProps } from "@solidjs/router";
 import { createSignal } from "solid-js";
 import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
@@ -8,8 +7,6 @@ import { Button } from "~/components/ui/button";
 import { BaseLayout } from "~/layouts/base";
 
 export const Quests = (_props: RouteSectionProps) => {
-
-  const [parent] = createAutoAnimate();
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>()
 
   const closeDialog = () => {
@@ -17,7 +14,7 @@ export const Quests = (_props: RouteSectionProps) => {
   }
 
   return (
-    <BaseLayout ref={parent} class="relative h-screen flex flex-col pt-2">
+    <BaseLayout class="relative h-screen flex flex-col pt-2">
       <div class="py-2" />
 
       <TodayDate />
