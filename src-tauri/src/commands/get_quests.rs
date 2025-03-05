@@ -33,6 +33,8 @@ pub async fn get_quests(
             Date(completed_at) = DATE($1)
             OR
             (completed_at IS NULL AND Date(created_at) <= Date($1))
+            AND
+            parent_id IS NULL
         ORDER BY
             created_at DESC
         "#,
@@ -60,6 +62,8 @@ pub async fn get_quests(
             quests
         WHERE
             Date(completed_at) = DATE($1)
+            AND
+            parent_id IS NULL
         ORDER BY
             created_at DESC
         "#,
