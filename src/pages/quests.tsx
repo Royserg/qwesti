@@ -1,5 +1,6 @@
 import { RouteSectionProps } from "@solidjs/router";
 import { createSignal } from "solid-js";
+import { addQuest } from "~/actions";
 import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
 import { QuestsList } from "~/components/quests-list";
 import { TodayDate } from "~/components/today-date";
@@ -13,6 +14,15 @@ export const Quests = (_props: RouteSectionProps) => {
     dialogRef()?.close();
   }
 
+  const handleAddQuest = async (title: string) => {
+    try {
+      await addQuest({ title });
+      closeDialog();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <BaseLayout class="relative h-screen flex flex-col pt-2">
       <div class="py-2" />
@@ -23,8 +33,8 @@ export const Quests = (_props: RouteSectionProps) => {
 
       <AddQuestDialog
         dialogRef={setDialogRef}
+        onSubmit={handleAddQuest}
         onClose={closeDialog}
-        onQuestAdded={closeDialog}
       />
 
       <section class="flex flex-1 flex-col gap-1 overflow-hidden px-4">

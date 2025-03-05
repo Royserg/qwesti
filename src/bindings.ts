@@ -57,7 +57,7 @@ async deleteQuest(props: DeleteQuestRequest) : Promise<Result<null, string>> {
 
 /** user-defined types **/
 
-export type AddQuestRequest = { title: string }
+export type AddQuestRequest = { title: string; parent_id: string | null }
 export type DeleteQuestRequest = { id: string }
 export type Quest = { id: string; title: string; completed: boolean; createdAt: string; completedAt: string | null; orderIndex: number }
 export type UpdateQuestData = { title?: string | null; completed?: boolean | null }

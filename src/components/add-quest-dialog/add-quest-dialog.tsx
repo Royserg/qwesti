@@ -1,6 +1,5 @@
 import { Component, onMount, Setter } from "solid-js";
 import { DOMElement } from "solid-js/jsx-runtime";
-import { addQuest } from "~/actions";
 
 type DialogClickEvent = MouseEvent & {
   currentTarget: HTMLDialogElement;
@@ -10,24 +9,19 @@ type DialogClickEvent = MouseEvent & {
 interface Props {
   dialogRef: Setter<HTMLDialogElement | undefined>;
   onClose: () => void;
-  onQuestAdded: () => void;
+  onSubmit: (title: string) => Promise<void>;
 }
 export const AddQuestDialog: Component<Props> = (props) => {
   let inputRef!: HTMLInputElement;
 
-  const handleAddQuest = async () => {
+
+  const handleSubmit = async () => {
     const title = inputRef.value;
+    await props.onSubmit(title)
 
-    try {
-      await addQuest({ title });
-
-      // clear input
-      inputRef.value = "";
-      props.onQuestAdded();
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    // clear input
+    inputRef.value = "";
+  }
 
   onMount(() => {
     inputRef.focus();
@@ -57,7 +51,7 @@ export const AddQuestDialog: Component<Props> = (props) => {
           if (!inputRef.value.trim()) {
             return;
           }
-          handleAddQuest();
+          handleSubmit();
         }}
       >
         <h4 class="text-center text-3xl pb-2">Create quest</h4>
