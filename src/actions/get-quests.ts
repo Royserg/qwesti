@@ -29,3 +29,13 @@ export const loadQuestsForDate = async (dateString: string) => {
 
   return res.data;
 }
+
+export const loadSubQuests = async (questId: string) => {
+  const res = await commands.getSubQuests(questId);
+
+  if (res.status === "error") {
+    throw new Error(res.error);
+  }
+
+  return res.data;
+};

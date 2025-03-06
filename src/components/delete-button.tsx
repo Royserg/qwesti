@@ -4,11 +4,13 @@ import {
   onCleanup,
   type Component,
 } from "solid-js";
+import { cn } from "~/lib/utils";
 
 interface Props {
   onDelete: () => void;
   tabIndex?: number;
   onDeleteProgressChange?: (progress: number) => void;
+  class?: string;
 }
 
 export const DeleteButton: Component<Props> = (props) => {
@@ -95,7 +97,7 @@ export const DeleteButton: Component<Props> = (props) => {
           ? deleteBtnLinearGradient()
           : "var(--color-red-300)",
       }}
-      class="ml-auto h-5 w-5 cursor-pointer border-1"
+      class={cn("ml-auto h-5 w-5 cursor-pointer border-1", props.class)}
     />
   );
 };

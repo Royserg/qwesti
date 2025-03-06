@@ -13,6 +13,14 @@ async getQuests(date: string | null) : Promise<Result<Quest[], string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async getSubQuests(questId: string) : Promise<Result<Quest[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_sub_quests", { questId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async getQuest(id: string) : Promise<Result<Quest, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_quest", { id }) };

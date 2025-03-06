@@ -41,7 +41,6 @@ export const QuestsList: Component<Props> = (_props) => {
     return quests;
   };
 
-
   return (
     <div class="h-full flex flex-col gap-6 overflow-hidden">
       <Show when={quests()?.length > 0 && isTodaySelected()}>
@@ -51,7 +50,7 @@ export const QuestsList: Component<Props> = (_props) => {
       <ul
         /*TODO: with this navigating to details page and back hides items 
          * */
-        ref={parent}
+        // ref={parent}
         class="h-full flex flex-col gap-1 overflow-y-auto pb-2 scrollbar-hide">
         <ErrorBoundary fallback={<div>Error</div>}>
           <Show when={filteredList(quests() ?? []).length === 0}>

@@ -1,6 +1,9 @@
 mod get_quests;
 pub use get_quests::*;
 
+mod get_sub_quests;
+pub use get_sub_quests::*;
+
 mod get_quest;
 pub use get_quest::*;
 

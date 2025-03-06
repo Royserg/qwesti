@@ -14,6 +14,7 @@ type FocusOutEvent = FocusEvent & {
 
 interface Props {
   quest: Quest;
+  onDeleted?: () => void;
 }
 
 export const QuestCard: Component<Props> = (props) => {
@@ -41,6 +42,7 @@ export const QuestCard: Component<Props> = (props) => {
 
   const handleDeleteQuest = async () => {
     await deleteQuest({ questId: props.quest.id });
+    props.onDeleted?.();
   };
 
   const handleKeyUp = (event: KeyboardEvent) => {
