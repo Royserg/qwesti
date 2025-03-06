@@ -19,9 +19,6 @@ pub async fn add_quest(
 ) -> Result<Quest, String> {
     let id = Uuid::now_v7().to_string();
 
-    // TODO: remove this
-    dbg!(&props.parent_id);
-
     // TODO: add created_at
     let inserted_quest = sqlx::query_as!(
         QuestRow,
