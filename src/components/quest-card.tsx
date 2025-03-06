@@ -1,4 +1,4 @@
-import { A } from '@solidjs/router';
+import { A, useNavigate } from '@solidjs/router';
 import { createSignal, type Component } from "solid-js";
 import { deleteQuest, updateQuestCompleted } from "~/actions";
 import type { Quest } from "~/bindings";
@@ -18,6 +18,7 @@ interface Props {
 }
 
 export const QuestCard: Component<Props> = (props) => {
+  const navigate = useNavigate();
 
   let completedBtn!: HTMLButtonElement;
   let card!: HTMLDivElement;
@@ -25,6 +26,11 @@ export const QuestCard: Component<Props> = (props) => {
   const [selected, setSelected] = createSignal(false);
   const [completed, setCompleted] = createSignal(props.quest.completed);
   const [deleteProgress, setDeleteProgress] = createSignal(0);
+
+  const handleQuestClick = () => {
+    document.startViewTransition(() => navigate(`/quests/${props.quest.id}`));
+    // navigate(`/quests/${props.quest.id}`);
+  }
 
   const handleQuestToggle = async () => {
     try {
@@ -109,9 +115,14 @@ export const QuestCard: Component<Props> = (props) => {
         />
 
         <div class="w-full h-full flex gap-2 items-center">
-          <A href={`/quests/${props.quest.id}`} class="w-full h-full pl-4 flex items-center">
+          <button
+            onClick={handleQuestClick}
+            style={{
+              'view-transition-name': 'quest-title'
+            }}
+            class="w-full h-full pl-4 flex items-center">
             {props.quest.title}
-          </A>
+          </button>
 
           <div class="p-3 grid place-items-center">
             <DeleteButton

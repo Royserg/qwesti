@@ -116,8 +116,12 @@ const QuestDetails: Component = () => {
                   onClick={handleQuestToggle}
                 />
 
-                {/* <h2 class="pl-2 text-3xl w-full flex items-center">{q().title}</h2> */}
-                <EditableText value={q().title} onSubmit={handleTitleChange} focusable={titleEditable} />
+                <h2
+                  style={{
+                    'view-transition-name': 'quest-title'
+                  }}
+                  class="pl-2 text-3xl w-full flex items-center">{q().title}</h2>
+                {/* <EditableText value={q().title} onSubmit={handleTitleChange} focusable={titleEditable} /> */}
 
                 <DeleteButton
                   class="mr-2 p-3"
