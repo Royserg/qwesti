@@ -1,38 +1,18 @@
 /* @refresh reload */
-import { Router } from "@solidjs/router";
-import { lazy, onMount } from "solid-js";
+import { Route, Router } from "@solidjs/router";
+import { onMount } from "solid-js";
 import { render } from "solid-js/web";
-import "./index.css";
 import QuestDetails from "./pages/quest-details";
-import { RootRoute } from "./pages/root.tsx";
 import Quests from "./pages/quests.tsx";
+import { RootRoute } from "./pages/root.tsx";
+
+import "./index.css";
 
 const wrapper = document.getElementById("app");
 
 if (!wrapper) {
   throw new Error("Wrapper div not found");
 }
-
-const routes = [
-  {
-    path: "/",
-    component: RootRoute,
-    children: [
-      {
-        path: "/",
-        component: Quests,
-      },
-      {
-        path: "/quests/:id",
-        component: QuestDetails,
-      },
-      {
-        path: "/about",
-        component: lazy(() => import("./pages/about.tsx")),
-      },
-    ]
-  },
-];
 
 const Root = () => {
   // Reloads the page when pressing "ctrl+r"
@@ -47,7 +27,12 @@ const Root = () => {
     });
   });
 
-  return <Router>{routes}</Router>
+  return (
+    <Router root={RootRoute}>
+      <Route path='/' component={Quests} />
+      <Route path='/quests/:id' component={QuestDetails} />
+    </Router>
+  )
 };
 
 render(Root, wrapper);
