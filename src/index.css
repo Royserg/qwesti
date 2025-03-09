@@ -175,12 +175,38 @@
   to { transform: translateX(-30px); }
 }
 
-::view-transition-old(root) {
-  animation: 90ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
-    300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-top;
-}
+/* ::view-transition-old(root) { */
+/*   animation: 90ms cubic-bezier(0.4, 0, 1, 1) both fade-out, */
+/*     300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-top; */
+/* } */
+/**/
+/* ::view-transition-new(root) { */
+/*   animation: 210ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in, */
+/*     300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-bottom; */
+/* } */
+/**/
+/* html { */
+/*   view-transition-name: none; */
+/* } */
 
-::view-transition-new(root) {
-  animation: 210ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in,
-    300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-bottom;
-}
+/* ::view-transition-old(quest-title) { */
+/*   animation: slide-to-top 3s ease-in-out; */
+/* } */
+/**/
+/* ::view-transition-new(quest-title) { */
+/*   animation: slide-from-bottom 3s ease-in-out; */
+/* } */
+
+/* ::view-transition-old(quest-title), */
+/* ::view-transition-new(quest-title) { */
+/*   animation: none; */
+/*   mix-blend-mode: normal; */
+/* } */
+/**/
+/* ::view-transition-image-pair(quest-title) { */
+/*   isolation: none; */
+/* } */
+
+
+
+
