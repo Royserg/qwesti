@@ -22,11 +22,9 @@ export const initStore = async () => {
 }
 
 export const getQuestsForDate = (date: Date) => {
-  console.log('get quests for date', date);
   const dateString = format(date, BE_DATE_FROMAT);
   const quests = store[dateString]
 
-  console.log('QUESTS from store:', quests);
 
   return quests
 }
