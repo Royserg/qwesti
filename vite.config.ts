@@ -3,13 +3,22 @@ import path from "path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import { fileURLToPath, URL } from "node:url";
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [solid(), tailwindcss()],
+  plugins: [
+    solid(),
+    tailwindcss(),
+    TanStackRouterVite({
+      target: 'solid',
+      // NOTE: commented out to make view-transitions work
+      // autoCodeSplitting: true 
+    }),
+  ],
 
   resolve: {
     alias: {
