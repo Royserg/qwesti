@@ -1,11 +1,21 @@
-import { RouteSectionProps } from "@solidjs/router";
-import { createSignal } from "solid-js";
-import { addQuest } from "~/actions";
+import { createAsync, query, RouteSectionProps, useNavigate } from "@solidjs/router";
+import { createResource, createSignal, For, onCleanup } from "solid-js";
+import { addQuest, loadQuestsForDate } from "~/actions";
 import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
+import { QuestCard } from "~/components/quest-card";
 import { QuestsList } from "~/components/quests-list";
 import { TodayDate } from "~/components/today-date";
 import { Button } from "~/components/ui/button";
 import { BaseLayout } from "~/layouts/base";
+import { selectedDate, selectedDateBEFormat } from "~/stores/date";
+import { getQuestsForDate } from "~/stores/quests";
+
+
+export const getQuests = query(async () => {
+  const res = await loadQuestsForDate(selectedDateBEFormat())
+  return res
+}, "quests")
+
 
 export const Quests = (_props: RouteSectionProps) => {
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>()
@@ -38,7 +48,7 @@ export const Quests = (_props: RouteSectionProps) => {
       />
 
       <section class="flex flex-1 flex-col gap-1 overflow-hidden px-4">
-        <QuestsList />
+        {/* <QuestsList /> */}
       </section>
 
       <section class="mt-auto flex h-[60px] w-full items-center justify-center border-t pb-1">

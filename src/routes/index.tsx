@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/solid-router'
+import { createFileRoute } from '@tanstack/solid-router';
 import { createSignal } from 'solid-js';
 import { z } from 'zod';
 import { addQuest, loadQuestsForDate } from '~/actions';

@@ -1,4 +1,3 @@
-import { A, useNavigate } from '@solidjs/router';
 import { createSignal, type Component } from "solid-js";
 import { deleteQuest, updateQuestCompleted } from "~/actions";
 import type { Quest } from "~/bindings";
@@ -6,6 +5,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
 import { isTodaySelected } from "~/stores/date";
 import { DeleteButton } from "./delete-button";
+import { useNavigate } from "@tanstack/solid-router";
 
 type FocusOutEvent = FocusEvent & {
   currentTarget: HTMLDivElement;
@@ -28,8 +28,7 @@ export const QuestCard: Component<Props> = (props) => {
   const [deleteProgress, setDeleteProgress] = createSignal(0);
 
   const handleQuestClick = () => {
-    document.startViewTransition(() => navigate(`/quests/${props.quest.id}`));
-    // navigate(`/quests/${props.quest.id}`);
+    navigate({ to: '/quests/$questId', params: { questId: props.quest.id } })
   }
 
   const handleQuestToggle = async () => {
@@ -89,6 +88,8 @@ export const QuestCard: Component<Props> = (props) => {
         "bg-gray-100": selected(),
       })}
       style={{
+        'view-transition-name': `quest-${props.quest.id}`,
+        contain: 'layout',
         background: deleteProgress() > 0
           ? deleteBtnLinearGradient()
           : "var(--color-background)",
@@ -117,10 +118,8 @@ export const QuestCard: Component<Props> = (props) => {
         <div class="w-full h-full flex gap-2 items-center">
           <button
             onClick={handleQuestClick}
-            style={{
-              'view-transition-name': 'quest-title'
-            }}
-            class="w-full h-full pl-4 flex items-center">
+            class="w-full h-full pl-4 flex items-center cursor-pointer"
+          >
             {props.quest.title}
           </button>
 

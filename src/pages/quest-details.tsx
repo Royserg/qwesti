@@ -1,19 +1,20 @@
-import { A, createAsync, useNavigate, useParams } from "@solidjs/router";
-import { Component, createMemo, createResource, createSignal, For, Show } from "solid-js"
+import { RouteSectionProps, useNavigate, useParams } from "@solidjs/router";
+import ChevronLeft from 'icons/chevron-left';
+import { Component, createEffect, createResource, createSignal, For, onMount, Show } from "solid-js";
 import { addQuest, deleteQuest, loadQuest, loadSubQuests, updateQuestCompleted, updateQuestTitle } from "~/actions";
+import { Quest } from "~/bindings";
+import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
+import { DeleteButton } from "~/components/delete-button";
+import { QuestCard } from "~/components/quest-card";
+import { Button } from "~/components/ui/button";
 import { BaseLayout } from "~/layouts/base";
 import { cn } from "~/lib/utils";
-import ChevronLeft from 'icons/chevron-left';
-import { DeleteButton } from "~/components/delete-button";
-import { EditableText } from "~/components/editable-text";
-import { Button } from "~/components/ui/button";
-import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
-import { QuestCard } from "~/components/quest-card";
-import { Quest } from "~/bindings";
 
-const QuestDetails: Component = () => {
+export const QuestDetails = (props: RouteSectionProps) => {
   const navigate = useNavigate();
   const params = useParams();
+
+  let header!: HTMLDivElement;
 
   // Data
   const [quest, { refetch: refetchQuest }] = createResource(() => params.id, async () => await loadQuest({ id: params.id }));
@@ -88,74 +89,118 @@ const QuestDetails: Component = () => {
   }
 
   const handleBackClick = () => {
-    window.history.back();
+    document.startViewTransition(() => {
+      navigate(-1);
+    })
   }
 
+  const testNavigate = () => {
+    document.startViewTransition(() => {
+      navigate('/');
+    })
+  }
+  {/* <Show when={params.id} keyed> */ }
   return (
     <BaseLayout class="flex">
-      <button onClick={handleBackClick} class="w-8 h-full bg-gray-50 flex items-center justify-center cursor-pointer">
-        <ChevronLeft class="text-gray-400" />
+
+      <h2
+        style={{ 'view-transition-name': `quest-${params.id}` }}
+        class="w-[200px] bg-amber-400 h-[20px]"
+      >Quest: {params.id}</h2>
+
+      <button
+        onClick={testNavigate}
+        style={{
+          'view-transition-name': 'main-btn'
+        }}
+        class="bg-amber-100 p-2 w-1/2 cursor-pointer h-[30px] absolute bottom-2"
+      >
+        Back to Quests
       </button>
 
-      <Show when={quest()}>
-        {(q) => {
-          return (
-            <div class="flex flex-col pt-3 w-full h-full">
-
-              {/* Header */}
-              <div class="flex gap-6 h-12 w-full items-center pb-2 border-b border-b-secondary px-4">
-                <button
-                  type="button"
-                  class={cn(
-                    "cursor-pointer flex justify-center w-12 h-full shadow-inner shadow-black/20 border",
-                    {
-                      "bg-amber-300": q().completed,
-                      "bg-card": !q().completed,
-                    },
-                  )}
-                  onClick={handleQuestToggle}
-                />
-
-                <h2
-                  style={{
-                    'view-transition-name': 'quest-title'
-                  }}
-                  class="pl-2 text-3xl w-full flex items-center">{q().title}</h2>
-                {/* <EditableText value={q().title} onSubmit={handleTitleChange} focusable={titleEditable} /> */}
-
-                <DeleteButton
-                  class="mr-2 p-3"
-                  onDelete={handleDeleteQuest}
-                />
-              </div>
-
-              {/* Sub-Quests */}
-              <div class="py-2" />
-              <SubQuests quests={subQuests() ?? []} onQuestDeleted={refetchSubQuests} />
-
-              <section class="mt-auto flex h-[60px] w-full items-center justify-center border-t pb-1">
-                <Button
-                  class="h-[50px] w-3/5 rounded-xs"
-                  onClick={() => {
-                    dialogRef()?.showModal();
-                  }}
-                >
-                  Add Sub Quest
-                </Button>
-              </section>
-
-              <AddQuestDialog
-                dialogRef={setDialogRef}
-                onSubmit={handleAddQuest}
-                onClose={closeDialog}
-              />
-
-            </div>
-          )
-        }}
-      </Show>
+      {/* <button onClick={handleBackClick} class="w-8 h-full bg-gray-50 flex items-center justify-center cursor-pointer"> */}
+      {/*   <ChevronLeft class="text-gray-400" /> */}
+      {/* </button> */}
+      {/**/}
+      {/* <Show when={quest()}> */}
+      {/*   {(q) => { */}
+      {/*     return ( */}
+      {/*       <div class="flex flex-col pt-3 w-full h-full"> */}
+      {/**/}
+      {/*         {/* Header */}
+      {/*         <div */}
+      {/*           ref={header} */}
+      {/*           style={{ */}
+      {/*             contain: 'layout', */}
+      {/*             'view-transition-name': `quest-${params.id}`, */}
+      {/*           }} */}
+      {/*           class="flex gap-6 h-12 w-full items-center pb-2 border-b border-b-secondary px-4" */}
+      {/*         > */}
+      {/*           <button */}
+      {/*             type="button" */}
+      {/*             class={cn( */}
+      {/*               "cursor-pointer flex justify-center w-12 h-full shadow-inner shadow-black/20 border", */}
+      {/*               { */}
+      {/*                 "bg-amber-300": q().completed, */}
+      {/*                 "bg-card": !q().completed, */}
+      {/*               }, */}
+      {/*             )} */}
+      {/*             onClick={handleQuestToggle} */}
+      {/*           /> */}
+      {/**/}
+      {/*           <h2 */}
+      {/*             class="pl-2 text-3xl w-full flex items-center" */}
+      {/*           > */}
+      {/*             {q().title} */}
+      {/*           </h2> */}
+      {/*           {/* <EditableText value={q().title} onSubmit={handleTitleChange} focusable={titleEditable} /> */}
+      {/**/}
+      {/*           <DeleteButton */}
+      {/*             class="mr-2 p-3" */}
+      {/*             onDelete={handleDeleteQuest} */}
+      {/*           /> */}
+      {/*         </div> */}
+      {/**/}
+      {/*         <div */}
+      {/*           style={{ */}
+      {/*             // contain: 'layout', */}
+      {/*             'view-transition-name': "add-quest-button", */}
+      {/*           }} */}
+      {/*           class="p-2 border-black border-2 bg-amber-200" */}
+      {/*         >Random test</div> */}
+      {/**/}
+      {/*         {/* Sub-Quests */}
+      {/*         <div class="py-2" /> */}
+      {/*         <SubQuests quests={subQuests() ?? []} onQuestDeleted={refetchSubQuests} /> */}
+      {/**/}
+      {/*         <section class="mt-auto flex h-[60px] w-full items-center justify-center border-t pb-1"> */}
+      {/*           <Button */}
+      {/*             class="h-[50px] w-3/5 rounded-xs" */}
+      {/*             // style={{ */}
+      {/*             //   contain: 'layout', */}
+      {/*             //   'view-transition-name': "add-button" */}
+      {/*             // }} */}
+      {/*             onClick={() => { */}
+      {/*               dialogRef()?.showModal(); */}
+      {/*             }} */}
+      {/*           > */}
+      {/*             Add Sub Quest */}
+      {/*           </Button> */}
+      {/*         </section> */}
+      {/**/}
+      {/*         <AddQuestDialog */}
+      {/*           dialogRef={setDialogRef} */}
+      {/*           onSubmit={handleAddQuest} */}
+      {/*           onClose={closeDialog} */}
+      {/*         /> */}
+      {/**/}
+      {/*       </div> */}
+      {/*     ) */}
+      {/*   }} */}
+      {/* </Show> */}
     </BaseLayout>
   )
+  {/* </Show> */ }
 }
 
 export default QuestDetails;

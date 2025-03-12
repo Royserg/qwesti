@@ -1,40 +1,32 @@
-import { createAutoAnimate } from "@formkit/auto-animate/solid";
-import {
-  useNavigate,
-  useSearchParams
-} from "@solidjs/router";
 import {
   Component,
-  createMemo,
   ErrorBoundary,
   For,
   ParentComponent,
-  Show,
+  Show
 } from "solid-js";
 import { Quest } from "~/bindings";
 import { cn } from "~/lib/utils";
-import { isTodaySelected, selectedDate } from "~/stores/date";
-import { getQuestsForDate } from "~/stores/quests";
+import { isTodaySelected } from "~/stores/date";
 import { QuestCard } from "./quest-card";
+import { useNavigate } from "@tanstack/solid-router";
 
-enum Filter {
+export enum Filter {
   All = "all",
   Pending = "pending",
   Completed = "completed",
 }
 
-interface Props { }
-export const QuestsList: Component<Props> = (_props) => {
-  const quests = createMemo(() => getQuestsForDate(selectedDate()));
-
-  const [parent] = createAutoAnimate();
-  const [searchParams] = useSearchParams();
-
+interface Props {
+  filter: Filter;
+  quests: Quest[];
+}
+export const QuestsList: Component<Props> = (props) => {
   const filteredList = (quests: Quest[]) => {
-    if (searchParams.filter === Filter.Pending) {
+    if (props.filter === Filter.Pending) {
       return quests.filter((quest) => !quest.completed);
     }
-    if (searchParams.filter === Filter.Completed) {
+    if (props.filter === Filter.Completed) {
       return quests.filter((quest) => quest.completed);
     }
 
@@ -43,20 +35,25 @@ export const QuestsList: Component<Props> = (_props) => {
 
   return (
     <div class="h-full flex flex-col gap-6 overflow-hidden">
-      <Show when={quests()?.length > 0 && isTodaySelected()}>
-        <Filters filter={(searchParams.filter as string) ?? "all"} />
+      <Show when={props.quests}>
+        {(quests) => {
+          return (
+            <Show when={quests()?.length > 0 && isTodaySelected()}>
+              <Filters filter={(props.filter as string) ?? "all"} />
+            </Show>
+          )
+        }}
       </Show>
 
       <ul
-        /*TODO: with this navigating to details page and back hides items 
-         * */
-        // ref={parent}
-        class="h-full flex flex-col gap-1 overflow-y-auto pb-2 scrollbar-hide">
+        class="h-full flex flex-col gap-1 overflow-y-auto pb-2 scrollbar-hide"
+      >
         <ErrorBoundary fallback={<div>Error</div>}>
-          <Show when={filteredList(quests() ?? []).length === 0}>
+          <Show when={filteredList(props.quests ?? []).length === 0}>
             <h3 class="h-full text-center mt-10 text-3xl text-accent">No quests</h3>
           </Show>
-          <For each={filteredList(quests())}>
+
+          <For each={filteredList(props.quests ?? [])}>
             {(item) => <QuestCard quest={item} />}
           </For>
         </ErrorBoundary>
@@ -107,8 +104,10 @@ interface FilterButtonProps {
 }
 const FilterButton: ParentComponent<FilterButtonProps> = (props) => {
   const navigate = useNavigate();
+
   const handleClick = () => {
-    navigate(`?filter=${props.value}`, { replace: true });
+    // TODO: pass correct filter type
+    navigate({ to: '/', search: { filter: 'all' }, replace: true });
   };
 
   return (
