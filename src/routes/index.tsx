@@ -11,7 +11,7 @@ import { selectedDateBEFormat } from '~/stores/date';
 
 
 const questsSearchSchema = z.object({
-  filter: z.enum(['all', 'pending', 'completed']).default('all'),
+  filter: z.enum(['all', 'pending', 'completed']).default('all').optional(),
 })
 
 export const Route = createFileRoute('/')({
