@@ -27,14 +27,10 @@ function RouteComponent() {
   const data = Route.useLoaderData()
   const router = useRouter()
 
-  console.log('data', data())
-
-
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>()
   // TODO: check if those are needed -> currently editing title doesn't work (add an explicit button)
   const [title, setTitle] = createSignal('title');
   const [titleEditable, setTitleEditable] = createSignal(true);
-
 
   // const [quest, { refetch: refetchQuest }] = createResource(() => params.id, async () => await loadQuest({ id: params.id }));
   // const [subQuests, { refetch: refetchSubQuests }] = createResource(() => params().questId, () => loadSubQuests(params().questId));

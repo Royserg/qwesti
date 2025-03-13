@@ -10,23 +10,19 @@ import { cn } from "~/lib/utils";
 import { isTodaySelected } from "~/stores/date";
 import { QuestCard } from "./quest-card";
 import { useNavigate } from "@tanstack/solid-router";
+import { QuestsFilterEnum, QuestsFilterEnumType } from "~/routes";
 
-export enum Filter {
-  All = "all",
-  Pending = "pending",
-  Completed = "completed",
-}
 
 interface Props {
-  filter: Filter;
+  filter: QuestsFilterEnumType;
   quests: Quest[];
 }
 export const QuestsList: Component<Props> = (props) => {
   const filteredList = (quests: Quest[]) => {
-    if (props.filter === Filter.Pending) {
+    if (props.filter === 'pending') {
       return quests.filter((quest) => !quest.completed);
     }
-    if (props.filter === Filter.Completed) {
+    if (props.filter === 'completed') {
       return quests.filter((quest) => quest.completed);
     }
 
@@ -69,15 +65,15 @@ interface FiltersProps {
 const Filters: Component<FiltersProps> = (props) => {
   const filters = [
     {
-      value: "all",
+      value: QuestsFilterEnum.enum.all,
       label: "all",
     },
     {
-      value: "pending",
+      value: QuestsFilterEnum.enum.pending,
       label: "pending",
     },
     {
-      value: "completed",
+      value: QuestsFilterEnum.enum.completed,
       label: "completed",
     },
   ];
@@ -100,14 +96,14 @@ const Filters: Component<FiltersProps> = (props) => {
 
 interface FilterButtonProps {
   active?: boolean;
-  value: string;
+  value: QuestsFilterEnumType;
 }
 const FilterButton: ParentComponent<FilterButtonProps> = (props) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
     // TODO: pass correct filter type
-    navigate({ to: '/', search: { filter: 'all' }, replace: true });
+    navigate({ to: '/', search: { filter: props.value }, replace: true });
   };
 
   return (

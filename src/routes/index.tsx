@@ -3,15 +3,17 @@ import { createSignal } from 'solid-js';
 import { z } from 'zod';
 import { addQuest, loadQuestsForDate } from '~/actions';
 import { AddQuestDialog } from '~/components/add-quest-dialog/add-quest-dialog';
-import { Filter, QuestsList } from '~/components/quests-list';
+import { QuestsList } from '~/components/quests-list';
 import { TodayDate } from '~/components/today-date';
 import { Button } from '~/components/ui/button';
 import { BaseLayout } from '~/layouts/base';
 import { selectedDateBEFormat } from '~/stores/date';
 
+export const QuestsFilterEnum = z.enum(['all', "pending", "completed"]);
+export type QuestsFilterEnumType = z.infer<typeof QuestsFilterEnum>;
 
 const questsSearchSchema = z.object({
-  filter: z.enum(['all', 'pending', 'completed']).default('all').optional(),
+  filter: QuestsFilterEnum.optional().default(QuestsFilterEnum.enum.all),
 })
 
 export const Route = createFileRoute('/')({
@@ -25,7 +27,6 @@ function Index() {
   const quests = Route.useLoaderData()
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>()
-
 
   const closeDialog = () => {
     dialogRef()?.close();
@@ -57,7 +58,7 @@ function Index() {
       <section class="flex flex-1 flex-col gap-1 overflow-hidden px-4">
         <QuestsList
           quests={quests()}
-          filter={searchParams().filter as Filter}
+          filter={searchParams().filter}
         />
       </section>
 
