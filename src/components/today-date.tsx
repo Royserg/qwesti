@@ -1,49 +1,51 @@
-import { format } from "date-fns";
+import { Link, useSearch } from "@tanstack/solid-router";
+import { addDays, format } from "date-fns";
 import ChevronLeft from 'icons/chevron-left';
 import ChevronRight from 'icons/chevron-right';
-import { createEffect } from "solid-js";
-import { loadQuestsForDate } from "~/actions";
 import { cn } from "~/lib/utils";
-import { changeToNextDay, changeToPreviousDay, FE_DATE_FORMAT, isTodaySelected, selectedDate, selectedDateBEFormat } from "~/stores/date";
-import { setStore } from "~/stores/quests";
+import { BE_DATE_FROMAT } from "~/stores/date";
 
 export const TodayDate = () => {
+  const search = useSearch({ from: '/' })
 
-  const handlePrevClick = () => {
-    changeToPreviousDay();
-  }
-  const handleNextClick = () => {
-    changeToNextDay();
+  const dateToString = (date: Date) => {
+    return format(date, BE_DATE_FROMAT);
   }
 
-  createEffect(async () => {
-    const dateString = selectedDateBEFormat();
-    const quests = await loadQuestsForDate(dateString);
-    setStore(dateString, quests.length > 0 ? quests : []);
-  })
-
+  const isTodaySelected = () => {
+    const today = dateToString(new Date());
+    return search().date === today;
+  }
 
   return (
     <div class="flex mx-auto gap-2">
-      <button
-        onClick={handlePrevClick}
-        class="cursor-pointer"
+      <Link
+        to="/"
+        search={{
+          filter: 'all',
+          date: dateToString(addDays(new Date(search().date), -1))
+        }}
+        class="flex items-center"
       >
         <ChevronLeft />
-      </button>
+      </Link>
 
       <h3 class="text-center text-4xl font-semibold w-[250px]">
-        {format(selectedDate(), FE_DATE_FORMAT)}
+        {search().date}
       </h3>
 
-      <button
-        onClick={handleNextClick}
-        class={cn("cursor-pointer", {
+      <Link
+        to="/"
+        search={{
+          filter: 'all',
+          date: dateToString(addDays(new Date(search().date), 1))
+        }}
+        class={cn("flex items-center", {
           "invisible": isTodaySelected()
         })}
       >
         <ChevronRight />
-      </button>
+      </Link>
     </div>
   );
 };

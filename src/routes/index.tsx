@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router';
+import { format } from 'date-fns';
 import { createSignal } from 'solid-js';
 import { z } from 'zod';
 import { addQuest, loadQuestsForDate } from '~/actions';
@@ -7,21 +8,21 @@ import { QuestsList } from '~/components/quests-list';
 import { TodayDate } from '~/components/today-date';
 import { Button } from '~/components/ui/button';
 import { BaseLayout } from '~/layouts/base';
-import { selectedDateBEFormat } from '~/stores/date';
+import { BE_DATE_FROMAT } from '~/stores/date';
 
 export const QuestsFilterEnum = z.enum(['all', "pending", "completed"]);
 export type QuestsFilterEnumType = z.infer<typeof QuestsFilterEnum>;
 
 const questsSearchSchema = z.object({
-  filter: QuestsFilterEnum.optional().default(QuestsFilterEnum.enum.all),
-  date: z.string().optional(),
+  filter: QuestsFilterEnum.default(QuestsFilterEnum.enum.all),
+  date: z.string().default(format(new Date(), BE_DATE_FROMAT)),
 })
 
 export const Route = createFileRoute('/')({
   component: Index,
   validateSearch: (search) => questsSearchSchema.parse(search),
   loaderDeps: ({ search: { date, filter } }) => ({ date, filter }),
-  loader: () => loadQuestsForDate(selectedDateBEFormat())
+  loader: ({ deps }) => loadQuestsForDate(deps.date)
 })
 
 function Index() {
