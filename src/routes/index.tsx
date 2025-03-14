@@ -14,11 +14,13 @@ export type QuestsFilterEnumType = z.infer<typeof QuestsFilterEnum>;
 
 const questsSearchSchema = z.object({
   filter: QuestsFilterEnum.optional().default(QuestsFilterEnum.enum.all),
+  date: z.string().optional(),
 })
 
 export const Route = createFileRoute('/')({
   component: Index,
   validateSearch: (search) => questsSearchSchema.parse(search),
+  loaderDeps: ({ search: { date, filter } }) => ({ date, filter }),
   loader: () => loadQuestsForDate(selectedDateBEFormat())
 })
 
