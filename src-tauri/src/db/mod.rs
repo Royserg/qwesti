@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 use tauri::{AppHandle, Manager};
 
 pub async fn setup_db(app: &AppHandle) -> Pool<Sqlite> {
-    let db_name = "sqlite:qwesti.sqlite?mode=rwc";
+    let db_name = "sqlite:qwesti.sqlite";
     let app_path = app
         .path()
         .app_config_dir()
@@ -34,7 +34,10 @@ pub async fn setup_db(app: &AppHandle) -> Pool<Sqlite> {
         .await
         .unwrap();
 
-    sqlx::migrate!().run(&pool).await.unwrap();
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("Failed to run migrations :(");
 
     pool
 }
