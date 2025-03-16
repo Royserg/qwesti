@@ -11,6 +11,7 @@ pub struct Quest {
     pub created_at: String,
     pub completed_at: Option<String>,
     pub order_index: i64,
+    pub parent_id: Option<String>,
 }
 
 fn i64_to_bool(value: i64) -> bool {
@@ -30,6 +31,7 @@ impl From<QuestRow> for Quest {
             created_at: qr.created_at,
             completed_at: qr.completed_at,
             order_index: qr.order_index,
+            parent_id: qr.parent_id,
         }
     }
 }

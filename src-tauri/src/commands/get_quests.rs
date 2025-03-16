@@ -26,7 +26,8 @@ pub async fn get_quests(
             completed,
             created_at,
             completed_at,
-            order_index
+            order_index,
+            parent_id
         FROM
             quests
         WHERE
@@ -59,7 +60,8 @@ pub async fn get_quests(
             completed,
             created_at,
             completed_at,
-            order_index
+            order_index,
+            parent_id
         FROM
             quests
         WHERE

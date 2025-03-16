@@ -8,4 +8,5 @@ pub struct QuestRow {
     pub created_at: String,
     pub completed_at: Option<String>,
     pub order_index: i64,
+    pub parent_id: Option<String>,
 }
