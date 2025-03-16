@@ -58,7 +58,8 @@ pub async fn update_quest(
     query.push(" WHERE id = ");
     query.push_bind(props.id);
 
-    query.push(" RETURNING id, title, completed, created_at, completed_at, order_index;");
+    query
+        .push(" RETURNING id, title, completed, created_at, completed_at, order_index, parent_id;");
 
     let query = query.build_query_as::<QuestRow>();
     let quest_row = query

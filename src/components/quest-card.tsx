@@ -5,7 +5,7 @@ import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
 import { isTodaySelected } from "~/stores/date";
 import { DeleteButton } from "./delete-button";
-import { useNavigate } from "@tanstack/solid-router";
+import { useNavigate, useRouter } from "@tanstack/solid-router";
 
 type FocusOutEvent = FocusEvent & {
   currentTarget: HTMLDivElement;
@@ -19,6 +19,7 @@ interface Props {
 
 export const QuestCard: Component<Props> = (props) => {
   const navigate = useNavigate();
+  const router = useRouter();
 
   let completedBtn!: HTMLButtonElement;
   let card!: HTMLDivElement;
@@ -39,7 +40,9 @@ export const QuestCard: Component<Props> = (props) => {
         questId: props.quest.id,
         completed: newCompleted,
       });
+
       setCompleted(res.completed);
+      router.invalidate();
     } catch (err) {
       console.error(err);
     }

@@ -34,7 +34,12 @@ function RouteComponent() {
   const [titleEditable, setTitleEditable] = createSignal(true);
 
   const handleBackClick = () => {
-    router.history.back();
+    const parentId = data().quest.parentId;
+    if (parentId) {
+      navigate({ to: '/quests/$questId', params: { questId: parentId } });
+    } else {
+      navigate({ to: '/' });
+    }
   }
 
   const handleTitleChange = async (title: string) => {
