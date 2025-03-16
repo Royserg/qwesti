@@ -16,6 +16,7 @@ import { QuestsFilterEnum, QuestsFilterEnumType } from "~/routes";
 interface Props {
   filter: QuestsFilterEnumType;
   quests: Quest[];
+  onQuestDeleted: () => void;
 }
 export const QuestsList: Component<Props> = (props) => {
   const filteredList = (quests: Quest[]) => {
@@ -50,7 +51,7 @@ export const QuestsList: Component<Props> = (props) => {
           </Show>
 
           <For each={filteredList(props.quests ?? [])}>
-            {(item) => <QuestCard quest={item} />}
+            {(item) => <QuestCard quest={item} onDeleted={props.onQuestDeleted} />}
           </For>
         </ErrorBoundary>
       </ul>

@@ -107,6 +107,9 @@ function RouteComponent() {
     dialogRef()?.close();
   }
 
+  const handleSubQuestDeleted = () => {
+    router.invalidate();
+  }
 
   return (
     <BaseLayout class='flex'>
@@ -151,8 +154,7 @@ function RouteComponent() {
         <div class="py-2" />
         <SubQuests
           quests={data().subQuests ?? []}
-          // onQuestDeleted={refetchSubQuests} 
-          onQuestDeleted={() => { }}
+          onQuestDeleted={handleSubQuestDeleted}
         />
 
         <section class="mt-auto flex h-[60px] w-full items-center justify-center border-t pb-1">

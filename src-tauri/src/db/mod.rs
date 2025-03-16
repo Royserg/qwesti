@@ -1,9 +1,9 @@
-use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Executor, Pool, Sqlite};
 use std::fs::create_dir_all;
 use tauri::{AppHandle, Manager};
 
 pub async fn setup_db(app: &AppHandle) -> Pool<Sqlite> {
-    let db_name = "sqlite:qwesti.sqlite";
+    let db_name = "sqlite:qwesti.sqlite?mode=rwc";
     let app_path = app
         .path()
         .app_config_dir()
@@ -23,6 +23,12 @@ pub async fn setup_db(app: &AppHandle) -> Pool<Sqlite> {
     }
 
     let pool = SqlitePoolOptions::new()
+        .after_connect(|conn, _meta| {
+            Box::pin(async move {
+                conn.execute("PRAGMA foreign_keys = ON;").await?;
+                Ok(())
+            })
+        })
         .max_connections(5)
         .connect(conn_url)
         .await

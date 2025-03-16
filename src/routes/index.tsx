@@ -48,6 +48,10 @@ function Index() {
     }
   };
 
+  const handleQuestDeleted = () => {
+    router.invalidate();
+  }
+
   return (
     <BaseLayout class="relative h-screen flex flex-col pt-2">
       <div class="py-2" />
@@ -66,6 +70,7 @@ function Index() {
         <QuestsList
           quests={quests()}
           filter={searchParams().filter}
+          onQuestDeleted={handleQuestDeleted}
         />
       </section>
 
