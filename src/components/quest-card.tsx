@@ -29,8 +29,8 @@ export const QuestCard: Component<Props> = (props) => {
   const [deleteProgress, setDeleteProgress] = createSignal(0);
 
   const handleQuestClick = () => {
-    navigate({ to: '/quests/$questId', params: { questId: props.quest.id } })
-  }
+    navigate({ to: "/quests/$questId", params: { questId: props.quest.id } });
+  };
 
   const handleQuestToggle = async () => {
     try {
@@ -91,42 +91,43 @@ export const QuestCard: Component<Props> = (props) => {
         "bg-gray-100": selected(),
       })}
       style={{
-        'view-transition-name': `quest-${props.quest.id}`,
-        contain: 'layout',
-        background: deleteProgress() > 0
-          ? deleteBtnLinearGradient()
-          : "var(--color-background)",
+        "view-transition-name": `quest-${props.quest.id}`,
+        contain: "layout",
+        background:
+          deleteProgress() > 0
+            ? deleteBtnLinearGradient()
+            : "var(--color-background)",
       }}
       tabIndex={0}
       onKeyUp={handleKeyUp}
       onFocusOut={handleFocusOut}
     >
-      <CardContent class="flex h-full w-full justify-start align-middle p-0">
+      <CardContent class="flex h-full w-full justify-start p-0 align-middle">
         <button
           ref={completedBtn}
           tabIndex={selected() ? 0 : -1}
           type="button"
           class={cn(
-            "cursor-pointer flex justify-center w-12 shadow-inner shadow-black/20",
+            "flex w-12 cursor-pointer justify-center inset-shadow-sm inset-shadow-black/20",
             {
               "bg-amber-300": completed(),
               "bg-card": !completed(),
-              "border-8 border-gray-200 cursor-not-allowed": !isTodaySelected(),
+              "cursor-not-allowed border-8 border-gray-200": !isTodaySelected(),
             },
           )}
           onClick={handleQuestToggle}
           disabled={!isTodaySelected()}
         />
 
-        <div class="w-full h-full flex gap-2 items-center">
+        <div class="flex h-full w-full items-center gap-2">
           <button
             onClick={handleQuestClick}
-            class="w-full h-full pl-4 flex items-center cursor-pointer"
+            class="flex h-full w-full cursor-pointer items-center pl-4"
           >
             {props.quest.title}
           </button>
 
-          <div class="p-3 grid place-items-center">
+          <div class="grid place-items-center p-3">
             <DeleteButton
               tabIndex={selected() ? 0 : -1}
               onDelete={handleDeleteQuest}
