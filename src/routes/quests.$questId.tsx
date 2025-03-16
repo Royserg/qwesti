@@ -26,14 +26,12 @@ function RouteComponent() {
   const params = Route.useParams();
   const data = Route.useLoaderData()
   const router = useRouter()
+  const navigate = useNavigate({ from: '/quests/$questId' })
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>()
   // TODO: check if those are needed -> currently editing title doesn't work (add an explicit button)
   const [title, setTitle] = createSignal('title');
   const [titleEditable, setTitleEditable] = createSignal(true);
-
-  // const [quest, { refetch: refetchQuest }] = createResource(() => params.id, async () => await loadQuest({ id: params.id }));
-  // const [subQuests, { refetch: refetchSubQuests }] = createResource(() => params().questId, () => loadSubQuests(params().questId));
 
   const handleBackClick = () => {
     router.history.back();
@@ -49,7 +47,7 @@ function RouteComponent() {
     try {
       const res = await updateQuestTitle({ questId: questId, title });
       setTitle(res.title);
-      // refetchQuest();
+      router.invalidate();
     } catch (err) {
       console.error(err);
     }
@@ -59,8 +57,14 @@ function RouteComponent() {
     const questId = params().questId;
     if (questId) {
       await deleteQuest({ questId });
-      // Navigate back
-      // navigate('/')
+
+      // Navigate back (when a nested Quest, it should return to closes parent)
+      const questParentId = data().quest.parentId;
+      if (questParentId) {
+        navigate({ to: '/quests/$questId', params: { questId: questParentId } })
+      } else {
+        navigate({ to: '/', search: { filter: 'all' } })
+      }
     }
   };
 
@@ -77,7 +81,7 @@ function RouteComponent() {
         completed: nextCompleted,
       });
 
-      // refetchQuest();
+      router.invalidate();
     } catch (err) {
       console.error(err);
     }
@@ -92,7 +96,7 @@ function RouteComponent() {
     try {
       // pass in parent id
       await addQuest({ title, parentId: questId });
-      // refetchSubQuests();
+      router.invalidate();
       closeDialog();
     } catch (err) {
       console.error(err);
@@ -106,10 +110,6 @@ function RouteComponent() {
 
   return (
     <BaseLayout class='flex'>
-      {/* temporary for testing */}
-      {/* <QuestCard quest={quest()} /> */}
-      {/* temporary for testing */}
-
       <button onClick={handleBackClick} class="w-8 h-full bg-gray-50 flex items-center justify-center cursor-pointer">
         <ChevronLeft class="text-gray-400" />
       </button>
