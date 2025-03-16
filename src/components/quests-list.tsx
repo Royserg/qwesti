@@ -99,10 +99,9 @@ interface FilterButtonProps {
   value: QuestsFilterEnumType;
 }
 const FilterButton: ParentComponent<FilterButtonProps> = (props) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: '/' });
 
   const handleClick = () => {
-    // TODO: pass correct filter type
     navigate({ to: '/', search: { filter: props.value }, replace: true });
   };
 
