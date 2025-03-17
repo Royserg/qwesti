@@ -53,7 +53,7 @@ function Index() {
   }
 
   return (
-    <BaseLayout class="relative h-screen flex flex-col pt-2">
+    <BaseLayout class="relative flex flex-col pt-2">
       <div class="py-2" />
 
       <TodayDate />
