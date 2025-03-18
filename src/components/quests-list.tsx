@@ -43,7 +43,7 @@ export const QuestsList: Component<Props> = (props) => {
       </Show>
 
       <ul
-        class="h-full flex flex-col gap-1 overflow-y-auto pb-2 scrollbar-hide"
+        class="h-full flex flex-col gap-1 overflow-y-auto pb-3 scrollbar-hide"
       >
         <ErrorBoundary fallback={<div>Error</div>}>
           <Show when={filteredList(props.quests ?? []).length === 0}>

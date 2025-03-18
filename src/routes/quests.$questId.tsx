@@ -1,14 +1,14 @@
-import { createFileRoute, useLocation, useNavigate, useRouter } from '@tanstack/solid-router'
-import { addQuest, deleteQuest, loadQuest, loadSubQuests, updateQuestCompleted, updateQuestTitle } from '~/actions';
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/solid-router';
 import ChevronLeft from 'icons/chevron-left';
-import { QuestCard } from '~/components/quest-card';
-import { BaseLayout } from '~/layouts/base';
-import { Component, createResource, createSignal, For, Show } from 'solid-js';
-import { cn } from '~/lib/utils';
-import { AddQuestDialog } from '~/components/add-quest-dialog/add-quest-dialog';
-import { Button } from '~/components/ui/button';
+import { Component, createSignal, For, Show } from 'solid-js';
+import { addQuest, deleteQuest, loadQuest, loadSubQuests, updateQuestCompleted, updateQuestTitle } from '~/actions';
 import { Quest } from '~/bindings';
+import { AddQuestDialog } from '~/components/add-quest-dialog/add-quest-dialog';
 import { DeleteButton } from '~/components/delete-button';
+import { QuestCard } from '~/components/quest-card';
+import { Button } from '~/components/ui/button';
+import { BaseLayout } from '~/layouts/base';
+import { cn } from '~/lib/utils';
 
 
 export const Route = createFileRoute('/quests/$questId')({
@@ -117,69 +117,74 @@ function RouteComponent() {
   }
 
   return (
-    <BaseLayout class='flex'>
-      <button onClick={handleBackClick} class="w-8 h-full bg-gray-50 flex items-center justify-center cursor-pointer">
-        <ChevronLeft class="text-gray-400" />
-      </button>
+    <BaseLayout class='flex flex-col'>
+      <div class='flex h-[calc(100%-70px)]'>
+        <button onClick={handleBackClick} class="w-8 h-full bg-gray-50 flex items-center justify-center cursor-pointer border-r">
+          <ChevronLeft class="text-gray-400" />
+        </button>
 
-      <div class="flex flex-col pt-3 w-full h-full">
-        <div
-          style={{
-            contain: 'layout',
-            'view-transition-name': `quest-${params().questId}`,
-          }}
-          class="flex gap-6 h-12 w-full items-center pb-2 border-b border-b-secondary px-4"
-        >
-          <button
-            type="button"
-            class={cn(
-              "cursor-pointer flex justify-center w-12 h-full shadow-inner shadow-black/20 border",
-              {
-                "bg-amber-300": data().quest.completed,
-                "bg-card": !data().quest.completed,
-              },
-            )}
-            onClick={handleQuestToggle}
-          />
-
-          <h2
-            class="pl-2 text-3xl w-full flex items-center"
+        <div class="h-full w-full flex flex-col pt-3">
+          <div
+            style={{
+              contain: 'layout',
+              'view-transition-name': `quest-${params().questId}`,
+            }}
+            class="flex gap-6 h-12 w-full items-center pb-2 border-b border-b-secondary px-4"
           >
-            {data().quest.title}
-          </h2>
-          {/* <EditableText value={q().title} onSubmit={handleTitleChange} focusable={titleEditable} /> */}
+            <button
+              type="button"
+              class={cn(
+                "cursor-pointer flex justify-center w-12 h-full shadow-inner shadow-black/20 border",
+                {
+                  "bg-amber-300": data().quest.completed,
+                  "bg-card": !data().quest.completed,
+                },
+              )}
+              onClick={handleQuestToggle}
+            />
 
-          <DeleteButton
-            class="mr-2 p-3"
-            onDelete={handleDeleteQuest}
+            <h2
+              class="pl-2 text-3xl w-full flex items-center"
+            >
+              {data().quest.title}
+            </h2>
+            {/* <EditableText value={q().title} onSubmit={handleTitleChange} focusable={titleEditable} /> */}
+
+            <DeleteButton
+              class="mr-2 p-3"
+              onDelete={handleDeleteQuest}
+            />
+          </div>
+
+          {/* Sub-Quests */}
+          <div class="py-2" />
+          <SubQuests
+            quests={data().subQuests ?? []}
+            onQuestDeleted={handleSubQuestDeleted}
           />
         </div>
-
-        {/* Sub-Quests */}
-        <div class="py-2" />
-        <SubQuests
-          quests={data().subQuests ?? []}
-          onQuestDeleted={handleSubQuestDeleted}
-        />
-
-        <section class="mt-auto flex h-[60px] w-full items-center justify-center border-t pb-1">
-          <Button
-            class="h-[50px] w-3/5 rounded-xs"
-            onClick={() => {
-              dialogRef()?.showModal();
-            }}
-          >
-            Add Sub Quest
-          </Button>
-        </section>
-
-        <AddQuestDialog
-          dialogRef={setDialogRef}
-          onSubmit={handleAddQuest}
-          onClose={closeDialog}
-        />
-
       </div>
+
+      <section
+        style={{
+          'view-transition-name': 'bottom-bar'
+        }}
+        class="mt-auto flex h-[80px] w-full items-center justify-center border-t pb-1">
+        <Button
+          class="h-[50px] w-3/5 rounded-xs"
+          onClick={() => {
+            dialogRef()?.showModal();
+          }}
+        >
+          Add Sub Quest
+        </Button>
+      </section>
+
+      <AddQuestDialog
+        dialogRef={setDialogRef}
+        onSubmit={handleAddQuest}
+        onClose={closeDialog}
+      />
     </BaseLayout>
   )
 }
@@ -191,10 +196,10 @@ const SubQuests: Component<{
   onQuestDeleted?: () => void;
 }> = (props) => {
   return (
-    <section class="flex flex-col gap-2">
+    <section class="flex flex-col flex-1 gap-2 overflow-auto">
       <Show when={props.quests.length > 0}>
         <h3 class="pl-4 text-xl text-muted-foreground">Sub Quests</h3>
-        <div class="px-6 flex flex-col gap-1">
+        <div class="px-6 flex flex-col gap-1 pb-3">
           <For each={props.quests}>
             {(item) => <QuestCard quest={item} onDeleted={() => props.onQuestDeleted?.()} />}
           </For>
