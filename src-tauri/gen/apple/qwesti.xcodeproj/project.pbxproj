@@ -28,9 +28,11 @@
 		246B2D2FABFD443AE6460913 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		27360211E1844DC1F5257CE2 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		284B5EDC8828A5E73EEDC528 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		2CEF5D84E1151FACB6513AC1 /* get_quest.rs */ = {isa = PBXFileReference; path = get_quest.rs; sourceTree = "<group>"; };
 		4103AB368DE4C50E6E48B3B7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4E39C057CDC9A79FA4A811E3 /* get_quests.rs */ = {isa = PBXFileReference; path = get_quests.rs; sourceTree = "<group>"; };
 		576A86DC9D32AF2845280DB9 /* quest.rs */ = {isa = PBXFileReference; path = quest.rs; sourceTree = "<group>"; };
+		689B0620BF5458D4BF0ED6D8 /* get_sub_quests.rs */ = {isa = PBXFileReference; path = get_sub_quests.rs; sourceTree = "<group>"; };
 		6E459F0AAD6518204CFE16DD /* mod.rs */ = {isa = PBXFileReference; path = mod.rs; sourceTree = "<group>"; };
 		6F391D80652417C921FE5C26 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		7AB1EA50C567EF9D9D34652E /* qwesti_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = qwesti_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -100,7 +102,9 @@
 			children = (
 				93489008BDC2510A5DF5DD58 /* add_quest.rs */,
 				BF508F2569495F80A059AB17 /* delete_quest.rs */,
+				2CEF5D84E1151FACB6513AC1 /* get_quest.rs */,
 				4E39C057CDC9A79FA4A811E3 /* get_quests.rs */,
+				689B0620BF5458D4BF0ED6D8 /* get_sub_quests.rs */,
 				6E459F0AAD6518204CFE16DD /* mod.rs */,
 				A3F17624AD28FA198E2CCAA1 /* update_quest.rs */,
 			);
