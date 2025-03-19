@@ -5,6 +5,7 @@ import { addQuest, deleteQuest, loadQuest, loadSubQuests, updateQuestCompleted, 
 import { Quest } from '~/bindings';
 import { AddQuestDialog } from '~/components/add-quest-dialog/add-quest-dialog';
 import { DeleteButton } from '~/components/delete-button';
+import { EditableText } from '~/components/editable-text';
 import { QuestCard } from '~/components/quest-card';
 import { Button } from '~/components/ui/button';
 import { BaseLayout } from '~/layouts/base';
@@ -29,9 +30,6 @@ function RouteComponent() {
   const navigate = useNavigate({ from: '/quests/$questId' })
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>()
-  // TODO: check if those are needed -> currently editing title doesn't work (add an explicit button)
-  const [title, setTitle] = createSignal('title');
-  const [titleEditable, setTitleEditable] = createSignal(true);
 
   const handleBackClick = () => {
     const parentId = data().quest.parentId;
@@ -50,8 +48,7 @@ function RouteComponent() {
     }
 
     try {
-      const res = await updateQuestTitle({ questId: questId, title });
-      setTitle(res.title);
+      await updateQuestTitle({ questId: questId, title });
       router.invalidate();
     } catch (err) {
       console.error(err);
@@ -143,12 +140,7 @@ function RouteComponent() {
               onClick={handleQuestToggle}
             />
 
-            <h2
-              class="pl-2 text-3xl w-full flex items-center"
-            >
-              {data().quest.title}
-            </h2>
-            {/* <EditableText value={q().title} onSubmit={handleTitleChange} focusable={titleEditable} /> */}
+            <EditableText value={data().quest.title} onSubmit={handleTitleChange} focusable={() => true} />
 
             <DeleteButton
               class="mr-2 p-3"
