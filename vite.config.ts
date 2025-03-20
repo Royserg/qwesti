@@ -15,8 +15,7 @@ export default defineConfig(async () => ({
     tailwindcss(),
     TanStackRouterVite({
       target: 'solid',
-      // NOTE: commented out to make view-transitions work
-      // autoCodeSplitting: true 
+      autoCodeSplitting: true,
     }),
   ],
 
