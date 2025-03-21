@@ -14,6 +14,9 @@ importers:
       '@kobalte/core':
         specifier: ^0.13.7
         version: 0.13.9(solid-js@1.9.5)
+      '@neodrag/solid':
+        specifier: ^2.3.0
+        version: 2.3.0(solid-js@1.9.5)
       '@tailwindcss/vite':
         specifier: ^4.0.0
         version: 4.0.14(vite@6.2.2(@types/node@22.13.10)(jiti@2.4.2)(lightningcss@1.29.2)(tsx@4.19.3))
@@ -374,6 +377,11 @@ packages:
     resolution: {integrity: sha512-eeU60A3kprIiBDAfv9gUJX1tXGLuZiKMajUfSQURAF2pk4ZoMYiqIzmrMBvzcxP39xnYttgTyQEVLwiTZnrV4w==}
     peerDependencies:
       solid-js: ^1.8.8
+
+  '@neodrag/solid@2.3.0':
+    resolution: {integrity: sha512-j6EAqCx3NbFNv3NiutPLudLmYBfcRGZoezAvODwwmMtEl4BR+i3n5PhxQCbc5rsw8Zf6AoOW7TJ3onah291v8w==}
+    peerDependencies:
+      solid-js: ^1.0.0
 
   '@nothing-but/utils@0.17.0':
     resolution: {integrity: sha512-TuCHcHLOqDL0SnaAxACfuRHBNRgNJcNn9X0GiH5H3YSDBVquCr3qEIG3FOQAuMyZCbu9w8nk2CHhOsn7IvhIwQ==}
@@ -1587,6 +1595,10 @@ snapshots:
       '@solid-primitives/props': 3.2.0(solid-js@1.9.5)
       '@solid-primitives/refs': 1.1.0(solid-js@1.9.5)
       '@solid-primitives/utils': 6.3.0(solid-js@1.9.5)
+      solid-js: 1.9.5
+
+  '@neodrag/solid@2.3.0(solid-js@1.9.5)':
+    dependencies:
       solid-js: 1.9.5
 
   '@nothing-but/utils@0.17.0': {}
