@@ -1,59 +1,138 @@
 import {
-  Component,
-  ErrorBoundary,
-  For,
-  Show
-} from "solid-js";
+  closestCenter, createSortable, DragDropProvider,
+  DragDropSensors, DragEventHandler, DragOverlay, Id, SortableProvider, useDragDropContext
+} from "@thisbeyond/solid-dnd";
+import { Component, createSignal, ErrorBoundary, For, ParentProps, Show } from "solid-js";
 import { Quest } from "~/bindings";
 import { QuestsFilterEnumType } from "~/routes";
 import { isTodaySelected } from "~/stores/date";
 import { Filters } from "./filters";
 import { QuestCard } from "./quest-card";
 
-
 interface Props {
   filter: QuestsFilterEnumType;
   quests: Quest[];
   onQuestDeleted: () => void;
 }
+
 export const QuestsList: Component<Props> = (props) => {
   const filteredList = (quests: Quest[]) => {
-    if (props.filter === 'pending') {
+    if (props.filter === "pending") {
       return quests.filter((quest) => !quest.completed);
     }
-    if (props.filter === 'completed') {
+    if (props.filter === "completed") {
       return quests.filter((quest) => quest.completed);
     }
 
     return quests;
   };
 
+  const items = () => filteredList(props.quests);
+
+  const [activeItem, setActiveItem] = createSignal<Id | null>(null);
+  const ids = () => items().map(item => item.id as Id);
+
+  const onDragStart: DragEventHandler = ({ draggable }) => setActiveItem(draggable.id);
+
+  const onDragEnd: DragEventHandler = ({ draggable, droppable }) => {
+    if (draggable && droppable) {
+      const currentItems = ids();
+      const fromIndex = currentItems.indexOf(draggable.id);
+      const toIndex = currentItems.indexOf(droppable.id);
+
+      if (fromIndex !== toIndex) {
+        const updatedItems = currentItems.slice();
+        updatedItems.splice(toIndex, 0, ...updatedItems.splice(fromIndex, 1));
+
+        console.log('UPDATED ITEMS', updatedItems);
+        // setItems(updatedItems);
+      }
+    }
+  };
+
   return (
-    <div class="h-full flex flex-col gap-6 overflow-hidden">
+    <div class="flex h-full flex-col gap-6 overflow-hidden">
       <Show when={props.quests}>
         {(quests) => {
           return (
             <Show when={quests()?.length > 0 && isTodaySelected()}>
               <Filters filter={(props.filter as string) ?? "all"} />
             </Show>
-          )
+          );
         }}
       </Show>
 
-      <ul
-        class="h-full flex flex-col gap-1 overflow-y-auto pb-3 scrollbar-hide"
-      >
+      <ul class="scrollbar-hide flex h-full flex-col gap-1 overflow-y-auto pb-3">
         <ErrorBoundary fallback={<div>Error</div>}>
-          <Show when={filteredList(props.quests ?? []).length === 0}>
-            <h3 class="h-full text-center mt-10 text-3xl text-accent">No quests</h3>
+          <Show when={items().length === 0}>
+            <h3 class="text-accent mt-10 h-full text-center text-3xl">
+              No quests
+            </h3>
           </Show>
 
-          <For each={filteredList(props.quests ?? [])}>
-            {(item) => <QuestCard quest={item} onDeleted={props.onQuestDeleted} />}
-          </For>
+          <div class="flex flex-col gap-1">
+            <DragDropProvider
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              collisionDetector={closestCenter}
+            >
+              <DragDropSensors />
+
+              {/* 
+              <For each={filteredList(props.quests)}> 
+                {(item) => (
+                  <QuestCard quest={item} onDeleted={props.onQuestDeleted} />
+                )}
+              </For>
+              */}
+
+              <div class="flex flex-col self-stretch gap-1">
+                <SortableProvider ids={ids()}>
+                  <For each={items()}>
+                    {(item) => {
+                      return (
+                        <SortableItem item={item}>
+                          <QuestCard quest={item} onDeleted={props.onQuestDeleted} />
+                        </SortableItem>
+                      )
+                    }}
+                  </For>
+                </SortableProvider>
+              </div>
+
+              <DragOverlay>
+                <div class="bg-background w-[calc(80%)] h-[40px] border p-1 pl-[20px] rounded-xs">
+                  {items().find(item => item.id === activeItem())?.title ?? '-'}
+                </div>
+              </DragOverlay>
+
+            </DragDropProvider>
+          </div>
         </ErrorBoundary>
       </ul>
     </div>
   );
 };
+
+interface SortableItemProps extends ParentProps {
+  item: Quest;
+}
+const SortableItem: Component<SortableItemProps> = (props) => {
+  const sortable = createSortable(props.item.id);
+  //@ts-ignore
+  const [state] = useDragDropContext();
+
+  return <div
+    //@ts-ignore
+    use:sortable
+    class="sortable"
+    classList={{
+      "opacity-25": sortable.isActiveDraggable,
+      "transition-transform": !!state.active.draggable,
+    }}
+  >
+    {props.children}
+  </div>
+}
+
 

@@ -8,15 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@formkit/auto-animate':
-        specifier: ^0.8.2
-        version: 0.8.2
       '@kobalte/core':
         specifier: ^0.13.7
         version: 0.13.9(solid-js@1.9.5)
-      '@neodrag/solid':
-        specifier: ^2.3.0
-        version: 2.3.0(solid-js@1.9.5)
       '@tailwindcss/vite':
         specifier: ^4.0.0
         version: 4.0.14(vite@6.2.2(@types/node@22.13.10)(jiti@2.4.2)(lightningcss@1.29.2)(tsx@4.19.3))
@@ -29,6 +23,9 @@ importers:
       '@tauri-apps/plugin-opener':
         specifier: 2.2.6
         version: 2.2.6
+      '@thisbeyond/solid-dnd':
+        specifier: ^0.7.5
+        version: 0.7.5(solid-js@1.9.5)
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -341,9 +338,6 @@ packages:
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
 
-  '@formkit/auto-animate@0.8.2':
-    resolution: {integrity: sha512-SwPWfeRa5veb1hOIBMdzI+73te5puUBHmqqaF1Bu7FjvxlYSz/kJcZKSa9Cg60zL0uRNeJL2SbRxV6Jp6Q1nFQ==}
-
   '@internationalized/date@3.7.0':
     resolution: {integrity: sha512-VJ5WS3fcVx0bejE/YHfbDKR/yawZgKqn/if+oEeLqNwBtPzVB06olkfcnojTmEMX+gTpH+FlQ69SHNitJ8/erQ==}
 
@@ -377,11 +371,6 @@ packages:
     resolution: {integrity: sha512-eeU60A3kprIiBDAfv9gUJX1tXGLuZiKMajUfSQURAF2pk4ZoMYiqIzmrMBvzcxP39xnYttgTyQEVLwiTZnrV4w==}
     peerDependencies:
       solid-js: ^1.8.8
-
-  '@neodrag/solid@2.3.0':
-    resolution: {integrity: sha512-j6EAqCx3NbFNv3NiutPLudLmYBfcRGZoezAvODwwmMtEl4BR+i3n5PhxQCbc5rsw8Zf6AoOW7TJ3onah291v8w==}
-    peerDependencies:
-      solid-js: ^1.0.0
 
   '@nothing-but/utils@0.17.0':
     resolution: {integrity: sha512-TuCHcHLOqDL0SnaAxACfuRHBNRgNJcNn9X0GiH5H3YSDBVquCr3qEIG3FOQAuMyZCbu9w8nk2CHhOsn7IvhIwQ==}
@@ -807,6 +796,12 @@ packages:
 
   '@tauri-apps/plugin-opener@2.2.6':
     resolution: {integrity: sha512-bSdkuP71ZQRepPOn8BOEdBKYJQvl6+jb160QtJX/i2H9BF6ZySY/kYljh76N2Ne5fJMQRge7rlKoStYQY5Jq1w==}
+
+  '@thisbeyond/solid-dnd@0.7.5':
+    resolution: {integrity: sha512-DfI5ff+yYGpK9M21LhYwIPlbP2msKxN2ARwuu6GF8tT1GgNVDTI8VCQvH4TJFoVApP9d44izmAcTh/iTCH2UUw==}
+    engines: {node: '>=18.0.0', pnpm: '>=8.6.0'}
+    peerDependencies:
+      solid-js: ^1.5
 
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
@@ -1547,8 +1542,6 @@ snapshots:
 
   '@floating-ui/utils@0.2.9': {}
 
-  '@formkit/auto-animate@0.8.2': {}
-
   '@internationalized/date@3.7.0':
     dependencies:
       '@swc/helpers': 0.5.15
@@ -1595,10 +1588,6 @@ snapshots:
       '@solid-primitives/props': 3.2.0(solid-js@1.9.5)
       '@solid-primitives/refs': 1.1.0(solid-js@1.9.5)
       '@solid-primitives/utils': 6.3.0(solid-js@1.9.5)
-      solid-js: 1.9.5
-
-  '@neodrag/solid@2.3.0(solid-js@1.9.5)':
-    dependencies:
       solid-js: 1.9.5
 
   '@nothing-but/utils@0.17.0': {}
@@ -1984,6 +1973,10 @@ snapshots:
   '@tauri-apps/plugin-opener@2.2.6':
     dependencies:
       '@tauri-apps/api': 2.3.0
+
+  '@thisbeyond/solid-dnd@0.7.5(solid-js@1.9.5)':
+    dependencies:
+      solid-js: 1.9.5
 
   '@types/babel__core@7.20.5':
     dependencies:

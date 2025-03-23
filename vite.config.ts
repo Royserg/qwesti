@@ -3,7 +3,7 @@ import path from "path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import { fileURLToPath, URL } from "node:url";
-import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -14,7 +14,7 @@ export default defineConfig(async () => ({
     solid(),
     tailwindcss(),
     TanStackRouterVite({
-      target: 'solid',
+      target: "solid",
       autoCodeSplitting: true,
     }),
   ],
@@ -22,7 +22,7 @@ export default defineConfig(async () => ({
   resolve: {
     alias: {
       "~": path.resolve(__dirname, "./src"),
-      "icons": fileURLToPath(
+      icons: fileURLToPath(
         new URL(
           "./node_modules/lucide-solid/dist/source/icons",
           import.meta.url,
@@ -53,5 +53,3 @@ export default defineConfig(async () => ({
     },
   },
 }));
-
-

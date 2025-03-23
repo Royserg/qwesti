@@ -1,3 +1,4 @@
+import { useNavigate, useRouter } from "@tanstack/solid-router";
 import { createSignal, type Component } from "solid-js";
 import { deleteQuest, updateQuestCompleted } from "~/actions";
 import type { Quest } from "~/bindings";
@@ -5,7 +6,6 @@ import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
 import { isTodaySelected } from "~/stores/date";
 import { DeleteButton } from "./delete-button";
-import { useNavigate, useRouter } from "@tanstack/solid-router";
 
 type FocusOutEvent = FocusEvent & {
   currentTarget: HTMLDivElement;
@@ -22,6 +22,7 @@ export const QuestCard: Component<Props> = (props) => {
   const router = useRouter();
 
   let completedBtn!: HTMLButtonElement;
+
   let card!: HTMLDivElement;
 
   const [selected, setSelected] = createSignal(false);
@@ -88,7 +89,7 @@ export const QuestCard: Component<Props> = (props) => {
     <Card
       ref={card}
       class={cn("h-[50px]", {
-        "bg-gray-100": selected(),
+        // "bg-gray-100": selected(), // NOTE: doesn't take effect because of style below
       })}
       style={{
         "view-transition-name": `quest-${props.quest.id}`,
@@ -102,7 +103,7 @@ export const QuestCard: Component<Props> = (props) => {
       onKeyUp={handleKeyUp}
       onFocusOut={handleFocusOut}
     >
-      <CardContent class="flex h-full w-full justify-start p-0 align-middle">
+      <CardContent class={cn("flex h-full w-full justify-start p-0 align-middle")}>
         <button
           ref={completedBtn}
           tabIndex={selected() ? 0 : -1}
@@ -119,7 +120,7 @@ export const QuestCard: Component<Props> = (props) => {
           disabled={!isTodaySelected()}
         />
 
-        <div class="flex h-full w-full items-center gap-2">
+        <div class={cn("flex h-full w-full items-center gap-2 bg-background")}>
           <button
             onClick={handleQuestClick}
             class="flex h-full w-full cursor-pointer items-center pl-4"
@@ -139,3 +140,4 @@ export const QuestCard: Component<Props> = (props) => {
     </Card>
   );
 };
+
