@@ -39,7 +39,7 @@ pub async fn get_quests(
                 AND
             parent_id IS NULL
         ORDER BY
-            created_at DESC
+            order_index, created_at DESC
         "#,
             date,
         )

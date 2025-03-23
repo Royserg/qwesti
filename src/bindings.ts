@@ -52,6 +52,14 @@ async deleteQuest(props: DeleteQuestRequest) : Promise<Result<null, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async updateQuestsOrder(props: UpdateQuestsOrderRequest) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("update_quests_order", { props }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -70,6 +78,7 @@ export type DeleteQuestRequest = { id: string }
 export type Quest = { id: string; title: string; completed: boolean; createdAt: string; completedAt: string | null; orderIndex: number; parentId: string | null }
 export type UpdateQuestData = { title?: string | null; completed?: boolean | null }
 export type UpdateQuestRequest = { id: string; data: UpdateQuestData }
+export type UpdateQuestsOrderRequest = { ids: string[] }
 
 /** tauri-specta globals **/
 

@@ -1,138 +1,165 @@
 import {
-  closestCenter, createSortable, DragDropProvider,
-  DragDropSensors, DragEventHandler, DragOverlay, Id, SortableProvider, useDragDropContext
+  closestCenter,
+  createSortable,
+  DragDropProvider,
+  DragDropSensors,
+  type DragEventHandler,
+  DragOverlay,
+  type Id,
+  SortableProvider,
+  useDragDropContext,
 } from "@thisbeyond/solid-dnd";
-import { Component, createSignal, ErrorBoundary, For, ParentProps, Show } from "solid-js";
-import { Quest } from "~/bindings";
-import { QuestsFilterEnumType } from "~/routes";
+import {
+  type Component,
+  createSignal,
+  ErrorBoundary,
+  For,
+  type ParentProps,
+  Show,
+} from "solid-js";
+import { updateQuestsOrder } from "~/actions/update-quests-order";
+import type { Quest } from "~/bindings";
+import type { QuestsFilterEnumType } from "~/routes";
 import { isTodaySelected } from "~/stores/date";
 import { Filters } from "./filters";
 import { QuestCard } from "./quest-card";
 
 interface Props {
-  filter: QuestsFilterEnumType;
-  quests: Quest[];
-  onQuestDeleted: () => void;
+	filter: QuestsFilterEnumType;
+	quests: Quest[];
+	onQuestDeleted: () => void;
 }
 
 export const QuestsList: Component<Props> = (props) => {
-  const filteredList = (quests: Quest[]) => {
-    if (props.filter === "pending") {
-      return quests.filter((quest) => !quest.completed);
-    }
-    if (props.filter === "completed") {
-      return quests.filter((quest) => quest.completed);
-    }
 
-    return quests;
-  };
+  // TODO: move filtering to the backend
+	const filteredList = (quests: Quest[]) => {
+		if (props.filter === "pending") {
+			return quests.filter((quest) => !quest.completed);
+		}
+		if (props.filter === "completed") {
+			return quests.filter((quest) => quest.completed);
+		}
 
-  const items = () => filteredList(props.quests);
+		return quests;
+	};
 
-  const [activeItem, setActiveItem] = createSignal<Id | null>(null);
-  const ids = () => items().map(item => item.id as Id);
 
-  const onDragStart: DragEventHandler = ({ draggable }) => setActiveItem(draggable.id);
+	const [items, setItems] = createSignal<Quest[]>(filteredList(props.quests));
+	// const items = () => filteredList(props.quests);
 
-  const onDragEnd: DragEventHandler = ({ draggable, droppable }) => {
-    if (draggable && droppable) {
-      const currentItems = ids();
-      const fromIndex = currentItems.indexOf(draggable.id);
-      const toIndex = currentItems.indexOf(droppable.id);
+	const [activeItem, setActiveItem] = createSignal<Id | null>(null);
+	const ids = () => items().map((item) => item.id as Id);
 
-      if (fromIndex !== toIndex) {
-        const updatedItems = currentItems.slice();
-        updatedItems.splice(toIndex, 0, ...updatedItems.splice(fromIndex, 1));
+	const onDragStart: DragEventHandler = ({ draggable }) =>
+		setActiveItem(draggable.id);
 
-        console.log('UPDATED ITEMS', updatedItems);
-        // setItems(updatedItems);
-      }
-    }
-  };
+	const onDragEnd: DragEventHandler = ({ draggable, droppable }) => {
+		if (draggable && droppable) {
+			const currentItems = ids();
+			const fromIndex = currentItems.indexOf(draggable.id);
+			const toIndex = currentItems.indexOf(droppable.id);
 
-  return (
-    <div class="flex h-full flex-col gap-6 overflow-hidden">
-      <Show when={props.quests}>
-        {(quests) => {
-          return (
-            <Show when={quests()?.length > 0 && isTodaySelected()}>
-              <Filters filter={(props.filter as string) ?? "all"} />
-            </Show>
-          );
-        }}
-      </Show>
+			if (fromIndex !== toIndex) {
+				const updatedItems = currentItems.slice();
+				updatedItems.splice(toIndex, 0, ...updatedItems.splice(fromIndex, 1));
 
-      <ul class="scrollbar-hide flex h-full flex-col gap-1 overflow-y-auto pb-3">
-        <ErrorBoundary fallback={<div>Error</div>}>
-          <Show when={items().length === 0}>
-            <h3 class="text-accent mt-10 h-full text-center text-3xl">
-              No quests
-            </h3>
-          </Show>
+				updateQuestsOrder({ ids: updatedItems as string[] });
 
-          <div class="flex flex-col gap-1">
-            <DragDropProvider
-              onDragStart={onDragStart}
-              onDragEnd={onDragEnd}
-              collisionDetector={closestCenter}
-            >
-              <DragDropSensors />
+				setItems((prevItems) => {
+					const reorderedQuests: Quest[] = [];
 
-              {/* 
-              <For each={filteredList(props.quests)}> 
-                {(item) => (
-                  <QuestCard quest={item} onDeleted={props.onQuestDeleted} />
-                )}
-              </For>
-              */}
+					for (const id of updatedItems) {
+						const quest = prevItems.find((item) => item.id === id);
+						if (quest) {
+							reorderedQuests.push(quest);
+						}
+					}
 
-              <div class="flex flex-col self-stretch gap-1">
-                <SortableProvider ids={ids()}>
-                  <For each={items()}>
-                    {(item) => {
-                      return (
-                        <SortableItem item={item}>
-                          <QuestCard quest={item} onDeleted={props.onQuestDeleted} />
-                        </SortableItem>
-                      )
-                    }}
-                  </For>
-                </SortableProvider>
-              </div>
+					return reorderedQuests;
+				});
+			}
+		}
+	};
 
-              <DragOverlay>
-                <div class="bg-background w-[calc(80%)] h-[40px] border p-1 pl-[20px] rounded-xs">
-                  {items().find(item => item.id === activeItem())?.title ?? '-'}
-                </div>
-              </DragOverlay>
+	return (
+		<div class="flex h-full flex-col gap-6 overflow-hidden">
+			<Show when={props.quests}>
+				{(quests) => {
+					return (
+						<Show when={quests()?.length > 0 && isTodaySelected()}>
+							<Filters filter={(props.filter as string) ?? "all"} />
+						</Show>
+					);
+				}}
+			</Show>
 
-            </DragDropProvider>
-          </div>
-        </ErrorBoundary>
-      </ul>
-    </div>
-  );
+			<ul class="scrollbar-hide flex h-full flex-col gap-1 overflow-y-auto pb-3">
+				<ErrorBoundary fallback={<div>Error</div>}>
+					<Show when={items().length === 0}>
+						<h3 class="text-accent mt-10 h-full text-center text-3xl">
+							No quests
+						</h3>
+					</Show>
+
+					<div class="flex flex-col gap-1">
+						<DragDropProvider
+							onDragStart={onDragStart}
+							onDragEnd={onDragEnd}
+							collisionDetector={closestCenter}
+						>
+							<DragDropSensors />
+
+							<div class="flex flex-col self-stretch gap-1">
+								<SortableProvider ids={ids()}>
+									<For each={items()}>
+										{(item) => {
+											return (
+												<SortableItem item={item}>
+													<QuestCard
+														quest={item}
+														onDeleted={props.onQuestDeleted}
+													/>
+												</SortableItem>
+											);
+										}}
+									</For>
+								</SortableProvider>
+							</div>
+
+							<DragOverlay>
+								<div class="bg-background w-[calc(80%)] h-[40px] border p-1 pl-[20px] rounded-xs">
+									{items().find((item) => item.id === activeItem())?.title ??
+										"-"}
+								</div>
+							</DragOverlay>
+						</DragDropProvider>
+					</div>
+				</ErrorBoundary>
+			</ul>
+		</div>
+	);
 };
 
 interface SortableItemProps extends ParentProps {
-  item: Quest;
+	item: Quest;
 }
 const SortableItem: Component<SortableItemProps> = (props) => {
-  const sortable = createSortable(props.item.id);
-  //@ts-ignore
-  const [state] = useDragDropContext();
+	const sortable = createSortable(props.item.id);
+	//@ts-ignore
+	const [state] = useDragDropContext();
 
-  return <div
-    //@ts-ignore
-    use:sortable
-    class="sortable"
-    classList={{
-      "opacity-25": sortable.isActiveDraggable,
-      "transition-transform": !!state.active.draggable,
-    }}
-  >
-    {props.children}
-  </div>
-}
-
-
+	return (
+		<div
+			//@ts-ignore
+			use:sortable
+			class="sortable"
+			classList={{
+				"opacity-25": sortable.isActiveDraggable,
+				"transition-transform": !!state.active.draggable,
+			}}
+		>
+			{props.children}
+		</div>
+	);
+};

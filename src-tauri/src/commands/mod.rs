@@ -13,5 +13,8 @@ pub use add_quest::*;
 mod update_quest;
 pub use update_quest::*;
 
+mod update_quests_order;
+pub use update_quests_order::*;
+
 mod delete_quest;
 pub use delete_quest::*;
