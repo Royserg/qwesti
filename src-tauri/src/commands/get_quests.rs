@@ -17,6 +17,7 @@ pub async fn get_quests(
     // For dates in the past, show only completed Quests
     // Not completed carry over to the current date
     if date == today_date {
+        // TODO: convert to queryBuilder, add filter property
         let quests = sqlx::query_as!(
             QuestRow,
             r#"
@@ -69,7 +70,7 @@ pub async fn get_quests(
             AND
             parent_id IS NULL
         ORDER BY
-            created_at DESC
+            order_index, created_at DESC
         "#,
             date,
         )
