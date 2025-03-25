@@ -7,7 +7,7 @@ interface Request {
 }
 export const loadQuests = async () => {
   const dateString = selectedDateBEFormat();
-  const res = await commands.getQuests(dateString);
+  const res = await commands.getQuests({ date: dateString, filter: 'all' });
 
   if (res.status === "error") {
     throw new Error(res.error);
@@ -18,8 +18,8 @@ export const loadQuests = async () => {
   return res.data;
 };
 
-export const loadQuestsForDate = async (dateString: string) => {
-  const res = await commands.getQuests(dateString);
+export const loadQuestsForDate = async (dateString: string, filter: string) => {
+  const res = await commands.getQuests({ date: dateString, filter });
 
   if (res.status === "error") {
     throw new Error(res.error);

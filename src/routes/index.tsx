@@ -24,7 +24,7 @@ export const Route = createFileRoute('/')({
   component: Index,
   validateSearch: questsSearchSchema,
   loaderDeps: ({ search: { date, filter } }) => ({ date, filter }),
-  loader: ({ deps }) => loadQuestsForDate(deps.date),
+  loader: ({ deps }) => loadQuestsForDate(deps.date, deps.filter),
 })
 
 function Index() {
