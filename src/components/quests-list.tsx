@@ -1,3 +1,4 @@
+import { useSearch } from "@tanstack/solid-router";
 import {
   closestCenter,
   createSortable,
@@ -19,6 +20,7 @@ import {
 } from "solid-js";
 import { updateQuestsOrder } from "~/actions/update-quests-order";
 import type { Quest } from "~/bindings";
+import { getTodayDate } from "~/lib/date";
 import type { QuestsFilterEnumType } from "~/routes";
 import { Filters } from "./filters";
 import { QuestCard } from "./quest-card";
@@ -66,21 +68,20 @@ export const QuestsList: Component<Props> = (props) => {
     }
   };
 
+
+  const search = useSearch({ from: '/' })
+
+  const isTodaySelected = () => {
+    return search().date === getTodayDate();
+  }
+
   return (
     <div class="flex h-full flex-col gap-6 overflow-hidden">
-      {/* TODO: Show only for today's date */}
 
-      <Filters filter={(props.filter as string) ?? "all"} />
-
-      {/* <Show when={props.quests}> */}
-      {/* 	{(quests) => { */}
-      {/* 		return ( */}
-      {/* 			<Show when={quests()?.length > 0 && isTodaySelected()}> */}
-      {/* 				<Filters filter={(props.filter as string) ?? "all"} /> */}
-      {/* 			</Show> */}
-      {/* 		); */}
-      {/* 	}} */}
-      {/* </Show> */}
+      {/* NOTE: Show only for today's date */}
+      <Show when={isTodaySelected()}>
+        <Filters filter={(props.filter as string) ?? "all"} />
+      </Show>
 
       <ul class="scrollbar-hide flex h-full flex-col gap-1 overflow-y-auto pb-3">
         <ErrorBoundary fallback={<div>Error</div>}>

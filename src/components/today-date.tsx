@@ -1,20 +1,15 @@
 import { Link, useSearch } from "@tanstack/solid-router";
-import { addDays, format } from "date-fns";
+import { addDays } from "date-fns";
 import ChevronLeft from 'icons/chevron-left';
 import ChevronRight from 'icons/chevron-right';
+import { dateToString, getTodayDate } from "~/lib/date";
 import { cn } from "~/lib/utils";
-import { BE_DATE_FROMAT } from "~/stores/date";
 
 export const TodayDate = () => {
   const search = useSearch({ from: '/' })
 
-  const dateToString = (date: Date) => {
-    return format(date, BE_DATE_FROMAT);
-  }
-
   const isTodaySelected = () => {
-    const today = dateToString(new Date());
-    return search().date === today;
+    return search().date === getTodayDate();
   }
 
   return (
