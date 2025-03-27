@@ -23,7 +23,7 @@
     "@tauri-apps/api": "2.3.0",
     "@tauri-apps/plugin-opener": "2.2.6",
     "date-fns": "^4.1.0",
-    "lucide-solid": "^0.482.0",
+    "lucide-solid": "^0.484.0",
     "solid-js": "^1.9.5",
     "solid-transition-group": "^0.3.0",
     "tailwindcss": "^4.0.0",
