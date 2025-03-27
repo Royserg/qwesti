@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@formkit/drag-and-drop':
+        specifier: ^0.4.2
+        version: 0.4.2
       '@kobalte/core':
         specifier: ^0.13.7
         version: 0.13.9(solid-js@1.9.5)
@@ -23,9 +26,6 @@ importers:
       '@tauri-apps/plugin-opener':
         specifier: 2.2.6
         version: 2.2.6
-      '@thisbeyond/solid-dnd':
-        specifier: ^0.7.5
-        version: 0.7.5(solid-js@1.9.5)
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -337,6 +337,9 @@ packages:
 
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
+
+  '@formkit/drag-and-drop@0.4.2':
+    resolution: {integrity: sha512-AVyhGFrIg51SpG+tjYQYC0J5LXCv4qCfPUl3Brr2vccictNnxOEgfJ1xCZsT0G5ugOASNBgGoTBXyrN/HxOxNQ==}
 
   '@internationalized/date@3.7.0':
     resolution: {integrity: sha512-VJ5WS3fcVx0bejE/YHfbDKR/yawZgKqn/if+oEeLqNwBtPzVB06olkfcnojTmEMX+gTpH+FlQ69SHNitJ8/erQ==}
@@ -796,12 +799,6 @@ packages:
 
   '@tauri-apps/plugin-opener@2.2.6':
     resolution: {integrity: sha512-bSdkuP71ZQRepPOn8BOEdBKYJQvl6+jb160QtJX/i2H9BF6ZySY/kYljh76N2Ne5fJMQRge7rlKoStYQY5Jq1w==}
-
-  '@thisbeyond/solid-dnd@0.7.5':
-    resolution: {integrity: sha512-DfI5ff+yYGpK9M21LhYwIPlbP2msKxN2ARwuu6GF8tT1GgNVDTI8VCQvH4TJFoVApP9d44izmAcTh/iTCH2UUw==}
-    engines: {node: '>=18.0.0', pnpm: '>=8.6.0'}
-    peerDependencies:
-      solid-js: ^1.5
 
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
@@ -1542,6 +1539,8 @@ snapshots:
 
   '@floating-ui/utils@0.2.9': {}
 
+  '@formkit/drag-and-drop@0.4.2': {}
+
   '@internationalized/date@3.7.0':
     dependencies:
       '@swc/helpers': 0.5.15
@@ -1973,10 +1972,6 @@ snapshots:
   '@tauri-apps/plugin-opener@2.2.6':
     dependencies:
       '@tauri-apps/api': 2.3.0
-
-  '@thisbeyond/solid-dnd@0.7.5(solid-js@1.9.5)':
-    dependencies:
-      solid-js: 1.9.5
 
   '@types/babel__core@7.20.5':
     dependencies:

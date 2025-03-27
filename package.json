@@ -8,7 +8,7 @@
     "d:android": "pnpm tauri android dev",
     "d:ios": "pnpm tauri ios dev",
     "start": "vite",
-    "dev": "vite",
+    "dev": "vite --force",
     "build": "vite build",
     "serve": "vite preview",
     "tauri": "tauri",
@@ -16,12 +16,12 @@
     "t:b:android": "pnpm tauri android build --apk --target aarch64"
   },
   "dependencies": {
+    "@formkit/drag-and-drop": "^0.4.2",
     "@kobalte/core": "^0.13.7",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/solid-router": "^1.114.25",
     "@tauri-apps/api": "2.3.0",
     "@tauri-apps/plugin-opener": "2.2.6",
-    "@thisbeyond/solid-dnd": "^0.7.5",
     "date-fns": "^4.1.0",
     "lucide-solid": "^0.482.0",
     "solid-js": "^1.9.5",
