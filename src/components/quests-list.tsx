@@ -21,10 +21,18 @@ interface Props {
 
 export const QuestsList: Component<Props> = (props) => {
   const [questsContainer, quests] = useDragAndDrop<HTMLDivElement, Quest>(props.quests, {
+    dragHandle: '.drag-handle',
     onDragend: async (data) => {
       const ids = (data.values as Quest[]).map(q => q.id)
       await updateQuestsOrder({ ids })
     },
+    // NOTE: without this QuestCard delete button doesnt fire Pointer events
+    handleNodePointerdown: (_data) => {
+    },
+    handleNodePointerup: (_data) => {
+    },
+    handlePointercancel: (_data) => {
+    }
   })
 
   const search = useSearch({ from: "/" });
