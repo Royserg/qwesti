@@ -26,7 +26,7 @@ pub async fn get_sub_quests(
         WHERE
             parent_id IS $1
         ORDER BY
-            created_at DESC
+            order_index, created_at DESC
         "#,
         quest_id
     )

@@ -10,6 +10,8 @@ import { QuestCard } from '~/components/quest-card';
 import { Button } from '~/components/ui/button';
 import { BaseLayout } from '~/layouts/base';
 import { cn } from '~/lib/utils';
+import { useDragAndDrop } from "@formkit/drag-and-drop/solid";
+import { updateQuestsOrder } from '~/actions/update-quests-order';
 
 
 export const Route = createFileRoute('/quests/$questId')({
@@ -187,13 +189,29 @@ const SubQuests: Component<{
   quests: Quest[],
   onQuestDeleted?: () => void;
 }> = (props) => {
+
+  const [questsContainer, quests] = useDragAndDrop<HTMLDivElement, Quest>(props.quests, {
+    dragHandle: '.drag-handle',
+    onDragend: async (data) => {
+      const ids = (data.values as Quest[]).map(q => q.id)
+      await updateQuestsOrder({ ids })
+    },
+    // NOTE: without this QuestCard delete button doesnt fire Pointer events
+    handleNodePointerdown: (_data) => {
+    },
+    handleNodePointerup: (_data) => {
+    },
+    handlePointercancel: (_data) => {
+    }
+  })
+
   return (
     <section class="flex flex-col flex-1 gap-2 overflow-auto">
       <Show when={props.quests.length > 0}>
         <h3 class="pl-4 text-xl text-muted-foreground">Sub Quests</h3>
-        <div class="px-6 flex flex-col gap-1 pb-3">
-          <For each={props.quests}>
-            {(item) => <QuestCard quest={item} onDeleted={() => props.onQuestDeleted?.()} />}
+        <div ref={questsContainer} class="px-6 flex flex-col gap-1 pb-3">
+          <For each={quests()}>
+            {(q) => <QuestCard data-label={q.id} quest={q} onDeleted={() => props.onQuestDeleted?.()} />}
           </For>
         </div>
       </Show>
