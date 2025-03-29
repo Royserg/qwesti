@@ -118,8 +118,8 @@ function RouteComponent() {
   return (
     <BaseLayout class='flex flex-col'>
       <div class='flex h-[calc(100%-70px)]'>
-        <button onClick={handleBackClick} class="w-8 h-full bg-gray-50 flex items-center justify-center cursor-pointer border-r">
-          <ChevronLeft class="text-gray-400" />
+        <button onClick={handleBackClick} class="w-4 h-full bg-gray-50 flex items-center justify-center cursor-pointer border-r">
+          <ChevronLeft class="text-gray-600" />
         </button>
 
         <div class="h-full w-full flex flex-col pt-3">
