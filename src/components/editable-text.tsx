@@ -59,9 +59,6 @@ export const EditableText: Component<Props> = (props) => {
     <>
       <Show when={!editEnabled()}>
         <div
-          // style={{
-          //   "view-transition-name": 'card',
-          // }}
           onDblClick={() => setEditEnabled(true)}
           ref={textDisplay}
           class="w-full"

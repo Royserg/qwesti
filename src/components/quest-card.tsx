@@ -22,7 +22,6 @@ export const QuestCard: Component<Props> = (props) => {
   const router = useRouter();
 
   let completedBtn!: HTMLButtonElement;
-
   let card!: HTMLDivElement;
 
   const [selected, setSelected] = createSignal(false);
