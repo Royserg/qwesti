@@ -28,6 +28,7 @@ export const EditableText: Component<Props> = (props) => {
       if (newValue().trim().length > 0) {
         try {
           await props.onSubmit(newValue());
+          setNewValue(props.value)
           setEditEnabled(false);
           textDisplay.focus();
         } catch (err) {
@@ -49,7 +50,6 @@ export const EditableText: Component<Props> = (props) => {
     }
     if (e.key === "Escape") {
       // reset
-      setNewValue(props.value);
       setEditEnabled(false);
       textDisplay.focus();
     }
@@ -59,7 +59,11 @@ export const EditableText: Component<Props> = (props) => {
     <>
       <Show when={!editEnabled()}>
         <div
-          onDblClick={() => setEditEnabled(true)}
+          onClick={() => {
+            setEditEnabled(true)
+            setNewValue(props.value)
+            input.focus();
+          }}
           ref={textDisplay}
           class="w-full"
           tabIndex={props.focusable() ? 0 : -1}
@@ -69,19 +73,22 @@ export const EditableText: Component<Props> = (props) => {
         </div>
       </Show>
 
-      <input
-        onKeyUp={handleInputKeyUp}
-        onBlur={() => {
-          handleSubmit();
-          setEditEnabled(false);
-        }}
-        ref={input}
-        class={cn("w-full ", {
-          hidden: !editEnabled(),
-        })}
-        onInput={(e) => setNewValue(e.currentTarget.value)}
-        value={newValue()}
-      />
+      <Show when={editEnabled()}>
+        <input
+          onKeyUp={handleInputKeyUp}
+          onBlur={() => {
+            handleSubmit();
+            setEditEnabled(false);
+          }}
+          ref={input}
+          class={cn("w-full ", {
+            hidden: !editEnabled(),
+          })}
+          onInput={(e) => setNewValue(e.currentTarget.value)}
+          value={props.value}
+        />
+      </Show >
+
     </>
   );
 };
