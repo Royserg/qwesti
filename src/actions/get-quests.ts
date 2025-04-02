@@ -1,6 +1,5 @@
 import { commands } from "~/bindings";
 import { selectedDateBEFormat } from "~/stores/date";
-import { setStore } from "~/stores/quests";
 
 interface Request {
   date: string;
@@ -13,8 +12,6 @@ export const loadQuests = async () => {
     throw new Error(res.error);
   }
 
-  setStore(dateString, res.data)
-
   return res.data;
 };
 
@@ -24,8 +21,6 @@ export const loadQuestsForDate = async (dateString: string, filter: string) => {
   if (res.status === "error") {
     throw new Error(res.error);
   }
-
-  setStore(dateString, res.data)
 
   return res.data;
 }
