@@ -1,3 +1,4 @@
+use chrono::Local;
 use serde::Deserialize;
 use specta::Type;
 use sqlx::{QueryBuilder, Sqlite};
@@ -47,7 +48,9 @@ pub async fn update_quest(
         query.push_bind(completed_as_int);
 
         if completed {
-            query.push(", completed_at = CURRENT_TIMESTAMP ");
+            let today_date = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+            query.push(", completed_at = ");
+            query.push_bind(today_date);
         } else {
             query.push(", completed_at = NULL ");
         };
