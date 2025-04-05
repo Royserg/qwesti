@@ -13,7 +13,7 @@ export const TodayDate = () => {
   }
 
   return (
-    <div class="flex mx-auto gap-2">
+    <div class="flex relative mx-auto gap-2">
       <Link
         to="/"
         search={{
@@ -40,6 +40,20 @@ export const TodayDate = () => {
         })}
       >
         <ChevronRight />
+      </Link>
+
+
+      <Link
+        to="/"
+        search={{
+          filter: 'all',
+          date: dateToString(new Date())
+        }}
+        class={cn("absolute flex items-center top-[-25px] right-[120px] hover:underline hover:text-gray-500", {
+          "invisible": isTodaySelected()
+        })}
+      >
+        Show today
       </Link>
     </div>
   );
