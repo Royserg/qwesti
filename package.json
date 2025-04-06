@@ -4,7 +4,10 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "d": "pnpm tauri dev",
+    "gen-icons:dev": "pnpm tauri icon -o ./icons/dev ./app-icon-dev.png",
+    "gen-icons:prod": "pnpm tauri icon -o ./icons/prod ./app-icon.png",
+    "prep-icons": "sh ./prepare-icons.sh",
+    "d": "ENV=dev pnpm prep-icons && pnpm tauri dev",
     "d:android": "pnpm tauri android dev",
     "d:ios": "pnpm tauri ios dev",
     "start": "vite",
@@ -12,7 +15,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "tauri": "tauri",
-    "t:b:d": "pnpm tauri build",
+    "t:b:d": "ENV=prod pnpm prep-icons && pnpm tauri build",
     "t:b:android": "pnpm tauri android build --apk --target aarch64"
   },
   "dependencies": {
