@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+@font-face {
+  font-family: "Montserrat";
+  src: url('./assets/fonts/Montserrat-VariableFont_wght.ttf') format('woff2');
+}
+
 * {
   user-select: none;
 }
@@ -104,6 +109,9 @@
   }
   body {
     @apply bg-background text-foreground;
+
+    font-family: Montserrat, sans-serif;
+
     font-feature-settings:
       "rlig" 1,
       "calt" 1;

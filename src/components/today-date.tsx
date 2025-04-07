@@ -25,7 +25,7 @@ export const TodayDate = () => {
         <ChevronLeft />
       </Link>
 
-      <h3 class="text-center text-4xl font-semibold w-[250px]">
+      <h3 class="text-center text-4xl font-medium w-[250px]">
         {search().date}
       </h3>
 
