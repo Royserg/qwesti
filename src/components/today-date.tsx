@@ -2,6 +2,7 @@ import { Link, useSearch } from "@tanstack/solid-router";
 import { addDays } from "date-fns";
 import ChevronLeft from 'icons/chevron-left';
 import ChevronRight from 'icons/chevron-right';
+import ChevronsRight from 'icons/chevrons-right';
 import { dateToString, getTodayDate } from "~/lib/date";
 import { cn } from "~/lib/utils";
 
@@ -49,11 +50,11 @@ export const TodayDate = () => {
           filter: 'all',
           date: dateToString(new Date())
         }}
-        class={cn("absolute flex items-center top-[-25px] right-[120px] hover:underline hover:text-gray-500", {
+        class={cn("absolute flex items-center text-gray-400 hover:text-gray-900 top-[8px] right-[-40px]", {
           "invisible": isTodaySelected()
         })}
       >
-        Show today
+        <ChevronsRight />
       </Link>
     </div>
   );
