@@ -1,7 +1,9 @@
+import { useDragAndDrop } from "@formkit/drag-and-drop/solid";
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/solid-router';
 import ChevronLeft from 'icons/chevron-left';
 import { Component, createSignal, For, Show } from 'solid-js';
 import { addQuest, deleteQuest, loadQuest, loadSubQuests, updateQuestCompleted, updateQuestTitle } from '~/actions';
+import { updateQuestsOrder } from '~/actions/update-quests-order';
 import { Quest } from '~/bindings';
 import { AddQuestDialog } from '~/components/add-quest-dialog/add-quest-dialog';
 import { DeleteButton } from '~/components/delete-button';
@@ -10,8 +12,6 @@ import { QuestCard } from '~/components/quest-card';
 import { Button } from '~/components/ui/button';
 import { BaseLayout } from '~/layouts/base';
 import { cn } from '~/lib/utils';
-import { useDragAndDrop } from "@formkit/drag-and-drop/solid";
-import { updateQuestsOrder } from '~/actions/update-quests-order';
 
 
 export const Route = createFileRoute('/quests/$questId')({
@@ -34,12 +34,18 @@ function RouteComponent() {
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>()
 
   const handleBackClick = () => {
-    const parentId = data().quest.parentId;
-    if (parentId) {
-      navigate({ to: '/quests/$questId', params: { questId: parentId } });
+    if (router.history.canGoBack()) {
+      router.history.back()
     } else {
       navigate({ to: '/' });
     }
+
+    // const parentId = data().quest.parentId;
+    // if (parentId) {
+    //   navigate({ to: '/quests/$questId', params: { questId: parentId } });
+    // } else {
+    //   navigate({ to: '/' });
+    // }
   }
 
   const handleTitleChange = async (title: string) => {
@@ -62,12 +68,10 @@ function RouteComponent() {
     if (questId) {
       await deleteQuest({ questId });
 
-      // Navigate back (when a nested Quest, it should return to closes parent)
-      const questParentId = data().quest.parentId;
-      if (questParentId) {
-        navigate({ to: '/quests/$questId', params: { questId: questParentId } })
+      if (router.history.canGoBack()) {
+        router.history.back()
       } else {
-        navigate({ to: '/', search: { filter: 'all' } })
+        navigate({ to: '/' });
       }
     }
   };
