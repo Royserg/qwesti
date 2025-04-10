@@ -167,7 +167,8 @@ function RouteComponent() {
         style={{
           'view-transition-name': 'bottom-bar'
         }}
-        class="mt-auto flex h-[80px] w-full items-center justify-center border-t pb-1">
+        class="bg-background mt-auto flex h-[80px] w-full items-center justify-center border-t pb-1"
+      >
         <Button
           class="h-[50px] w-3/5 rounded-xs"
           onClick={() => {
@@ -210,7 +211,7 @@ const SubQuests: Component<{
   })
 
   return (
-    <section class="flex flex-col flex-1 gap-2 overflow-auto">
+    <section class="flex flex-col flex-1 gap-2 overflow-auto bg-red-500">
       <Show when={props.quests.length > 0}>
         <h3 class="pl-4 text-xl text-muted-foreground">Sub Quests</h3>
         <div ref={questsContainer} class="px-6 flex flex-col gap-1 pb-3">

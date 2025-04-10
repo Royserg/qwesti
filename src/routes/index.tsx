@@ -85,7 +85,8 @@ function Index() {
           style={{
             'view-transition-name': 'bottom-bar'
           }}
-          class="mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1">
+          class="mt-auto bg-background flex h-[70px] w-full items-center justify-center border-t pb-1 animate-in slide-in-from-bottom-5"
+        >
           <Button
             class="h-[50px] w-3/5 rounded-xs"
             onClick={() => {
