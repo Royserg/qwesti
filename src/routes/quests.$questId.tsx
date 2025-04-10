@@ -211,7 +211,7 @@ const SubQuests: Component<{
   })
 
   return (
-    <section class="flex flex-col flex-1 gap-2 overflow-auto bg-red-500">
+    <section class="flex flex-1 flex-col gap-2 overflow-auto">
       <Show when={props.quests.length > 0}>
         <h3 class="pl-4 text-xl text-muted-foreground">Sub Quests</h3>
         <div ref={questsContainer} class="px-6 flex flex-col gap-1 pb-3">
