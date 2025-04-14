@@ -4,6 +4,7 @@ use commands::{
     update_quests_order,
 };
 use futures::executor::block_on;
+use tauri_plugin_updater::UpdaterExt;
 
 mod db;
 mod entities;
@@ -44,6 +45,8 @@ pub async fn run() -> anyhow::Result<()> {
         .expect("Failed to export typescript bindings");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {

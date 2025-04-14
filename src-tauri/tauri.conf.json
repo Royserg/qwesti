@@ -23,6 +23,7 @@
     }
   },
   "bundle": {
+    "createUpdaterArtifacts": true,
     "active": true,
     "targets": "all",
     "icon": [
@@ -32,5 +33,16 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZERjNCRTFGQUMxMTdCMjAKUldRZ2V4R3NINzd6YlprQ3F1eDQ1OVd1cms4VlpYQ1lxeTF4WisrYjl3OG56WWR4bGpXKyt6TVMK",
+      "endpoints": [
+        "https://gist.githubusercontent.com/Royserg/4f7b81dc3f463de01a528d337ef504f3/raw/qwesti.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }
