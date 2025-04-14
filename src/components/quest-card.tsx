@@ -118,7 +118,8 @@ export const QuestCard: Component<Props> = (props) => {
             },
           )}
           onClick={handleQuestToggle}
-          disabled={!isTodaySelected()}
+        // TODO: rethink how to disable easy unchecking on past dates
+        // disabled={!isTodaySelected()}
         />
 
         <div class={cn("flex h-full w-full items-center gap-2 bg-background")}>
