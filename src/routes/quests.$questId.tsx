@@ -1,3 +1,4 @@
+import { animations } from "@formkit/drag-and-drop";
 import { useDragAndDrop } from "@formkit/drag-and-drop/solid";
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/solid-router';
 import ChevronLeft from 'icons/chevron-left';
@@ -207,7 +208,8 @@ const SubQuests: Component<{
     handleNodePointerup: (_data) => {
     },
     handlePointercancel: (_data) => {
-    }
+    },
+    plugins: [animations()]
   })
 
   return (

@@ -1,3 +1,4 @@
+import { animations } from "@formkit/drag-and-drop";
 import { useDragAndDrop } from "@formkit/drag-and-drop/solid";
 import { useSearch } from "@tanstack/solid-router";
 import {
@@ -6,12 +7,12 @@ import {
   For,
   Show
 } from "solid-js";
+import { updateQuestsOrder } from "~/actions/update-quests-order";
 import type { Quest } from "~/bindings";
 import { getTodayDate } from "~/lib/date";
 import type { QuestsFilterEnumType } from "~/routes";
 import { Filters } from "./filters";
 import { QuestCard } from "./quest-card";
-import { updateQuestsOrder } from "~/actions/update-quests-order";
 
 interface Props {
   filter: QuestsFilterEnumType;
@@ -32,7 +33,8 @@ export const QuestsList: Component<Props> = (props) => {
     handleNodePointerup: (_data) => {
     },
     handlePointercancel: (_data) => {
-    }
+    },
+    plugins: [animations()]
   })
 
   const search = useSearch({ from: "/" });
@@ -77,4 +79,3 @@ export const QuestsList: Component<Props> = (props) => {
     </div>
   );
 };
-
