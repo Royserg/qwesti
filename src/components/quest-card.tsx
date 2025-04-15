@@ -4,7 +4,6 @@ import { deleteQuest, updateQuestCompleted } from "~/actions";
 import type { Quest } from "~/bindings";
 import { Card, CardContent } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
-import { isTodaySelected } from "~/stores/date";
 import { DeleteButton } from "./delete-button";
 
 type FocusOutEvent = FocusEvent & {
@@ -114,7 +113,8 @@ export const QuestCard: Component<Props> = (props) => {
             {
               "bg-amber-300": completed(),
               "bg-card": !completed(),
-              "cursor-not-allowed border-8 border-gray-200": !isTodaySelected(),
+              // TODO: rethink how to disable easy unchecking on past dates
+              // "cursor-not-allowed border-8 border-gray-200": !isTodaySelected(),
             },
           )}
           onClick={handleQuestToggle}
