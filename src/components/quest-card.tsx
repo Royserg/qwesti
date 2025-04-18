@@ -85,6 +85,15 @@ export const QuestCard: Component<Props> = (props) => {
 
   const subQuestsCount = props.quest.children !== null ? props.quest.children.length : 0;
   const subQuestsCompletedCount = props.quest.children?.filter(q => q.completed).length ?? 0;
+  const completionPercentage = () => subQuestsCompletedCount === 0 ? 0 : Math.floor(subQuestsCompletedCount / subQuestsCount * 100);
+  const completionBgGradient = () => {
+    return `linear-gradient(
+                0deg,
+                var(--color-amber-300) 0%,
+                var(--color-amber-400) ${completionPercentage()}%,
+                var(--color-white) ${completionPercentage() + 2}%
+              )`;
+  }
 
   return (
     <Card
@@ -132,8 +141,15 @@ export const QuestCard: Component<Props> = (props) => {
 
           </Match>
           <Match when={props.quest.hasChildren}>
-            <div class="w-12 grid place-items-center inset-shadow-sm inset-shadow-black/20 cursor-not-allowed">
-              {subQuestsCompletedCount === 0 ? 0 : ((subQuestsCompletedCount / subQuestsCount) * 100).toFixed(0)}%
+            <div
+              class="group w-12 grid place-items-center inset-shadow-sm inset-shadow-black/20 cursor-not-allowed"
+              style={{
+                background: completionBgGradient(),
+              }}
+            >
+              <p class="group-hover:visible invisible">
+                {completionPercentage()}%
+              </p>
             </div>
           </Match>
         </Switch>

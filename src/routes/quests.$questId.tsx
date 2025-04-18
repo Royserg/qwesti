@@ -115,6 +115,15 @@ function RouteComponent() {
 
   const subQuestsCount = () => data().subQuests.length;
   const subQuestsCompletedCount = () => data().subQuests.filter(q => q.completed).length ?? 0;
+  const completionPercentage = () => subQuestsCompletedCount() === 0 ? 0 : Math.floor(subQuestsCompletedCount() / subQuestsCount() * 100);
+  const completionBgGradient = () => {
+    return `linear-gradient(
+                0deg,
+                var(--color-amber-300) 0%,
+                var(--color-amber-400) ${completionPercentage()}%,
+                var(--color-white) ${completionPercentage() + 2}%
+              )`;
+  }
 
   return (
     <BaseLayout class='flex flex-col'>
@@ -146,12 +155,15 @@ function RouteComponent() {
                 />
               </Match>
               <Match when={data().subQuests.length > 0}>
-                <div class="w-12 h-full grid place-items-center inset-shadow-sm inset-shadow-black/20 cursor-not-allowed">
-                  {subQuestsCompletedCount() === 0 ?
-                    0
-                    :
-                    ((subQuestsCompletedCount() / subQuestsCount()) * 100).toFixed(0)
-                  }%
+                <div
+                  class="group w-14 h-full grid place-items-center inset-shadow-sm inset-shadow-black/20 cursor-not-allowed"
+                  style={{
+                    background: completionBgGradient(),
+                  }}
+                >
+                  <p class="group-hover:visible invisible">
+                    {completionPercentage()}%
+                  </p>
                 </div>
               </Match>
             </Switch>
