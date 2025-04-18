@@ -1,0 +1,56 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT\n            id,\n            title,\n            completed,\n            created_at,\n            completed_at,\n            order_index,\n            parent_id\n        FROM\n            quests\n        WHERE\n            Date(completed_at) = DATE($1)\n            AND\n            parent_id IS NULL\n        ORDER BY\n            order_index, created_at DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "title",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "completed",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "completed_at",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "order_index",
+        "ordinal": 5,
+        "type_info": "Integer"
+      },
+      {
+        "name": "parent_id",
+        "ordinal": 6,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "6621d08e20e0a98e69ae8953c7390289d80be4dec25edac1e25c2a27dce7cca6"
+}

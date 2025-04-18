@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE quests\n            SET order_index = $1\n            WHERE id = $2;\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "6143ab6828e08c52b79cc6905c4be37841a3d5b0a0f5fcbe68504bc6e6ec55a5"
+}

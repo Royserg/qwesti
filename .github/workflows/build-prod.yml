@@ -42,6 +42,7 @@ jobs:
 
   build-tauri:
     env:
+      SQLX_OFFLINE: true
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
@@ -56,6 +57,7 @@ jobs:
             args: "--target aarch64-apple-darwin"
           - platform: "macos-latest" # for Intel based macs.
             args: "--target x86_64-apple-darwin"
+          # Ignore linux for now
           # - platform: "ubuntu-22.04"
           #   args: ""
           - platform: "windows-latest"
