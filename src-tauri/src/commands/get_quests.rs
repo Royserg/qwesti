@@ -1,4 +1,5 @@
 use chrono::Local;
+use futures::stream::{self, StreamExt};
 use serde::Deserialize;
 use specta::Type;
 use sqlx::QueryBuilder;
@@ -6,6 +7,7 @@ use tauri::{command, State};
 
 use crate::entities::Quest;
 use crate::models::QuestRow;
+use crate::repository::get_sub_quests;
 use crate::DbConnection;
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq, Type)]
@@ -81,10 +83,28 @@ pub async fn get_quests(
             .await
             .expect("Failed to qet quests");
 
-        let quests = quest_rows.into_iter().map(Quest::from).collect();
+        let quests: Vec<Quest> = stream::iter(quest_rows)
+            .then(|row| {
+                let value = state.clone();
+                async move {
+                    let sub_quests = get_sub_quests(value.db.clone(), row.id.clone())
+                        .await
+                        .expect("Failed to get subquests");
+
+                    Quest {
+                        has_children: Some(!sub_quests.is_empty()),
+                        children: Some(sub_quests),
+                        ..Quest::from(row)
+                    }
+                }
+            })
+            .collect()
+            .await;
+
         Ok(quests)
     } else {
-        let quests = sqlx::query_as!(
+        // There is no filter support for past dates
+        let quest_rows = sqlx::query_as!(
             QuestRow,
             r#"
         SELECT
@@ -110,7 +130,23 @@ pub async fn get_quests(
         .await
         .expect("Failed to fetch quests");
 
-        let quests = quests.into_iter().map(Quest::from).collect();
+        let quests: Vec<Quest> = stream::iter(quest_rows)
+            .then(|row| {
+                let value = state.clone();
+                async move {
+                    let sub_quests = get_sub_quests(value.db.clone(), row.id.clone())
+                        .await
+                        .expect("Failed to get subquests");
+
+                    Quest {
+                        has_children: Some(!sub_quests.is_empty()),
+                        children: Some(sub_quests),
+                        ..Quest::from(row)
+                    }
+                }
+            })
+            .collect()
+            .await;
 
         Ok(quests)
     }

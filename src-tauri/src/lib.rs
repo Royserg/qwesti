@@ -4,11 +4,11 @@ use commands::{
     update_quests_order,
 };
 use futures::executor::block_on;
-use tauri_plugin_updater::UpdaterExt;
 
 mod db;
 mod entities;
 mod models;
+mod repository;
 mod utils;
 
 use specta_typescript::{BigIntExportBehavior, Typescript};

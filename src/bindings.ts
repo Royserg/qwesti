@@ -76,7 +76,7 @@ async updateQuestsOrder(props: UpdateQuestsOrderRequest) : Promise<Result<null, 
 export type AddQuestRequest = { title: string; parent_id: string | null }
 export type DeleteQuestRequest = { id: string }
 export type GetQuestsRequest = { date: string | null; filter: string }
-export type Quest = { id: string; title: string; completed: boolean; createdAt: string; completedAt: string | null; orderIndex: number; parentId: string | null }
+export type Quest = { id: string; title: string; completed: boolean; createdAt: string; completedAt: string | null; orderIndex: number; parentId: string | null; hasChildren: boolean | null; children: Quest[] | null }
 export type UpdateQuestData = { title?: string | null; completed?: boolean | null }
 export type UpdateQuestRequest = { id: string; data: UpdateQuestData }
 export type UpdateQuestsOrderRequest = { ids: string[] }
