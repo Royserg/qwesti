@@ -30,14 +30,14 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       '@tauri-apps/plugin-updater':
-        specifier: ~2
-        version: 2.7.0
+        specifier: 2.7.1
+        version: 2.7.1
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
       lucide-solid:
-        specifier: ^0.486.0
-        version: 0.486.0(solid-js@1.9.5)
+        specifier: ^0.501.0
+        version: 0.501.0(solid-js@1.9.5)
       solid-js:
         specifier: ^1.9.5
         version: 1.9.5
@@ -812,8 +812,8 @@ packages:
   '@tauri-apps/plugin-process@2.2.1':
     resolution: {integrity: sha512-cF/k8J+YjjuowhNG1AboHNTlrGiOwgX5j6NzsX6WFf9FMzyZUchkCgZMxCdSE5NIgFX0vvOgLQhODFJgbMenLg==}
 
-  '@tauri-apps/plugin-updater@2.7.0':
-    resolution: {integrity: sha512-oBug5UCH2wOsoYk0LW5LEMAT51mszjg11s8eungRH26x/qOrEjLvnuJJoxVVr9nsWowJ6vnpXKS+lUMfFTlvHQ==}
+  '@tauri-apps/plugin-updater@2.7.1':
+    resolution: {integrity: sha512-1OPqEY/z7NDVSeTEMIhD2ss/vXWdpfZ5Th2Mk0KtPR/RA6FKuOTDGZQhxoyYBk0pcZJ+nNZUbl/IujDCLBApjA==}
 
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
@@ -1082,8 +1082,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-solid@0.486.0:
-    resolution: {integrity: sha512-YrcIXbvqJdCf2uCfkbjmMPEqop/bJmHENILi/WnOuUNCo+iSydE/HDM8diRnZmGrrKvAyEFL47VgchNDNcijkA==}
+  lucide-solid@0.501.0:
+    resolution: {integrity: sha512-9UiYR/DjYuVaqtIC7vmJ/dvTTyVG0JnzLUUVXfOfnYJ24cB/ZvCCXL6D4lv5PEhjPB4PsnuEzCdLl1RszI4pBg==}
     peerDependencies:
       solid-js: ^1.4.7
 
@@ -2025,7 +2025,7 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.3.0
 
-  '@tauri-apps/plugin-updater@2.7.0':
+  '@tauri-apps/plugin-updater@2.7.1':
     dependencies:
       '@tauri-apps/api': 2.3.0
 
@@ -2284,7 +2284,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-solid@0.486.0(solid-js@1.9.5):
+  lucide-solid@0.501.0(solid-js@1.9.5):
     dependencies:
       solid-js: 1.9.5
 
