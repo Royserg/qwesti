@@ -1,5 +1,5 @@
 import { useNavigate, useRouter } from "@tanstack/solid-router";
-import { createSignal, type Component } from "solid-js";
+import { createSignal, Match, Switch, type Component } from "solid-js";
 import { deleteQuest, updateQuestCompleted } from "~/actions";
 import type { Quest } from "~/bindings";
 import { Card, CardContent } from "~/components/ui/card";
@@ -83,6 +83,23 @@ export const QuestCard: Component<Props> = (props) => {
 							)`;
   };
 
+  const subQuestsCount =
+    props.quest.children !== null ? props.quest.children.length : 0;
+  const subQuestsCompletedCount =
+    props.quest.children?.filter((q) => q.completed).length ?? 0;
+  const completionPercentage = () =>
+    subQuestsCompletedCount === 0
+      ? 0
+      : Math.floor((subQuestsCompletedCount / subQuestsCount) * 100);
+  const completionBgGradient = () => {
+    return `linear-gradient(
+                0deg,
+                var(--color-amber-300) 0%,
+                var(--color-amber-400) ${completionPercentage()}%,
+                var(--color-white) ${completionPercentage() + 2}%
+              )`;
+  };
+
   return (
     <Card
       ref={card}
@@ -104,25 +121,43 @@ export const QuestCard: Component<Props> = (props) => {
       <CardContent
         class={cn("flex h-full w-full justify-start p-0 align-middle")}
       >
-        <button
-          ref={completedBtn}
-          tabIndex={selected() ? 0 : -1}
-          type="button"
-          class={cn(
-            "flex w-12 cursor-pointer justify-center inset-shadow-sm inset-shadow-black/20",
-            {
-              "bg-amber-300": completed(),
-              "bg-card": !completed(),
+        {/* Quests having sub-quests cannot be directly marked as completed
+            Completion is based on the completion of all sub-quests */}
+        <Switch>
+          <Match when={props.quest.hasChildren === false}>
+            <button
+              ref={completedBtn}
+              tabIndex={selected() ? 0 : -1}
+              type="button"
+              class={cn(
+                "flex w-12 cursor-pointer justify-center inset-shadow-sm inset-shadow-black/20",
+                {
+                  "bg-amber-300": completed(),
+                  "bg-card": !completed(),
+                  // TODO: rethink how to disable easy unchecking on past dates
+                  // "cursor-not-allowed border-8 border-gray-200": !isTodaySelected(),
+                },
+              )}
+              onClick={handleQuestToggle}
               // TODO: rethink how to disable easy unchecking on past dates
-              // "cursor-not-allowed border-8 border-gray-200": !isTodaySelected(),
-            },
-          )}
-          onClick={handleQuestToggle}
-        // TODO: rethink how to disable easy unchecking on past dates
-        // disabled={!isTodaySelected()}
-        />
+              // disabled={!isTodaySelected()}
+            />
+          </Match>
+          <Match when={props.quest.hasChildren}>
+            <div
+              class="group grid w-12 cursor-not-allowed place-items-center inset-shadow-sm inset-shadow-black/20"
+              style={{
+                background: completionBgGradient(),
+              }}
+            >
+              <p class="invisible group-hover:visible">
+                {completionPercentage()}%
+              </p>
+            </div>
+          </Match>
+        </Switch>
 
-        <div class={cn("flex h-full w-full items-center gap-2 bg-background")}>
+        <div class={cn("bg-background flex h-full w-full items-center gap-2")}>
           <button
             type="button"
             onClick={handleQuestClick}

@@ -2,7 +2,9 @@ use tauri::{command, State};
 
 use crate::entities::Quest;
 use crate::models::QuestRow;
+use crate::repository::get_sub_quests as repo_get_sub_quests;
 use crate::DbConnection;
+use futures::stream::{self, StreamExt};
 
 #[command]
 #[specta::specta]
@@ -34,7 +36,23 @@ pub async fn get_sub_quests(
     .await
     .expect("Failed to fetch sub quests");
 
-    let quests = quests.into_iter().map(Quest::from).collect();
+    let quests: Vec<Quest> = stream::iter(quests)
+        .then(|row| {
+            let value = state.clone();
+            async move {
+                let sub_quests = repo_get_sub_quests(value.db.clone(), row.id.clone())
+                    .await
+                    .expect("Failed to get subquests");
+
+                Quest {
+                    has_children: Some(!sub_quests.is_empty()),
+                    children: Some(sub_quests),
+                    ..Quest::from(row)
+                }
+            }
+        })
+        .collect()
+        .await;
 
     Ok(quests)
 }

@@ -12,6 +12,8 @@ pub struct Quest {
     pub completed_at: Option<String>,
     pub order_index: i64,
     pub parent_id: Option<String>,
+    pub has_children: Option<bool>,
+    pub children: Option<Vec<Quest>>,
 }
 
 fn i64_to_bool(value: i64) -> bool {
@@ -32,6 +34,9 @@ impl From<QuestRow> for Quest {
             completed_at: qr.completed_at,
             order_index: qr.order_index,
             parent_id: qr.parent_id,
+            // Override on demand, defaults to null
+            has_children: None,
+            children: None,
         }
     }
 }
