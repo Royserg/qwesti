@@ -7,12 +7,6 @@ b:
 icon:
   pnpm tauri icon
 
-b:
-  pnpm t:build
-
-icon:
-  pnpm tauri icon
-
 db-migrate:
   cd src-tauri && cargo sqlx migrate run
 
