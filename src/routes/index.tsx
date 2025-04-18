@@ -26,15 +26,20 @@ export const Route = createFileRoute('/')({
   validateSearch: questsSearchSchema,
   loaderDeps: ({ search: { date, filter } }) => ({ date, filter }),
   loader: ({ deps }) => loadQuestsForDate(deps.date, deps.filter),
+
+  // Needed to reload data when using `history.back()` call
+  // Do not cache this route's data after it's unloaded
+  gcTime: 0,
+  // Only reload the route when the user navigates to it or when deps change
+  shouldReload: false,
 })
 
 function Index() {
-  const router = useRouter()
-  const searchParams = Route.useSearch()
-  const quests = Route.useLoaderData()
+  const router = useRouter();
+  const searchParams = Route.useSearch();
+  const quests = Route.useLoaderData();
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>()
-
 
   const isTodaySelected = () => {
     return searchParams().date === getTodayDate();

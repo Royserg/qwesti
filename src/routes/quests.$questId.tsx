@@ -2,7 +2,7 @@ import { animations } from "@formkit/drag-and-drop";
 import { useDragAndDrop } from "@formkit/drag-and-drop/solid";
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/solid-router';
 import ChevronLeft from 'icons/chevron-left';
-import { Component, createSignal, For, Show } from 'solid-js';
+import { Component, createSignal, For, Match, Show, Switch } from 'solid-js';
 import { addQuest, deleteQuest, loadQuest, loadSubQuests, updateQuestCompleted, updateQuestTitle } from '~/actions';
 import { updateQuestsOrder } from '~/actions/update-quests-order';
 import { Quest } from '~/bindings';
@@ -28,25 +28,18 @@ export const Route = createFileRoute('/quests/$questId')({
 
 function RouteComponent() {
   const params = Route.useParams();
-  const data = Route.useLoaderData()
-  const router = useRouter()
-  const navigate = useNavigate({ from: '/quests/$questId' })
+  const data = Route.useLoaderData();
+  const router = useRouter();
+  const navigate = useNavigate({ from: '/quests/$questId' });
 
-  const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>()
+  const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
 
   const handleBackClick = () => {
     if (router.history.canGoBack()) {
-      router.history.back()
+      router.history.back();
     } else {
       navigate({ to: '/' });
     }
-
-    // const parentId = data().quest.parentId;
-    // if (parentId) {
-    //   navigate({ to: '/quests/$questId', params: { questId: parentId } });
-    // } else {
-    //   navigate({ to: '/' });
-    // }
   }
 
   const handleTitleChange = async (title: string) => {
@@ -120,6 +113,9 @@ function RouteComponent() {
     router.invalidate();
   }
 
+  const subQuestsCount = () => data().subQuests.length;
+  const subQuestsCompletedCount = () => data().subQuests.filter(q => q.completed).length ?? 0;
+
   return (
     <BaseLayout class='flex flex-col'>
       <div class='flex h-[calc(100%-70px)]'>
@@ -135,17 +131,30 @@ function RouteComponent() {
             }}
             class="flex gap-6 h-12 w-full items-center pb-2 border-b border-b-secondary px-4"
           >
-            <button
-              type="button"
-              class={cn(
-                "cursor-pointer flex justify-center w-12 h-full shadow-inner shadow-black/20 border",
-                {
-                  "bg-amber-300": data().quest.completed,
-                  "bg-card": !data().quest.completed,
-                },
-              )}
-              onClick={handleQuestToggle}
-            />
+            <Switch>
+              <Match when={data().subQuests.length === 0}>
+                <button
+                  type="button"
+                  class={cn(
+                    "cursor-pointer flex justify-center w-12 h-full shadow-inner shadow-black/20 border",
+                    {
+                      "bg-amber-300": data().quest.completed,
+                      "bg-card": !data().quest.completed,
+                    },
+                  )}
+                  onClick={handleQuestToggle}
+                />
+              </Match>
+              <Match when={data().subQuests.length > 0}>
+                <div class="w-12 h-full grid place-items-center inset-shadow-sm inset-shadow-black/20 cursor-not-allowed">
+                  {subQuestsCompletedCount() === 0 ?
+                    0
+                    :
+                    ((subQuestsCompletedCount() / subQuestsCount()) * 100).toFixed(0)
+                  }%
+                </div>
+              </Match>
+            </Switch>
 
             <EditableText value={data().quest.title} onSubmit={handleTitleChange} focusable={() => true} />
 
@@ -194,6 +203,7 @@ function RouteComponent() {
 const SubQuests: Component<{
   quests: Quest[],
   onQuestDeleted?: () => void;
+  onQuestToggled?: () => void;
 }> = (props) => {
 
   const [questsContainer, quests] = useDragAndDrop<HTMLDivElement, Quest>(props.quests, {
@@ -218,7 +228,11 @@ const SubQuests: Component<{
         <h3 class="pl-4 text-xl text-muted-foreground">Sub Quests</h3>
         <div ref={questsContainer} class="px-6 flex flex-col gap-1 pb-3">
           <For each={quests()}>
-            {(q) => <QuestCard data-label={q.id} quest={q} onDeleted={() => props.onQuestDeleted?.()} />}
+            {(q) => <QuestCard
+              data-label={q.id}
+              quest={q}
+              onDeleted={() => props.onQuestDeleted?.()}
+            />}
           </For>
         </div>
       </Show>
