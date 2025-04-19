@@ -34,6 +34,12 @@ export const Route = createFileRoute("/quests/$questId")({
     ]);
     return { quest, subQuests };
   },
+
+  // Needed to reload data when using `history.back()` call
+  // Do not cache this route's data after it's unloaded
+  gcTime: 0,
+  // Only reload the route when the user navigates to it or when deps change
+  shouldReload: false,
 });
 
 function RouteComponent() {
@@ -242,9 +248,9 @@ const SubQuests: Component<{
         await updateQuestsOrder({ ids });
       },
       // NOTE: without this QuestCard delete button doesnt fire Pointer events
-      handleNodePointerdown: (_data) => {},
-      handleNodePointerup: (_data) => {},
-      handlePointercancel: (_data) => {},
+      handleNodePointerdown: (_data) => { },
+      handleNodePointerup: (_data) => { },
+      handlePointercancel: (_data) => { },
       plugins: [animations()],
     },
   );
