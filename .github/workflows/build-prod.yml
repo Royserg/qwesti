@@ -33,8 +33,8 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: `app-v${process.env.PACKAGE_VERSION}`,
-              name: `Build v${process.env.PACKAGE_VERSION}`,
-              body: 'Production build of the app.',
+              name: `v${process.env.PACKAGE_VERSION}`,
+              body: 'Latest release.',
               draft: true,
               prerelease: false
             })
