@@ -90,7 +90,7 @@ function Index() {
           style={{
             "view-transition-name": "bottom-bar",
           }}
-          class="bg-background animate-in slide-in-from-bottom-5 mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1"
+          class="bg-background animate-in slide-in-from-bottom-5 mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1 rounded-t-xs"
         >
           <Button
             class="h-[50px] w-3/5 rounded-xs"
