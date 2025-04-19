@@ -83,15 +83,16 @@ export const QuestCard: Component<Props> = (props) => {
 							)`;
   };
 
-  const subQuestsCount =
-    props.quest.children !== null ? props.quest.children.length : 0;
-  const subQuestsCompletedCount =
-    props.quest.children?.filter((q) => q.completed).length ?? 0;
-  const completionPercentage = () =>
-    subQuestsCompletedCount === 0
-      ? 0
-      : Math.floor((subQuestsCompletedCount / subQuestsCount) * 100);
+  const subQuestsCount = () => props.quest.children !== null ? props.quest.children.length : 0;
+  const subQuestsCompletedCount = () => props.quest.children?.filter((q) => q.completed).length ?? 0;
+  const completionPercentage = () => subQuestsCompletedCount() === 0
+    ? 0
+    : Math.floor((subQuestsCompletedCount() / subQuestsCount()) * 100);
+
   const completionBgGradient = () => {
+    if (subQuestsCompletedCount() === 0) {
+      return "var(--color-white)";
+    }
     return `linear-gradient(
                 0deg,
                 var(--color-amber-300) 0%,
@@ -139,13 +140,13 @@ export const QuestCard: Component<Props> = (props) => {
                 },
               )}
               onClick={handleQuestToggle}
-              // TODO: rethink how to disable easy unchecking on past dates
-              // disabled={!isTodaySelected()}
+            // TODO: rethink how to disable easy unchecking on past dates
+            // disabled={!isTodaySelected()}
             />
           </Match>
           <Match when={props.quest.hasChildren}>
             <div
-              class="group grid w-12 cursor-not-allowed place-items-center inset-shadow-sm inset-shadow-black/20"
+              class="group grid w-12 place-items-center inset-shadow-sm inset-shadow-black/20"
               style={{
                 background: completionBgGradient(),
               }}

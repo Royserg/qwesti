@@ -137,6 +137,9 @@ function RouteComponent() {
       ? 0
       : Math.floor((subQuestsCompletedCount() / subQuestsCount()) * 100);
   const completionBgGradient = () => {
+    if (subQuestsCompletedCount() === 0) {
+      return "var(--color-white)";
+    }
     return `linear-gradient(
                 0deg,
                 var(--color-amber-300) 0%,
@@ -179,7 +182,7 @@ function RouteComponent() {
               </Match>
               <Match when={data().subQuests.length > 0}>
                 <div
-                  class="group grid h-full w-14 cursor-not-allowed place-items-center inset-shadow-sm inset-shadow-black/20"
+                  class="group grid h-full w-14 place-items-center inset-shadow-sm inset-shadow-black/20"
                   style={{
                     background: completionBgGradient(),
                   }}
