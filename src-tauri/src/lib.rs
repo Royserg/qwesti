@@ -9,6 +9,7 @@ mod db;
 mod entities;
 mod models;
 mod repository;
+mod tests;
 mod utils;
 
 use specta_typescript::{BigIntExportBehavior, Typescript};
