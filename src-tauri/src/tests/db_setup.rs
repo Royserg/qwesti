@@ -3,9 +3,10 @@ use std::path::Path;
 use uuid::Uuid;
 
 // TODO: consider creating a database instead of in-memory
+// for easier debugging and checking data after tests
 pub async fn setup() -> SqlitePool {
-    let db_name = Uuid::now_v7().to_string();
-    dbg!(&db_name);
+    // let db_name = Uuid::now_v7().to_string();
+    // dbg!(&db_name);
 
     // Create a connection URL for a named in-memory database with shared cache
     // let database_url = format!("sqlite:///file:{}?mode=memory&cache=shared", db_name);

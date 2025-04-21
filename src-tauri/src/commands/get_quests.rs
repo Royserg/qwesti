@@ -7,7 +7,7 @@ use tauri::{command, State};
 
 use crate::entities::Quest;
 use crate::models::QuestRow;
-use crate::repository::get_sub_quests;
+use crate::repo;
 use crate::DbConnection;
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq, Type)]
@@ -87,9 +87,10 @@ pub async fn get_quests(
             .then(|row| {
                 let value = state.clone();
                 async move {
-                    let sub_quests = get_sub_quests(value.db.clone(), row.id.clone())
+                    let sub_quests = repo::get_sub_quests(&value.db, row.id.clone())
                         .await
                         .expect("Failed to get subquests");
+                    let sub_quests: Vec<Quest> = sub_quests.into_iter().map(Quest::from).collect();
 
                     Quest {
                         has_children: Some(!sub_quests.is_empty()),
@@ -134,9 +135,10 @@ pub async fn get_quests(
             .then(|row| {
                 let value = state.clone();
                 async move {
-                    let sub_quests = get_sub_quests(value.db.clone(), row.id.clone())
+                    let sub_quests = repo::get_sub_quests(&value.db, row.id.clone())
                         .await
                         .expect("Failed to get subquests");
+                    let sub_quests: Vec<Quest> = sub_quests.into_iter().map(Quest::from).collect();
 
                     Quest {
                         has_children: Some(!sub_quests.is_empty()),

@@ -8,7 +8,7 @@ use futures::executor::block_on;
 mod db;
 mod entities;
 mod models;
-mod repository;
+mod repo;
 mod tests;
 mod utils;
 
