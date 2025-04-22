@@ -18,6 +18,8 @@ pub async fn add_quest(db_pool: &Pool<Sqlite>, data: AddQuestRequest) -> anyhow:
     // Set creation date explicitly to local time (instead of default UTC)
     let today_date = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
+    // TODO: convert into transaction
+    // and update parent quest if parent_id is not None
     let quest = sqlx::query_as!(
         QuestRow,
         r#"
