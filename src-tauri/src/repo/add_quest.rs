@@ -1,3 +1,5 @@
+use std::ops::DerefMut;
+
 use chrono::Local;
 use serde::Deserialize;
 use specta::Type;
@@ -18,14 +20,14 @@ pub async fn add_quest(db_pool: &Pool<Sqlite>, data: AddQuestRequest) -> anyhow:
     // Set creation date explicitly to local time (instead of default UTC)
     let today_date = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
-    // TODO: convert into transaction
-    // and update parent quest if parent_id is not None
+    let mut tx = db_pool.begin().await.expect("failed to begin transaction");
+
     let quest = sqlx::query_as!(
         QuestRow,
         r#"
-            INSERT INTO quests 
+            INSERT INTO quests
                 (id, title, completed, created_at, parent_id)
-            VALUES 
+            VALUES
                 ($1, $2, $3, $4, $5)
             RETURNING
                 id,
@@ -42,9 +44,23 @@ pub async fn add_quest(db_pool: &Pool<Sqlite>, data: AddQuestRequest) -> anyhow:
         today_date,
         data.parent_id
     )
-    .fetch_one(db_pool)
+    .fetch_one(tx.deref_mut())
     .await
     .expect("Failed to create a quest");
+
+    if data.parent_id.is_some() {
+        sqlx::query!(
+            r#"
+            UPDATE quests
+            SET completed = 0, completed_at = NULL;
+            "#
+        )
+        .execute(tx.deref_mut())
+        .await
+        .expect("Failed to update parent quest");
+    }
+
+    tx.commit().await.expect("Failed to commit transaction");
 
     Ok(quest)
 }
