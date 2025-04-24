@@ -180,6 +180,7 @@ function RouteComponent() {
                   onClick={handleQuestToggle}
                 />
               </Match>
+
               <Match when={data().subQuests.length > 0}>
                 <div
                   class="group grid h-full w-14 place-items-center inset-shadow-sm inset-shadow-black/20"
@@ -242,13 +243,19 @@ const SubQuests: Component<{
   quests: Quest[];
   onQuestDeleted?: () => void;
 }> = (props) => {
-  const [questsContainer, quests] = useDragAndDrop<HTMLDivElement, Quest>(
+  const router = useRouter();
+
+  const [questsContainer, quests, setQuests] = useDragAndDrop<HTMLDivElement, Quest>(
     props.quests,
     {
       dragHandle: ".drag-handle",
       onDragend: async (data) => {
-        const ids = (data.values as Quest[]).map((q) => q.id);
+        const newOrderedQuests = data.values as Quest[];
+        const ids = newOrderedQuests.map(q => q.id)
+
         await updateQuestsOrder({ ids });
+        // setQuests(newOrderedQuests)
+        router.invalidate();
       },
       // NOTE: without this QuestCard delete button doesnt fire Pointer events
       handleNodePointerdown: (_data) => { },
@@ -272,6 +279,7 @@ const SubQuests: Component<{
                 data-label={q.id}
                 quest={q}
                 onDeleted={() => props.onQuestDeleted?.()}
+                onToggled={() => router.invalidate()}
               />
             )}
           </For>

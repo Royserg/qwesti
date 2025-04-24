@@ -14,11 +14,11 @@ type FocusOutEvent = FocusEvent & {
 interface Props {
   quest: Quest;
   onDeleted?: () => void;
+  onToggled?: () => void;
 }
 
 export const QuestCard: Component<Props> = (props) => {
   const navigate = useNavigate();
-  const router = useRouter();
 
   let completedBtn!: HTMLButtonElement;
   let card!: HTMLDivElement;
@@ -41,7 +41,7 @@ export const QuestCard: Component<Props> = (props) => {
       });
 
       setCompleted(res.completed);
-      router.invalidate();
+      props.onToggled?.();
     } catch (err) {
       console.error(err);
     }

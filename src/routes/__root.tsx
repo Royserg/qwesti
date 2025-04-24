@@ -11,7 +11,10 @@ export const Route = createRootRoute({
 
 function Layout() {
   // On app open check for updates
-  const [updateChecked, setUpdateChecked] = createSignal(false);
+
+  // TODO: at some point should check if we are online to check for update
+  // should open app without checking in offline mode
+  const [updateChecked, setUpdateChecked] = createSignal(/*false*/true);
 
   onMount(() => {
     const body = document.querySelector("body");
