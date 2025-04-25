@@ -6,7 +6,7 @@ import {
   useRouter,
 } from "@tanstack/solid-router";
 import ChevronLeft from "icons/chevron-left";
-import { Component, createSignal, For, Match, Show, Switch } from "solid-js";
+import { Component, createEffect, createSignal, For, Match, Show, Switch } from "solid-js";
 import {
   addQuest,
   deleteQuest,
@@ -47,6 +47,8 @@ function RouteComponent() {
   const data = Route.useLoaderData();
   const router = useRouter();
   const navigate = useNavigate({ from: "/quests/$questId" });
+
+  const [subQuests, setSubQuests] = createSignal<Quest[]>(data().subQuests);
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
 
@@ -129,9 +131,20 @@ function RouteComponent() {
     router.invalidate();
   };
 
-  const subQuestsCount = () => data().subQuests.length;
-  const subQuestsCompletedCount = () =>
-    data().subQuests.filter((q) => q.completed).length ?? 0;
+  const handleSubQuestToggled = (id: string) => {
+    setSubQuests((prev) => prev.map((q) => {
+      if (q.id === id) {
+        return {
+          ...q,
+          completed: !q.completed
+        }
+      }
+      return q
+    }))
+  }
+
+  const subQuestsCount = () => subQuests().length;
+  const subQuestsCompletedCount = () => subQuests().filter((q) => q.completed).length ?? 0;
   const completionPercentage = () =>
     subQuestsCompletedCount() === 0
       ? 0
@@ -209,6 +222,7 @@ function RouteComponent() {
           <SubQuests
             quests={data().subQuests ?? []}
             onQuestDeleted={handleSubQuestDeleted}
+            onQuestToggled={handleSubQuestToggled}
           />
         </div>
       </div>
@@ -242,10 +256,9 @@ function RouteComponent() {
 const SubQuests: Component<{
   quests: Quest[];
   onQuestDeleted?: () => void;
+  onQuestToggled?: (id: string) => void;
 }> = (props) => {
-  const router = useRouter();
-
-  const [questsContainer, quests, setQuests] = useDragAndDrop<HTMLDivElement, Quest>(
+  const [questsContainer, quests] = useDragAndDrop<HTMLDivElement, Quest>(
     props.quests,
     {
       dragHandle: ".drag-handle",
@@ -254,8 +267,6 @@ const SubQuests: Component<{
         const ids = newOrderedQuests.map(q => q.id)
 
         await updateQuestsOrder({ ids });
-        // setQuests(newOrderedQuests)
-        router.invalidate();
       },
       // NOTE: without this QuestCard delete button doesnt fire Pointer events
       handleNodePointerdown: (_data) => { },
@@ -264,6 +275,10 @@ const SubQuests: Component<{
       plugins: [animations()],
     },
   );
+
+  const onQuestToggled = (id: string) => {
+    props.onQuestToggled?.(id)
+  }
 
   return (
     <section
@@ -279,7 +294,7 @@ const SubQuests: Component<{
                 data-label={q.id}
                 quest={q}
                 onDeleted={() => props.onQuestDeleted?.()}
-                onToggled={() => router.invalidate()}
+                onToggled={onQuestToggled}
               />
             )}
           </For>

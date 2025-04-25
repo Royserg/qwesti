@@ -14,7 +14,7 @@ type FocusOutEvent = FocusEvent & {
 interface Props {
   quest: Quest;
   onDeleted?: () => void;
-  onToggled?: () => void;
+  onToggled?: (id: string) => void;
 }
 
 export const QuestCard: Component<Props> = (props) => {
@@ -41,7 +41,7 @@ export const QuestCard: Component<Props> = (props) => {
       });
 
       setCompleted(res.completed);
-      props.onToggled?.();
+      props.onToggled?.(props.quest.id);
     } catch (err) {
       console.error(err);
     }
