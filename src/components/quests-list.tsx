@@ -1,7 +1,8 @@
 import { animations } from "@formkit/drag-and-drop";
 import { useDragAndDrop } from "@formkit/drag-and-drop/solid";
-import { useRouter, useSearch } from "@tanstack/solid-router";
+import { useSearch } from "@tanstack/solid-router";
 import {
+  Accessor,
   type Component,
   ErrorBoundary,
   For,
@@ -16,23 +17,18 @@ import { QuestCard } from "./quest-card";
 
 interface Props {
   filter: QuestsFilterEnumType;
-  quests: Quest[];
+  quests: Accessor<Quest[]>;
   onQuestDeleted: () => void;
+  onQuestToggled?: (id: string) => void;
 }
 
 export const QuestsList: Component<Props> = (props) => {
-  const router = useRouter();
-
-  const [questsContainer, quests, setQuests] = useDragAndDrop<HTMLDivElement, Quest>(props.quests, {
+  const [questsContainer, quests] = useDragAndDrop<HTMLDivElement, Quest>(props.quests(), {
     dragHandle: '.drag-handle',
     onDragend: async (data) => {
       const newOrderedQuests = data.values as Quest[];
       const ids = newOrderedQuests.map(q => q.id)
       await updateQuestsOrder({ ids })
-
-      console.log('changin order')
-      setQuests(newOrderedQuests)
-      // router.invalidate();
     },
     // NOTE: without this QuestCard delete button doesnt fire Pointer events
     handleNodePointerdown: (_data) => {
@@ -75,7 +71,7 @@ export const QuestsList: Component<Props> = (props) => {
                   <QuestCard
                     quest={q}
                     onDeleted={props.onQuestDeleted}
-                    onToggled={() => router.invalidate()}
+                    onToggled={() => props.onQuestToggled?.(q.id)}
                     data-label={q.id}
                   />
                 );
