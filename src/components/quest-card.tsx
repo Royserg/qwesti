@@ -27,8 +27,8 @@ export const QuestCard: Component<Props> = (props) => {
   const [completed, setCompleted] = createSignal(props.quest.completed);
   const [deleteProgress, setDeleteProgress] = createSignal(0);
 
-  const handleQuestClick = () => {
-    navigate({ to: "/quests/$questId", params: { questId: props.quest.id } });
+  const handleQuestClick = async () => {
+    await navigate({ to: "/quests/$questId", params: { questId: props.quest.id } });
   };
 
   const handleQuestToggle = async () => {

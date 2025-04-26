@@ -32,11 +32,11 @@ import { queryClient } from "./__root";
 
 
 const questQueryOptions = (questId: string) => queryOptions({
-  queryKey: ['quest'],
+  queryKey: ['quest', questId],
   queryFn: () => loadQuest({ id: questId }),
 })
 const subQuestsQueryOptions = (questId: string) => queryOptions({
-  queryKey: ['subQuests'],
+  queryKey: ['subQuests', questId],
   queryFn: () => loadSubQuests(questId),
 })
 
