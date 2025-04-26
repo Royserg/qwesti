@@ -24,18 +24,29 @@ import { QuestCard } from "~/components/quest-card";
 import { Button } from "~/components/ui/button";
 import { BaseLayout } from "~/layouts/base";
 import { cn } from "~/lib/utils";
+import {
+  queryOptions,
+  useQuery,
+} from '@tanstack/solid-query'
+import { queryClient } from "./__root";
+
+
+const questQueryOptions = (questId: string) => queryOptions({
+  queryKey: ['quest'],
+  queryFn: () => loadQuest({ id: questId }),
+})
+const subQuestsQueryOptions = (questId: string) => queryOptions({
+  queryKey: ['subQuests'],
+  queryFn: () => loadSubQuests(questId),
+})
 
 export const Route = createFileRoute("/quests/$questId")({
   component: RouteComponent,
   loader: async ({ params }) => {
-    const [quest, subQuests] = await Promise.all([
-      loadQuest({ id: params.questId }),
-      loadSubQuests(params.questId),
-    ]);
-    return { quest, subQuests };
+    await queryClient.ensureQueryData(questQueryOptions(params.questId))
+    await queryClient.ensureQueryData(subQuestsQueryOptions(params.questId))
   },
-
-  // Needed to reload data when using `history.back()` call
+  // NOTE: Needed to reload data when using `history.back()` call
   // Do not cache this route's data after it's unloaded
   gcTime: 0,
   // Only reload the route when the user navigates to it or when deps change
@@ -44,11 +55,11 @@ export const Route = createFileRoute("/quests/$questId")({
 
 function RouteComponent() {
   const params = Route.useParams();
-  const data = Route.useLoaderData();
   const router = useRouter();
   const navigate = useNavigate({ from: "/quests/$questId" });
 
-  const [subQuests, setSubQuests] = createSignal<Quest[]>(data().subQuests);
+  const questQuery = useQuery(() => questQueryOptions(params().questId))
+  const subQuestsQuery = useQuery(() => subQuestsQueryOptions(params().questId))
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
 
@@ -89,7 +100,7 @@ function RouteComponent() {
   };
 
   const handleQuestToggle = async () => {
-    const currentQuest = data().quest;
+    const currentQuest = questQuery.data;
     if (!currentQuest) {
       return;
     }
@@ -107,7 +118,7 @@ function RouteComponent() {
     }
   };
 
-  const handleAddQuest = async (title: string) => {
+  const handleAddSubQuest = async (title: string) => {
     const questId = params().questId;
     if (!questId) {
       return;
@@ -116,7 +127,7 @@ function RouteComponent() {
     try {
       // pass in parent id
       await addQuest({ title, parentId: questId });
-      router.invalidate();
+      subQuestsQuery.refetch();
       closeDialog();
     } catch (err) {
       console.error(err);
@@ -128,23 +139,15 @@ function RouteComponent() {
   };
 
   const handleSubQuestDeleted = () => {
-    router.invalidate();
+    subQuestsQuery.refetch();
   };
 
-  const handleSubQuestToggled = (id: string) => {
-    setSubQuests((prev) => prev.map((q) => {
-      if (q.id === id) {
-        return {
-          ...q,
-          completed: !q.completed
-        }
-      }
-      return q
-    }))
+  const handleSubQuestToggled = (_id: string) => {
+    subQuestsQuery.refetch();
   }
 
-  const subQuestsCount = () => subQuests().length;
-  const subQuestsCompletedCount = () => subQuests().filter((q) => q.completed).length ?? 0;
+  const subQuestsCount = () => subQuestsQuery.data?.length ?? 0;
+  const subQuestsCompletedCount = () => subQuestsQuery.data?.filter((q) => q.completed).length ?? 0;
   const completionPercentage = () =>
     subQuestsCompletedCount() === 0
       ? 0
@@ -180,21 +183,21 @@ function RouteComponent() {
             class="border-b-secondary flex h-12 w-full items-center gap-6 border-b px-4 pb-2"
           >
             <Switch>
-              <Match when={data().subQuests.length === 0}>
+              <Match when={subQuestsQuery.data?.length === 0}>
                 <button
                   type="button"
                   class={cn(
                     "flex h-full w-12 cursor-pointer justify-center border shadow-inner shadow-black/20",
                     {
-                      "bg-amber-300": data().quest.completed,
-                      "bg-card": !data().quest.completed,
+                      "bg-amber-300": questQuery.data?.completed,
+                      "bg-card": !questQuery.data?.completed,
                     },
                   )}
                   onClick={handleQuestToggle}
                 />
               </Match>
 
-              <Match when={data().subQuests.length > 0}>
+              <Match when={subQuestsQuery.data?.length && subQuestsQuery.data?.length > 0}>
                 <div
                   class="group grid h-full w-14 place-items-center inset-shadow-sm inset-shadow-black/20"
                   style={{
@@ -209,7 +212,7 @@ function RouteComponent() {
             </Switch>
 
             <EditableText
-              value={data().quest.title}
+              value={questQuery.data?.title ?? ''}
               onSubmit={handleTitleChange}
               focusable={() => true}
             />
@@ -220,9 +223,10 @@ function RouteComponent() {
           {/* Sub-Quests */}
           <div class="py-2" />
           <SubQuests
-            quests={data().subQuests ?? []}
+            quests={subQuestsQuery.data ?? []}
             onQuestDeleted={handleSubQuestDeleted}
             onQuestToggled={handleSubQuestToggled}
+            onOrderChanged={() => subQuestsQuery.refetch()}
           />
         </div>
       </div>
@@ -245,7 +249,7 @@ function RouteComponent() {
 
       <AddQuestDialog
         dialogRef={setDialogRef}
-        onSubmit={handleAddQuest}
+        onSubmit={handleAddSubQuest}
         onClose={closeDialog}
       />
     </BaseLayout>
@@ -257,8 +261,12 @@ const SubQuests: Component<{
   quests: Quest[];
   onQuestDeleted?: () => void;
   onQuestToggled?: (id: string) => void;
+  onOrderChanged?: () => void;
 }> = (props) => {
-  const [questsContainer, quests] = useDragAndDrop<HTMLDivElement, Quest>(
+
+
+
+  const [questsContainer, quests, setQuests] = useDragAndDrop<HTMLDivElement, Quest>(
     props.quests,
     {
       dragHandle: ".drag-handle",
@@ -267,6 +275,7 @@ const SubQuests: Component<{
         const ids = newOrderedQuests.map(q => q.id)
 
         await updateQuestsOrder({ ids });
+        props.onOrderChanged?.();
       },
       // NOTE: without this QuestCard delete button doesnt fire Pointer events
       handleNodePointerdown: (_data) => { },
@@ -276,8 +285,16 @@ const SubQuests: Component<{
     },
   );
 
+  createEffect(() => {
+    setQuests(props.quests)
+  })
+
+  const onQuestDeleted = (id: string) => {
+    setQuests((prev) => prev.filter(q => q.id !== id));
+    props.onQuestDeleted?.();
+  }
   const onQuestToggled = (id: string) => {
-    props.onQuestToggled?.(id)
+    props.onQuestToggled?.(id);
   }
 
   return (
@@ -293,8 +310,8 @@ const SubQuests: Component<{
               <QuestCard
                 data-label={q.id}
                 quest={q}
-                onDeleted={() => props.onQuestDeleted?.()}
-                onToggled={onQuestToggled}
+                onDeleted={() => onQuestDeleted(q.id)}
+                onToggled={() => onQuestToggled(q.id)}
               />
             )}
           </For>

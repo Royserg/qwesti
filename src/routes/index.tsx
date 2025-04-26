@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/solid-router";
 import { format } from "date-fns";
-import { createSignal, Show } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
 import { z } from "zod";
 import { addQuest, loadQuestsForDate } from "~/actions";
 import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   const router = useRouter();
   const searchParams = Route.useSearch();
-  const quests = Route.useLoaderData();
+  const data = Route.useLoaderData();
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
 
@@ -63,6 +63,10 @@ function Index() {
     router.invalidate();
   };
 
+  const handleQuestToggled = () => {
+    router.invalidate();
+  }
+
   return (
     <BaseLayout class="relative flex flex-col pt-2">
       <div class="py-2" />
@@ -79,9 +83,10 @@ function Index() {
 
       <section class="flex flex-1 flex-col gap-1 overflow-hidden px-4">
         <QuestsList
-          quests={quests()}
+          quests={data}
           filter={searchParams().filter}
           onQuestDeleted={handleQuestDeleted}
+          onQuestToggled={handleQuestToggled}
         />
       </section>
 
