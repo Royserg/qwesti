@@ -52,8 +52,11 @@ pub async fn add_quest(db_pool: &Pool<Sqlite>, data: AddQuestRequest) -> anyhow:
         sqlx::query!(
             r#"
             UPDATE quests
-            SET completed = 0, completed_at = NULL;
-            "#
+            SET
+                completed = 0, completed_at = NULL
+            WHERE id = $1;
+            "#,
+            data.parent_id
         )
         .execute(tx.deref_mut())
         .await

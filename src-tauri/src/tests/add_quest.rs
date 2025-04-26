@@ -38,19 +38,50 @@ async fn add_sub_quest() -> anyhow::Result<()> {
     };
     let parent_quest = repo::add_quest(&pool, parent_quest_props.clone()).await?;
 
-    let child_quest_props = repo::AddQuestRequest {
+    let child_quest1_props = repo::AddQuestRequest {
         title: "QUEST_CHILD".to_string(),
         parent_id: Some(parent_quest.id.clone()),
     };
-    repo::add_quest(&pool, child_quest_props.clone()).await?;
+    let child_quest1 = repo::add_quest(&pool, child_quest1_props.clone()).await?;
+
+    // Complete 1st subQuest
+    repo::update_quest(
+        &pool,
+        repo::UpdateQuestRequest {
+            id: child_quest1.id.clone(),
+            data: repo::UpdateQuestData {
+                title: None,
+                completed: Some(true),
+            },
+        },
+    )
+    .await?;
 
     // Verify insertion
-    let quest = sqlx::query_as!(QuestRow, "SELECT * FROM quests")
+    let quests = sqlx::query_as!(QuestRow, "SELECT * FROM quests")
         .fetch_all(&pool)
         .await?;
 
-    assert_eq!(&quest[0].parent_id, &None);
-    assert_eq!(quest[1].parent_id.as_deref().unwrap(), parent_quest.id);
+    assert_eq!(&quests.len(), &2);
+    assert_eq!(&quests[0].parent_id, &None);
+    assert_eq!(quests[1].parent_id.as_deref().unwrap(), parent_quest.id);
+    assert_eq!(quests[1].completed, 1);
+
+    // Add 2nd subQuest, 1st subQuests should stay completed
+    let child_quest2_props = repo::AddQuestRequest {
+        title: "QUEST_CHILD2".to_string(),
+        parent_id: Some(parent_quest.id.clone()),
+    };
+    repo::add_quest(&pool, child_quest2_props.clone()).await?;
+
+    // Verify 1st subQuest is still completed
+    let quests = sqlx::query_as!(QuestRow, "SELECT * FROM quests")
+        .fetch_all(&pool)
+        .await?;
+
+    assert_eq!(&quests.len(), &3);
+    assert_eq!(&quests[1].id, &child_quest1.id);
+    assert_eq!(&quests[1].completed, &1);
 
     Ok(())
 }
