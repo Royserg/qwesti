@@ -1,4 +1,4 @@
-import { useNavigate, useRouter } from "@tanstack/solid-router";
+import { useNavigate } from "@tanstack/solid-router";
 import { createSignal, Match, Switch, type Component } from "solid-js";
 import { deleteQuest, updateQuestCompleted } from "~/actions";
 import type { Quest } from "~/bindings";
@@ -14,7 +14,7 @@ type FocusOutEvent = FocusEvent & {
 interface Props {
   quest: Quest;
   onDeleted?: () => void;
-  onToggled?: (id: string) => void;
+  onToggled?: () => void;
 }
 
 export const QuestCard: Component<Props> = (props) => {
@@ -41,7 +41,7 @@ export const QuestCard: Component<Props> = (props) => {
       });
 
       setCompleted(res.completed);
-      props.onToggled?.(props.quest.id);
+      props.onToggled?.();
     } catch (err) {
       console.error(err);
     }
