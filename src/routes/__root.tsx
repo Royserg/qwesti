@@ -2,8 +2,12 @@ import { createRootRoute, Outlet } from '@tanstack/solid-router';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check } from '@tauri-apps/plugin-updater';
 import { Component, createSignal, onMount, Show } from 'solid-js';
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/solid-query'
 
-
+export const queryClient = new QueryClient();
 
 export const Route = createRootRoute({
   component: Layout
@@ -28,14 +32,14 @@ function Layout() {
   });
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <Show when={!updateChecked()}>
         <UpdateScreen onUpToDate={() => setUpdateChecked(true)} />
       </Show>
       <Show when={updateChecked()}>
         <Outlet />
       </Show>
-    </>
+    </QueryClientProvider>
   )
 }
 

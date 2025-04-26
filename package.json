@@ -23,6 +23,7 @@
     "@formkit/drag-and-drop": "^0.4.2",
     "@kobalte/core": "^0.13.7",
     "@tailwindcss/vite": "^4.0.0",
+    "@tanstack/solid-query": "^5.74.4",
     "@tanstack/solid-router": "^1.114.25",
     "@tauri-apps/api": "2.3.0",
     "@tauri-apps/plugin-opener": "2.2.6",
