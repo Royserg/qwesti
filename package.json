@@ -20,7 +20,7 @@
     "t:b:android": "pnpm load-env && pnpm tauri android build --apk --target aarch64"
   },
   "dependencies": {
-    "@formkit/drag-and-drop": "^0.4.2",
+    "@formkit/drag-and-drop": "^0.5.3",
     "@kobalte/core": "^0.13.7",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/solid-query": "^5.74.4",

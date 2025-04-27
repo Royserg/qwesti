@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@formkit/drag-and-drop':
-        specifier: ^0.4.2
-        version: 0.4.2
+        specifier: ^0.5.3
+        version: 0.5.3
       '@kobalte/core':
         specifier: ^0.13.7
         version: 0.13.9(solid-js@1.9.5)
@@ -350,8 +350,8 @@ packages:
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
 
-  '@formkit/drag-and-drop@0.4.2':
-    resolution: {integrity: sha512-AVyhGFrIg51SpG+tjYQYC0J5LXCv4qCfPUl3Brr2vccictNnxOEgfJ1xCZsT0G5ugOASNBgGoTBXyrN/HxOxNQ==}
+  '@formkit/drag-and-drop@0.5.3':
+    resolution: {integrity: sha512-VGQsKYc350OOMbz7wYt69YqDbn49x7RJ32eqiJieNke54nGZYmx18XEqTw0lBiJmH3RaiH6V45gB1u+tvI/TNw==}
 
   '@internationalized/date@3.7.0':
     resolution: {integrity: sha512-VJ5WS3fcVx0bejE/YHfbDKR/yawZgKqn/if+oEeLqNwBtPzVB06olkfcnojTmEMX+gTpH+FlQ69SHNitJ8/erQ==}
@@ -1598,7 +1598,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.9': {}
 
-  '@formkit/drag-and-drop@0.4.2': {}
+  '@formkit/drag-and-drop@0.5.3': {}
 
   '@internationalized/date@3.7.0':
     dependencies:

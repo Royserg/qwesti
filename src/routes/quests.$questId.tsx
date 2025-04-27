@@ -1,12 +1,12 @@
-import { animations } from "@formkit/drag-and-drop";
-import { useDragAndDrop } from "@formkit/drag-and-drop/solid";
+import { animations, insert } from "@formkit/drag-and-drop";
+import { useDragAndDrop, dragAndDrop } from "@formkit/drag-and-drop/solid";
 import {
   createFileRoute,
   useNavigate,
   useRouter,
 } from "@tanstack/solid-router";
 import ChevronLeft from "icons/chevron-left";
-import { Component, createEffect, createSignal, For, Match, Show, Switch } from "solid-js";
+import { Accessor, Component, createEffect, createSignal, For, Match, onMount, Show, Switch } from "solid-js";
 import {
   addQuest,
   deleteQuest,
@@ -256,42 +256,70 @@ function RouteComponent() {
   );
 }
 
+
+const createInsertPointElement = () => {
+  const div = document.createElement("div");
+  div.classList.add("absolute",
+    "bg-amber-500",
+    "z-200",
+    "rounded-full",
+    "duration-[5ms]",
+    "before:block",
+    'before:content-["Insert"]',
+    "before:whitespace-nowrap",
+    "before:block",
+    "before:bg-amber-500",
+    "before:py-1",
+    "before:px-2",
+    "before:rounded-full",
+    "before:text-xs",
+    "before:absolute",
+    "before:top-1/2",
+    "before:left-1/2",
+    "before:-translate-y-1/2",
+    "before:-translate-x-1/2",
+    "before:text-white",
+    "before:text-xs",);
+  return div;
+}
+
 // -- Sub Quests --
 const SubQuests: Component<{
   quests: Quest[];
-  onQuestDeleted?: () => void;
+  onQuestDeleted?: (id: string) => void;
   onQuestToggled?: (id: string) => void;
   onOrderChanged?: () => void;
 }> = (props) => {
 
+  let questsContainer!: HTMLDivElement;
 
-
-  const [questsContainer, quests, setQuests] = useDragAndDrop<HTMLDivElement, Quest>(
-    props.quests,
-    {
-      dragHandle: ".drag-handle",
-      onDragend: async (data) => {
-        const newOrderedQuests = data.values as Quest[];
-        const ids = newOrderedQuests.map(q => q.id)
-
-        await updateQuestsOrder({ ids });
-        props.onOrderChanged?.();
-      },
-      // NOTE: without this QuestCard delete button doesnt fire Pointer events
-      handleNodePointerdown: (_data) => { },
-      handleNodePointerup: (_data) => { },
-      handlePointercancel: (_data) => { },
-      plugins: [animations()],
-    },
-  );
-
-  createEffect(() => {
-    setQuests(props.quests)
+  onMount(() => {
+    dragAndDrop({
+      parent: questsContainer,
+      group: 'quests',
+      state: [
+        () => props.quests,
+        async (data) => {
+          const newOrderedQuests = data;
+          const ids = newOrderedQuests.map(q => q.id);
+          await updateQuestsOrder({ ids });
+          props.onOrderChanged?.()
+        }
+      ],
+      dragHandle: '.drag-handle',
+      plugins: [
+        animations(),
+        insert({
+          insertPoint: (_parent) => {
+            return createInsertPointElement();
+          }
+        })
+      ]
+    });
   })
 
   const onQuestDeleted = (id: string) => {
-    setQuests((prev) => prev.filter(q => q.id !== id));
-    props.onQuestDeleted?.();
+    props.onQuestDeleted?.(id);
   }
   const onQuestToggled = (id: string) => {
     props.onQuestToggled?.(id);
@@ -305,7 +333,7 @@ const SubQuests: Component<{
       <Show when={props.quests.length > 0}>
         <h3 class="text-muted-foreground pl-4 text-xl">Sub Quests</h3>
         <div ref={questsContainer} class="flex flex-col gap-1 px-6 pb-3">
-          <For each={quests()}>
+          <For each={props.quests}>
             {(q) => (
               <QuestCard
                 data-label={q.id}
