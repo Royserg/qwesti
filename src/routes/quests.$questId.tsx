@@ -34,10 +34,12 @@ import { queryClient } from "./__root";
 const questQueryOptions = (questId: string) => queryOptions({
   queryKey: ['quest', questId],
   queryFn: () => loadQuest({ id: questId }),
+  staleTime: 5 * 60 * 1000, // 5 minutes
 })
 const subQuestsQueryOptions = (questId: string) => queryOptions({
   queryKey: ['subQuests', questId],
   queryFn: () => loadSubQuests(questId),
+  staleTime: 5 * 60 * 1000, // 5 minutes
 })
 
 export const Route = createFileRoute("/quests/$questId")({
@@ -46,11 +48,6 @@ export const Route = createFileRoute("/quests/$questId")({
     await queryClient.ensureQueryData(questQueryOptions(params.questId))
     await queryClient.ensureQueryData(subQuestsQueryOptions(params.questId))
   },
-  // NOTE: Needed to reload data when using `history.back()` call
-  // Do not cache this route's data after it's unloaded
-  gcTime: 0,
-  // Only reload the route when the user navigates to it or when deps change
-  shouldReload: false,
 });
 
 function RouteComponent() {
@@ -222,6 +219,7 @@ function RouteComponent() {
 
           {/* Sub-Quests */}
           <div class="py-2" />
+
           <SubQuests
             quests={subQuestsQuery.data ?? []}
             onQuestDeleted={handleSubQuestDeleted}
@@ -306,6 +304,8 @@ const SubQuests: Component<{
           props.onOrderChanged?.()
         }
       ],
+      handleNodePointerdown: () => { },
+      handlePointercancel: () => { },
       dragHandle: '.drag-handle',
       plugins: [
         animations(),

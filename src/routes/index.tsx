@@ -1,9 +1,9 @@
 import { queryOptions, useQuery } from "@tanstack/solid-query";
-import { createFileRoute, Link, useLoaderData, useRouter } from "@tanstack/solid-router";
+import { createFileRoute, useNavigate } from "@tanstack/solid-router";
 import { format } from "date-fns";
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createSignal, Show } from "solid-js";
 import { z } from "zod";
-import { addQuest, loadQuests, loadQuestsForDate } from "~/actions";
+import { addQuest, loadQuestsForDate } from "~/actions";
 import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
 import { QuestsList } from "~/components/quests-list";
 import { TodayDate } from "~/components/today-date";
@@ -24,9 +24,10 @@ const questsSearchSchema = z.object({
 type QuestsSearch = z.infer<typeof questsSearchSchema>;
 
 
-const questsQueryOptions = (props: QuestsSearch) => queryOptions({
-  queryKey: ['quests', props.date, props.filter],
-  queryFn: () => loadQuestsForDate(props.date, props.filter),
+const questsQueryOptions = (date: QuestsSearch['date'], filter: QuestsSearch['filter']) => queryOptions({
+  queryKey: ['quests', date, filter],
+  queryFn: () => loadQuestsForDate(date, filter),
+  staleTime: 5 * 60 * 1000, // 5 minutes
 })
 
 export const Route = createFileRoute("/")({
@@ -34,27 +35,13 @@ export const Route = createFileRoute("/")({
   validateSearch: questsSearchSchema,
   loaderDeps: ({ search: { date, filter } }) => ({ date, filter }),
   loader: async ({ deps }) => {
-    await queryClient.ensureQueryData(questsQueryOptions({ date: deps.date, filter: deps.filter }))
-    // return queryClient.ensureQueryData(questsQueryOptions({ date: deps.date, filter: deps.filter }))
-    return await loadQuestsForDate(deps.date, deps.filter)
+    return queryClient.ensureQueryData(questsQueryOptions(deps.date, deps.filter));
   },
-
-  // Needed to reload data when using `history.back()` call
-  // Do not cache this route's data after it's unloaded
-  // gcTime: 0,
-  // Only reload the route when the user navigates to it or when deps change
-  // shouldReload: false,
 });
 
 function Index() {
   const searchParams = Route.useSearch();
-  // const questsQuery = useQuery(() => questsQueryOptions({ date: searchParams().date, filter: searchParams().filter }));
-  const data = Route.useLoaderData();
-  const questsQuery = useQuery(() => ({
-    queryKey: ['quests', searchParams().date, searchParams().filter],
-    queryFn: () => loadQuestsForDate(searchParams().date, searchParams().filter),
-    initialData: data()
-  }));
+  const questsQuery = useQuery(() => questsQueryOptions(searchParams().date, searchParams().filter));
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
 
@@ -110,24 +97,6 @@ function Index() {
           onQuestToggled={handleQuestToggled}
           onOrderChanged={onOrderChanged}
         />
-
-        {/* TODO: check view transitions */}
-        {/* <ul class="flex flex-col"> */}
-        {/*   <For each={questsQuery.data}> */}
-        {/*     {(q) => ( */}
-        {/*       <Link */}
-        {/*         to="/quests/$questId" params={{ questId: q.id }} */}
-        {/*         class="border p-2 rounded-lg" */}
-        {/*         style={{ */}
-        {/*           "view-transition-name": `quest-${q.id}`, */}
-        {/*           contain: "layout", */}
-        {/*         }} */}
-        {/*       > */}
-        {/*         {q.title} */}
-        {/*       </Link> */}
-        {/*     )} */}
-        {/*   </For> */}
-        {/* </ul> */}
       </section>
 
       <Show when={isTodaySelected()}>

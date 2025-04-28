@@ -72,6 +72,8 @@ export const QuestsList: Component<Props> = (props) => {
         }
       ],
       dragHandle: '.drag-handle',
+      handleNodePointerdown: () => { },
+      handlePointercancel: () => { },
       plugins: [
         animations(),
         insert({
