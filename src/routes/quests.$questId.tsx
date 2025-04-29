@@ -1,12 +1,16 @@
 import { animations, insert } from "@formkit/drag-and-drop";
-import { useDragAndDrop, dragAndDrop } from "@formkit/drag-and-drop/solid";
+import { dragAndDrop } from "@formkit/drag-and-drop/solid";
+import {
+  queryOptions,
+  useQuery,
+} from '@tanstack/solid-query';
 import {
   createFileRoute,
   useNavigate,
   useRouter,
 } from "@tanstack/solid-router";
 import ChevronLeft from "icons/chevron-left";
-import { Accessor, Component, createEffect, createSignal, For, Match, onMount, Show, Switch } from "solid-js";
+import { Component, createSignal, For, Match, onMount, Show, Switch } from "solid-js";
 import {
   addQuest,
   deleteQuest,
@@ -24,22 +28,18 @@ import { QuestCard } from "~/components/quest-card";
 import { Button } from "~/components/ui/button";
 import { BaseLayout } from "~/layouts/base";
 import { cn } from "~/lib/utils";
-import {
-  queryOptions,
-  useQuery,
-} from '@tanstack/solid-query'
 import { queryClient } from "./__root";
 
 
 const questQueryOptions = (questId: string) => queryOptions({
   queryKey: ['quest', questId],
   queryFn: () => loadQuest({ id: questId }),
-  staleTime: 5 * 60 * 1000, // 5 minutes
+  staleTime: 10 * 1000, // 5 seconds
 })
 const subQuestsQueryOptions = (questId: string) => queryOptions({
   queryKey: ['subQuests', questId],
   queryFn: () => loadSubQuests(questId),
-  staleTime: 5 * 60 * 1000, // 5 minutes
+  staleTime: 10 * 1000, // 10seconds
 })
 
 export const Route = createFileRoute("/quests/$questId")({
@@ -48,6 +48,8 @@ export const Route = createFileRoute("/quests/$questId")({
     await queryClient.ensureQueryData(questQueryOptions(params.questId))
     await queryClient.ensureQueryData(subQuestsQueryOptions(params.questId))
   },
+  gcTime: 0,
+  shouldReload: false,
 });
 
 function RouteComponent() {
@@ -77,7 +79,8 @@ function RouteComponent() {
 
     try {
       await updateQuestTitle({ questId: questId, title });
-      router.invalidate();
+      questQuery.refetch();
+      subQuestsQuery.refetch();
     } catch (err) {
       console.error(err);
     }

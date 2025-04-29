@@ -27,7 +27,7 @@ type QuestsSearch = z.infer<typeof questsSearchSchema>;
 const questsQueryOptions = (date: QuestsSearch['date'], filter: QuestsSearch['filter']) => queryOptions({
   queryKey: ['quests', date, filter],
   queryFn: () => loadQuestsForDate(date, filter),
-  staleTime: 5 * 60 * 1000, // 5 minutes
+  staleTime: 10 * 1000, // 5 seconds
 })
 
 export const Route = createFileRoute("/")({
@@ -37,6 +37,8 @@ export const Route = createFileRoute("/")({
   loader: async ({ deps }) => {
     return queryClient.ensureQueryData(questsQueryOptions(deps.date, deps.filter));
   },
+  gcTime: 0,
+  shouldReload: false,
 });
 
 function Index() {
