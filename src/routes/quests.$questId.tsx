@@ -63,6 +63,8 @@ function RouteComponent() {
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
 
   const handleBackClick = () => {
+    queryClient.clear(); // helps out with re-triggering other queries I think
+
     if (router.history.canGoBack()) {
       router.history.back();
     } else {
@@ -80,7 +82,6 @@ function RouteComponent() {
     try {
       await updateQuestTitle({ questId: questId, title });
       questQuery.refetch();
-      subQuestsQuery.refetch();
     } catch (err) {
       console.error(err);
     }
@@ -112,7 +113,7 @@ function RouteComponent() {
         completed: nextCompleted,
       });
 
-      router.invalidate();
+      questQuery.refetch();
     } catch (err) {
       console.error(err);
     }
@@ -127,6 +128,7 @@ function RouteComponent() {
     try {
       // pass in parent id
       await addQuest({ title, parentId: questId });
+
       subQuestsQuery.refetch();
       closeDialog();
     } catch (err) {
@@ -236,7 +238,8 @@ function RouteComponent() {
         style={{
           "view-transition-name": "bottom-bar",
         }}
-        class="bg-background animate-in slide-in-from-bottom-5 mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1 rounded-t-xs"
+        // class="bg-background animate-in slide-in-from-bottom-5 mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1 rounded-t-xs"
+        class="bg-background mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1 rounded-t-xs"
       >
         <Button
           class="h-[50px] w-3/5 rounded-xs"
