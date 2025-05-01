@@ -18,15 +18,19 @@ export type QuestsFilterEnumType = z.infer<typeof QuestsFilterEnum>;
 
 const questsSearchSchema = z.object({
   filter: QuestsFilterEnum.default(QuestsFilterEnum.enum.all),
-  date: z.string().optional().default(format(new Date(), BE_DATE_FROMAT)),
+  date: z.string().optional(),
 });
+// .default(format(new Date(), BE_DATE_FROMAT))
+const todayInFormat = () => {
+  return format(new Date(), BE_DATE_FROMAT);
+}
 
 type QuestsSearch = z.infer<typeof questsSearchSchema>;
 
 
 const questsQueryOptions = (date: QuestsSearch['date'], filter: QuestsSearch['filter']) => queryOptions({
   queryKey: ['quests', date, filter],
-  queryFn: () => loadQuestsForDate(date, filter),
+  queryFn: () => loadQuestsForDate(date ?? todayInFormat(), filter),
   staleTime: 10 * 1000, // 5 seconds
 })
 
@@ -35,7 +39,7 @@ export const Route = createFileRoute("/")({
   validateSearch: questsSearchSchema,
   loaderDeps: ({ search: { date, filter } }) => ({ date, filter }),
   loader: async ({ deps }) => {
-    return queryClient.ensureQueryData(questsQueryOptions(deps.date, deps.filter));
+    return queryClient.ensureQueryData(questsQueryOptions(deps.date ?? todayInFormat(), deps.filter));
   },
   gcTime: 0,
   shouldReload: false,
@@ -43,7 +47,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const searchParams = Route.useSearch();
-  const questsQuery = useQuery(() => questsQueryOptions(searchParams().date, searchParams().filter));
+  const questsQuery = useQuery(() => questsQueryOptions(searchParams().date ?? todayInFormat(), searchParams().filter));
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
 
