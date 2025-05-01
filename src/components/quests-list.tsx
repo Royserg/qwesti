@@ -53,8 +53,12 @@ export const QuestsList: Component<Props> = (props) => {
   let questsContainer!: HTMLDivElement;
 
   const search = useSearch({ from: "/" });
+
+  /**
+   * today's date doesn't set the search param
+   */
   const isTodaySelected = () => {
-    return search().date === getTodayDate();
+    return !search().date;
   };
 
   // NOTE: check how to handle this or change the dnd solution

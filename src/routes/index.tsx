@@ -1,5 +1,5 @@
 import { queryOptions, useQuery } from "@tanstack/solid-query";
-import { createFileRoute, useNavigate } from "@tanstack/solid-router";
+import { createFileRoute } from "@tanstack/solid-router";
 import { format } from "date-fns";
 import { createSignal, Show } from "solid-js";
 import { z } from "zod";
@@ -18,9 +18,11 @@ export type QuestsFilterEnumType = z.infer<typeof QuestsFilterEnum>;
 
 const questsSearchSchema = z.object({
   filter: QuestsFilterEnum.default(QuestsFilterEnum.enum.all),
+  // Navigating back from quest details would navigate to default view
+  // so it doesn't show 1 day ago if it happens after midnight
   date: z.string().optional(),
 });
-// .default(format(new Date(), BE_DATE_FROMAT))
+
 const todayInFormat = () => {
   return format(new Date(), BE_DATE_FROMAT);
 }
