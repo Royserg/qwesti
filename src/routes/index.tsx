@@ -54,7 +54,7 @@ function Index() {
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
 
   const isTodaySelected = () => {
-    return searchParams().date === getTodayDate();
+    return !searchParams().date;
   };
 
   const closeDialog = () => {
