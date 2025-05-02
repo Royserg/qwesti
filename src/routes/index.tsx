@@ -9,7 +9,6 @@ import { QuestsList } from "~/components/quests-list";
 import { TodayDate } from "~/components/today-date";
 import { Button } from "~/components/ui/button";
 import { BaseLayout } from "~/layouts/base";
-import { getTodayDate } from "~/lib/date";
 import { BE_DATE_FROMAT } from "~/stores/date";
 import { queryClient } from "./__root";
 
