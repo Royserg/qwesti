@@ -6,8 +6,9 @@ use sqlx::{Pool, QueryBuilder, Sqlite};
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq, Type)]
 pub struct GetQuestsRequest {
-    date: Option<String>,
-    filter: String,
+    pub date: Option<String>,
+    // TODO: convert to ENUM: 'all' | 'pending' | 'completed' and make it optional
+    pub filter: String,
 }
 
 pub async fn get_quests(
@@ -22,21 +23,46 @@ pub async fn get_quests(
     if date == today_date {
         let mut query = QueryBuilder::new(
             r#"
+        WITH computed_quests AS (
             SELECT
-                id,
-                title,
-                completed,
-                created_at,
-                completed_at,
-                order_index,
-                parent_id
+                quests.id,
+                quests.title,
+                quests.created_at,
+                quests.order_index,
+                quests.parent_id,
+
+                -- NOTE: Copmpleted = 0 or 1. MIN(subquests) will guarantee that all quests are completed to be '1'
+                CASE WHEN COUNT(subquests.id) > 0
+                    THEN MIN(subquests.completed)
+                    ELSE quests.completed
+                END AS completed,
+
+                CASE WHEN COUNT(subquests.id) > 0
+                    THEN MAX(subquests.completed_at)
+                    ELSE quests.completed_at
+                END AS completed_at
+
             FROM
                 quests
-            WHERE
+            LEFT JOIN
+                quests AS subquests ON subquests.parent_id = quests.id
+            GROUP BY quests.id
+        )
+        SELECT
+            id,
+            title,
+            DATE(created_at) AS created_at,
+            completed,
+            DATE(completed_at) AS completed_at,
+            order_index,
+            parent_id
+        FROM
+            computed_quests
+        WHERE
         "#,
         );
 
-        // Only root level quests (not attached to another)
+        // Only root level quests
         query.push(" parent_id IS NULL");
 
         /*
@@ -48,16 +74,16 @@ pub async fn get_quests(
          */
         query
             .push(" AND (")
-            .push("Date(completed_at) = DATE(")
+            .push("DATE(completed_at) = DATE(")
             .push_bind(date.clone())
             .push(")"); // closes DATE()
         query
-            .push(" OR (completed_at IS NULL AND Date(created_at) <= Date(")
+            .push(" OR (completed_at IS NULL AND DATE(created_at) <= DATE(")
             .push_bind(date.clone())
             .push("))");
         query.push(")"); // closing whole expression
 
-        // filter
+        // Apply filter based on computed 'completed'
         match props.filter.as_str() {
             "completed" => {
                 query.push(" AND completed = 1");
@@ -69,11 +95,12 @@ pub async fn get_quests(
         };
 
         query.push(" ORDER BY order_index, created_at DESC;");
+
         let query = query.build_query_as::<QuestRow>();
         let quest_rows = query
             .fetch_all(db_pool)
             .await
-            .expect("Failed to qet quests");
+            .expect("Failed to fetch quests");
 
         Ok(quest_rows)
     } else {
