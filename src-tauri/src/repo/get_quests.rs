@@ -51,9 +51,9 @@ pub async fn get_quests(
         SELECT
             id,
             title,
-            DATE(created_at) AS created_at,
+            created_at,
             completed,
-            DATE(completed_at) AS completed_at,
+            completed_at,
             order_index,
             parent_id
         FROM

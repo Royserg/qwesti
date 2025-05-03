@@ -70,6 +70,27 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
     )
     .await?;
 
+    let quest_3_b = repo::add_quest(
+        &pool,
+        repo::AddQuestRequest {
+            title: "Q3-b".to_string(),
+            parent_id: Some(quest_3.id.clone()),
+        },
+    )
+    .await?;
+    let quest_3_b = repo::update_quest(
+        &pool,
+        repo::UpdateQuestRequest {
+            id: quest_3_b.id.clone(),
+            data: repo::UpdateQuestData {
+                title: None,
+                completed: Some(true),
+            },
+        },
+    )
+    .await?;
+    dbg!(&quest_3_b);
+
     // Pending (SubQuests: 1 pending, 1 completed)
     let quest_4 = repo::add_quest(
         &pool,
@@ -81,7 +102,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
     .await?;
 
     // SubQuest pending
-    let quest_4_a = repo::add_quest(
+    let _quest_4_a = repo::add_quest(
         &pool,
         repo::AddQuestRequest {
             title: "Q4-a".to_string(),
@@ -122,8 +143,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
     .await
     .expect("failed to get quests");
 
-    dbg!(&quests_in_db);
-    assert_eq!(quests_in_db.len(), 7);
+    assert_eq!(quests_in_db.len(), 8);
     // -- Prep End --
 
     // -- Filter: all --
@@ -150,7 +170,14 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
 
     assert_eq!(&quests.len(), &2);
     assert!(&quests.iter().any(|q| q.id == quest_1.id));
-    assert!(&quests.iter().any(|q| q.id == quest_3.id));
+
+    let completed_sub_quests = quests.iter().find(|q| q.id == quest_3.id);
+    assert!(completed_sub_quests.is_some());
+    dbg!(&completed_sub_quests);
+    assert_eq!(
+        completed_sub_quests.unwrap().completed_at,
+        quest_3_b.completed_at
+    );
 
     // -- Filter: pending --
     let quests = repo::get_quests(
