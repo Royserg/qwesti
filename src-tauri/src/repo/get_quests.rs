@@ -37,7 +37,7 @@ pub async fn get_quests(
                     ELSE quests.completed
                 END AS completed,
 
-                CASE WHEN COUNT(subquests.id) > 0
+                CASE WHEN COUNT(subquests.id) > 0 AND MIN(subquests.completed) = 1
                     THEN MAX(subquests.completed_at)
                     ELSE quests.completed_at
                 END AS completed_at
