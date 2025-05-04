@@ -1,6 +1,6 @@
 {
   "name": "qwesti",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "",
   "type": "module",
   "scripts": {
@@ -12,7 +12,7 @@
     "d:ios": "pnpm tauri ios dev",
     "start": "vite",
     "dev": "vite --force",
-    "build": "vite build",
+    "build": "pnpm load-env && ENV=prod pnpm prep-icons && vite build",
     "serve": "vite preview",
     "tauri": "tauri",
     "load-env": "env-cmd -f .env",
