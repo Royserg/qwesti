@@ -1,0 +1,56 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT * FROM \n          quests \n        WHERE \n          id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "title",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "completed",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "completed_at",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "order_index",
+        "ordinal": 5,
+        "type_info": "Integer"
+      },
+      {
+        "name": "parent_id",
+        "ordinal": 6,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "6a07ef5e6972b77e355359dedb677b733fda4504c13446afdcaf43d6bf649c46"
+}

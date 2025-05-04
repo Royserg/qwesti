@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE quests\n            SET\n                completed = 0, completed_at = NULL\n            WHERE id = $1;\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "b47edf6d4ff6069bf6d31830b920f26c47e936fbbb12413a20f4b7d666140a4b"
+}

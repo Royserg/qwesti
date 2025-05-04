@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n            INSERT INTO\n                quests (id, title, completed, created_at, parent_id)\n            VALUES ($1, $2, $3, $4, $5)\n            RETURNING\n                id,\n                title,\n                completed,\n                created_at,\n                completed_at,\n                order_index,\n                parent_id\n        ",
+  "query": "SELECT * FROM quests",
   "describe": {
     "columns": [
       {
@@ -40,7 +40,7 @@
       }
     ],
     "parameters": {
-      "Right": 5
+      "Right": 0
     },
     "nullable": [
       false,
@@ -52,5 +52,5 @@
       true
     ]
   },
-  "hash": "1e2fcdb69565d61f06e72022be8c71d3403dd41d9c94debcafd15f539d75e740"
+  "hash": "4a54662ed920d2fd200eebe693d5a5a0626b6717f96dedd1f1fe8c0aaad09164"
 }
