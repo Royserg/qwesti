@@ -9,14 +9,17 @@ importers:
   .:
     dependencies:
       '@formkit/drag-and-drop':
-        specifier: ^0.4.2
-        version: 0.4.2
+        specifier: ^0.5.3
+        version: 0.5.3
       '@kobalte/core':
         specifier: ^0.13.7
         version: 0.13.9(solid-js@1.9.5)
       '@tailwindcss/vite':
         specifier: ^4.0.0
         version: 4.0.14(vite@6.2.2(@types/node@22.13.10)(jiti@2.4.2)(lightningcss@1.29.2)(tsx@4.19.3))
+      '@tanstack/solid-query':
+        specifier: ^5.74.4
+        version: 5.74.4(solid-js@1.9.5)
       '@tanstack/solid-router':
         specifier: ^1.114.25
         version: 1.114.26(solid-js@1.9.5)
@@ -347,8 +350,8 @@ packages:
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
 
-  '@formkit/drag-and-drop@0.4.2':
-    resolution: {integrity: sha512-AVyhGFrIg51SpG+tjYQYC0J5LXCv4qCfPUl3Brr2vccictNnxOEgfJ1xCZsT0G5ugOASNBgGoTBXyrN/HxOxNQ==}
+  '@formkit/drag-and-drop@0.5.3':
+    resolution: {integrity: sha512-VGQsKYc350OOMbz7wYt69YqDbn49x7RJ32eqiJieNke54nGZYmx18XEqTw0lBiJmH3RaiH6V45gB1u+tvI/TNw==}
 
   '@internationalized/date@3.7.0':
     resolution: {integrity: sha512-VJ5WS3fcVx0bejE/YHfbDKR/yawZgKqn/if+oEeLqNwBtPzVB06olkfcnojTmEMX+gTpH+FlQ69SHNitJ8/erQ==}
@@ -682,6 +685,9 @@ packages:
     resolution: {integrity: sha512-CNwKraj/Xa8H7DUyzrFBQC3wL96JzIxT4i9CW0hxqFNNmLDyUcMJr8264iqqfxC0u1lFSG96URad08T2Qhadpw==}
     engines: {node: '>=12'}
 
+  '@tanstack/query-core@5.74.4':
+    resolution: {integrity: sha512-YuG0A0+3i9b2Gfo9fkmNnkUWh5+5cFhWBN0pJAHkHilTx6A0nv8kepkk4T4GRt4e5ahbtFj2eTtkiPcVU1xO4A==}
+
   '@tanstack/router-core@1.114.25':
     resolution: {integrity: sha512-OyLCfs7r+0LEhmQGAdyJxfO+pqGBITlr4aUN0rdhXqDTpqBn0tyrO6Tu+U9B3LQF9Xnux3KqbjzRopTY9QZBog==}
     engines: {node: '>=12'}
@@ -719,6 +725,11 @@ packages:
   '@tanstack/router-utils@1.114.12':
     resolution: {integrity: sha512-W4tltvM9FQuDEJejz/JJD3q/pVHBXBb8VmA77pZlj4IBW97RnUNy8CUwZUgSYcb9OReoO4i/VjjQCUq9ZdiDmg==}
     engines: {node: '>=12'}
+
+  '@tanstack/solid-query@5.74.4':
+    resolution: {integrity: sha512-m5DFB9L9d3uL7eRHSlOARuDBOn2JKiZZ4MJ3mX0fT7rv2MbZuSOyerQ44JQsWCo/HJD82XefsXEYrDVi3uy+Eg==}
+    peerDependencies:
+      solid-js: ^1.6.0
 
   '@tanstack/solid-router@1.114.26':
     resolution: {integrity: sha512-4qOEBdK7iVA3LqvYLer9/PIWeTmMEEM6p+f6IzCmGWIb/ZcvC81GqTYJQdgU75fd++2odsQCpe+xvypI5lPP0w==}
@@ -1587,7 +1598,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.9': {}
 
-  '@formkit/drag-and-drop@0.4.2': {}
+  '@formkit/drag-and-drop@0.5.3': {}
 
   '@internationalized/date@3.7.0':
     dependencies:
@@ -1905,6 +1916,8 @@ snapshots:
 
   '@tanstack/history@1.114.22': {}
 
+  '@tanstack/query-core@5.74.4': {}
+
   '@tanstack/router-core@1.114.25':
     dependencies:
       '@tanstack/history': 1.114.22
@@ -1949,6 +1962,11 @@ snapshots:
       '@babel/parser': 7.26.10
       ansis: 3.17.0
       diff: 7.0.0
+
+  '@tanstack/solid-query@5.74.4(solid-js@1.9.5)':
+    dependencies:
+      '@tanstack/query-core': 5.74.4
+      solid-js: 1.9.5
 
   '@tanstack/solid-router@1.114.26(solid-js@1.9.5)':
     dependencies:

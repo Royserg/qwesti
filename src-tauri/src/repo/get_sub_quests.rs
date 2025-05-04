@@ -1,8 +1,10 @@
+use crate::models::QuestRow;
 use sqlx::{Pool, Sqlite};
 
-use crate::{entities::Quest, models::QuestRow};
-
-pub async fn get_sub_quests(db_pool: Pool<Sqlite>, quest_id: String) -> Result<Vec<Quest>, String> {
+pub async fn get_sub_quests(
+    db_pool: &Pool<Sqlite>,
+    quest_id: String,
+) -> anyhow::Result<Vec<QuestRow>> {
     let quests = sqlx::query_as!(
         QuestRow,
         r#"
@@ -23,11 +25,9 @@ pub async fn get_sub_quests(db_pool: Pool<Sqlite>, quest_id: String) -> Result<V
         "#,
         quest_id
     )
-    .fetch_all(&db_pool)
+    .fetch_all(db_pool)
     .await
     .expect("Failed to fetch sub quests");
-
-    let quests = quests.into_iter().map(Quest::from).collect();
 
     Ok(quests)
 }

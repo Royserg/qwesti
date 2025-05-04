@@ -1,19 +1,34 @@
 import { createRootRoute, Outlet } from '@tanstack/solid-router';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check } from '@tauri-apps/plugin-updater';
-import { Component, createSignal, onMount, Show } from 'solid-js';
+import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/solid-query'
 
-
+export const queryClient = new QueryClient();
 
 export const Route = createRootRoute({
   component: Layout
 });
 
 function Layout() {
-  // On app open check for updates
-  const [updateChecked, setUpdateChecked] = createSignal(false);
+  const [isOnline, setIsOnline] = createSignal(navigator.onLine);
+
+  // TODO: at some point should check if we are online to check for update
+  // should open app without checking in offline mode
+  const [updateChecked, setUpdateChecked] = createSignal(navigator.onLine ? false : true);
+
+  const updateNetworkStatus = () => {
+    setIsOnline(navigator.onLine);
+  };
+
 
   onMount(() => {
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+
     const body = document.querySelector("body");
     body?.addEventListener("keydown", (e) => {
       if (e.code === "KeyR") {
@@ -24,15 +39,21 @@ function Layout() {
     });
   });
 
+  onCleanup(() => {
+    window.removeEventListener('online', updateNetworkStatus);
+    window.removeEventListener('offline', updateNetworkStatus);
+  })
+
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <Show when={!updateChecked()}>
         <UpdateScreen onUpToDate={() => setUpdateChecked(true)} />
       </Show>
+
       <Show when={updateChecked()}>
         <Outlet />
       </Show>
-    </>
+    </QueryClientProvider>
   )
 }
 
