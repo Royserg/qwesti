@@ -60,8 +60,9 @@ jobs:
           # Ignore linux for now
           # - platform: "ubuntu-22.04"
           #   args: ""
-          - platform: "windows-latest"
-            args: ""
+          # Ignore Windows for now
+          # - platform: "windows-latest"
+          #   args: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
