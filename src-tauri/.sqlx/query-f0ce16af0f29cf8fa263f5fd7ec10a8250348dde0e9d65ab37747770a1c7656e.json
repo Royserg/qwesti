@@ -1,0 +1,56 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            INSERT INTO quests\n                (id, title, completed, created_at, parent_id)\n            VALUES\n                ($1, $2, $3, $4, $5)\n            RETURNING\n                id,\n                title,\n                completed,\n                created_at,\n                completed_at,\n                order_index,\n                parent_id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "title",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "completed",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "completed_at",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "order_index",
+        "ordinal": 5,
+        "type_info": "Integer"
+      },
+      {
+        "name": "parent_id",
+        "ordinal": 6,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 5
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "f0ce16af0f29cf8fa263f5fd7ec10a8250348dde0e9d65ab37747770a1c7656e"
+}
