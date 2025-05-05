@@ -16,8 +16,8 @@
     "serve": "vite preview",
     "tauri": "tauri",
     "load-env": "env-cmd -f .env",
-    "t:b:d": "pnpm load-env && ENV=prod pnpm prep-icons && pnpm tauri build",
-    "t:b:android": "pnpm load-env && pnpm tauri android build --apk --target aarch64"
+    "t:b:d": "ENV=prod pnpm tauri build",
+    "t:b:android": "pnpm tauri android build --apk --target aarch64"
   },
   "dependencies": {
     "@formkit/drag-and-drop": "^0.5.3",
