@@ -1,20 +1,25 @@
-import { createRootRoute, Outlet } from '@tanstack/solid-router';
-import { relaunch } from '@tauri-apps/plugin-process';
-import { check } from '@tauri-apps/plugin-updater';
-import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
 import {
   QueryClient,
   QueryClientProvider,
-} from '@tanstack/solid-query'
+} from '@tanstack/solid-query';
+import { createRootRoute, Outlet, useNavigate } from '@tanstack/solid-router';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { check } from '@tauri-apps/plugin-updater';
+import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
 
 export const queryClient = new QueryClient();
 
 export const Route = createRootRoute({
-  component: Layout
+  component: Layout,
+  beforeLoad(ctx) {
+    // Save last navigated path in local storage and retrieve when opening the app
+    localStorage.setItem('lastPage', ctx.location.href)
+  },
 });
 
 function Layout() {
   const [isOnline, setIsOnline] = createSignal(navigator.onLine);
+  const navigate = useNavigate();
 
   // TODO: at some point should check if we are online to check for update
   // should open app without checking in offline mode
@@ -26,6 +31,11 @@ function Layout() {
 
 
   onMount(() => {
+    const lastPage = localStorage.getItem('lastPage');
+    if (lastPage) {
+      navigate({ to: lastPage });
+    }
+
     window.addEventListener('online', updateNetworkStatus);
     window.addEventListener('offline', updateNetworkStatus);
 
