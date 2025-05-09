@@ -1,6 +1,8 @@
 /* @refresh reload */
+import { createRouter, RouterProvider } from '@tanstack/solid-router';
 import { render } from "solid-js/web";
-
+import { LAST_VISITED_PAGE_KEY } from "./lib/localstorage";
+import { routeTree } from './routeTree.gen';
 
 import "./index.css";
 
@@ -10,11 +12,6 @@ if (!wrapper) {
   throw new Error("Wrapper div not found");
 }
 
-// ===========
-import { createRouter, RouterProvider } from '@tanstack/solid-router';
-
-// Import the generated route tree
-import { routeTree } from './routeTree.gen';
 
 // Create a new router instance
 const router = createRouter({
@@ -31,6 +28,11 @@ declare module '@tanstack/solid-router' {
 
 // Render the app
 if (!wrapper.innerHTML) {
+
+  const lastPage = localStorage.getItem(LAST_VISITED_PAGE_KEY);
+  if (lastPage) {
+    router.navigate({ to: lastPage })
+  }
+
   render(() => <RouterProvider router={router} />, wrapper)
 }
-

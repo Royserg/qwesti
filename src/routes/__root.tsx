@@ -1,16 +1,21 @@
+import {
+    QueryClient,
+    QueryClientProvider,
+} from '@tanstack/solid-query';
 import { createRootRoute, Outlet } from '@tanstack/solid-router';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check } from '@tauri-apps/plugin-updater';
 import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
-import {
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/solid-query'
+import { LAST_VISITED_PAGE_KEY } from '~/lib/localstorage';
 
 export const queryClient = new QueryClient();
 
 export const Route = createRootRoute({
-  component: Layout
+  component: Layout,
+  beforeLoad(ctx) {
+    // Save last navigated path in local storage and retrieve when opening the app
+    localStorage.setItem(LAST_VISITED_PAGE_KEY, ctx.location.href)
+  },
 });
 
 function Layout() {
@@ -23,7 +28,6 @@ function Layout() {
   const updateNetworkStatus = () => {
     setIsOnline(navigator.onLine);
   };
-
 
   onMount(() => {
     window.addEventListener('online', updateNetworkStatus);
