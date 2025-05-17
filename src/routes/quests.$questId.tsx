@@ -33,13 +33,17 @@ import { queryClient } from "./__root";
 
 const questQueryOptions = (questId: string) => queryOptions({
   queryKey: ['quest', questId],
-  queryFn: () => loadQuest({ id: questId }),
-  staleTime: 10 * 1000, // 5 seconds
+  queryFn: () => { return loadQuest({ id: questId }) },
+  // NOTE: this mini-refreshes the view and glitches AddDialog
+  // But without this the "go back" will not animate
+  // staleTime: 10 * 1000, // 5 seconds
 })
 const subQuestsQueryOptions = (questId: string) => queryOptions({
   queryKey: ['subQuests', questId],
-  queryFn: () => loadSubQuests(questId),
-  staleTime: 10 * 1000, // 10seconds
+  queryFn: () => { return loadSubQuests(questId) },
+  // NOTE: this mini-refreshes the view and glitches AddDialog
+  // But without this the "go back" will not animate
+  // staleTime: 10 * 1000, // 10seconds
 })
 
 export const Route = createFileRoute("/quests/$questId")({
