@@ -2,15 +2,14 @@ import { animations, insert } from "@formkit/drag-and-drop";
 import { dragAndDrop } from "@formkit/drag-and-drop/solid";
 import { useSearch } from "@tanstack/solid-router";
 import {
-  type Component,
-  ErrorBoundary,
-  For,
-  onMount,
-  Show
+    type Component,
+    ErrorBoundary,
+    For,
+    onMount,
+    Show
 } from "solid-js";
 import { updateQuestsOrder } from "~/actions/update-quests-order";
 import type { Quest } from "~/bindings";
-import { getTodayDate } from "~/lib/date";
 import type { QuestsFilterEnumType } from "~/routes";
 import { Filters } from "./filters";
 import { QuestCard } from "./quest-card";

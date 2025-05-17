@@ -88,7 +88,7 @@ function Index() {
 
       <TodayDate />
 
-      <div class="py-4" />
+      <div class="py-3" />
 
       <AddQuestDialog
         dialogRef={setDialogRef}
