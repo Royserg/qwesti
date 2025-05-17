@@ -1,5 +1,5 @@
-import { Link, useLocation, useSearch } from "@tanstack/solid-router";
-import { addDays } from "date-fns";
+import { Link, useSearch } from "@tanstack/solid-router";
+import { addDays, isEqual } from "date-fns";
 import ChevronLeft from 'icons/chevron-left';
 import ChevronRight from 'icons/chevron-right';
 import ChevronsRight from 'icons/chevrons-right';
@@ -9,6 +9,7 @@ import { cn } from "~/lib/utils";
 export const TodayDate = () => {
   const search = useSearch({ from: '/' })
 
+  // Assume that the root "/" is the Today's date
   const isTodaySelected = () => {
     return !search().date;
   }
@@ -34,7 +35,13 @@ export const TodayDate = () => {
         to="/"
         search={{
           filter: 'all',
-          date: dateToString(addDays(new Date(search().date ?? getTodayDate()), 1))
+          // Don't set date in the url when navigating to Today's date (keep "go back" functionality to properly work after midnight)
+          // so "/" is always the current date, because after midnigh 'go back' would go to previous day
+          date: isEqual(
+                    addDays(new Date(search().date ?? getTodayDate()), 1), new Date(getTodayDate())
+                  )
+                  ? undefined // When next day is today, don't set date in the url
+                  : dateToString(addDays(new Date(search().date ?? getTodayDate()), 1))
         }}
         class={cn("flex items-center", {
           "invisible": isTodaySelected()
