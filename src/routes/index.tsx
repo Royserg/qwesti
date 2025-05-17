@@ -32,7 +32,7 @@ type QuestsSearch = z.infer<typeof questsSearchSchema>;
 const questsQueryOptions = (date: QuestsSearch['date'], filter: QuestsSearch['filter']) => queryOptions({
   queryKey: ['quests', date, filter],
   queryFn: () => loadQuestsForDate(date ?? todayInFormat(), filter),
-  staleTime: 10 * 1000, // 5 seconds
+  // staleTime: 10 * 1000, // 5 seconds
 })
 
 export const Route = createFileRoute("/")({
@@ -88,7 +88,7 @@ function Index() {
 
       <TodayDate />
 
-      <div class="py-3" />
+      <div class="py-2" />
 
       <AddQuestDialog
         dialogRef={setDialogRef}
