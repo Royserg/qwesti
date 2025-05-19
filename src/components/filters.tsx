@@ -1,7 +1,15 @@
 import { useNavigate } from "@tanstack/solid-router";
 import ChevronDown from 'icons/chevron-down';
-import { type Component, createSignal, For, type ParentComponent, Show } from "solid-js";
-import { Transition } from "solid-transition-group";
+import { type Component, createSignal, For, type ParentComponent } from "solid-js";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "~/components/ui/dropdown-menu";
 import { cn } from "~/lib/utils";
 import { QuestsFilterEnum, type QuestsFilterEnumType } from "~/routes";
 
@@ -27,36 +35,26 @@ export const Filters: Component<FiltersProps> = (props) => {
     },
   ];
 
-  const toggleFilters = () => setIsOpen(!isOpen());
-
   return (
     <div class="mx-auto relative w-full flex justify-end">
-      <button
-        onClick={toggleFilters}
-        class="bg-amber-200 font-medium rounded-xs text-sm border px-6 py-2 shadow-md transition-colors hover:bg-amber-300 flex items-center gap-2"
-      >
-        <ChevronDown
-          class={cn("size-4 transition-transform", {
-            "rotate-180": isOpen(),
-          })}
-        />
-        Filters
-      </button>
 
-      {/* TODO: use dropdown element from shadcn */}
-      <Transition
-        enterActiveClass="transition ease-out duration-200"
-        enterClass="opacity-0 scale-95"
-        enterToClass="opacity-100 scale-100"
-        exitActiveClass="transition ease-in duration-150"
-        exitClass="opacity-100 scale-100"
-        exitToClass="opacity-0 scale-95"
-      >
-        <Show when={isOpen()}>
-          <div class="absolute top-12 z-10 mt-1 w-full max-w-[250px] rounded-xs border bg-white shadow-lg p-2">
-            <div class="flex flex-col gap-1">
-              <For each={filters}>
-                {(filter) => (
+      <DropdownMenu onOpenChange={setIsOpen}>
+        <DropdownMenuTrigger class="flex items-center gap-1 bg-amber-200 font-medium rounded-xs text-sm border px-4 py-2 shadow-md transition-colors hover:bg-amber-300">
+          <ChevronDown
+            class={cn("size-4 transition-transform", {
+              "rotate-180": isOpen(),
+            })}
+          />
+          Filters
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuLabel>Status</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+
+          <DropdownMenuGroup class="flex flex-col p-1 gap-1">
+            <For each={filters}>
+              {(filter) => (
+                <DropdownMenuItem class="p-0">
                   <FilterButton
                     value={filter.value}
                     active={filter.value === props.filter}
@@ -64,12 +62,13 @@ export const Filters: Component<FiltersProps> = (props) => {
                   >
                     {filter.label}
                   </FilterButton>
-                )}
-              </For>
-            </div>
-          </div>
-        </Show>
-      </Transition>
+                </DropdownMenuItem>
+              )}
+            </For>
+          </DropdownMenuGroup>
+
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };
