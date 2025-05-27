@@ -99,7 +99,7 @@ export const QuestsList: Component<Props> = (props) => {
         <ErrorBoundary fallback={<div>Error</div>}>
           <Show when={props.quests.length === 0}>
             <h3 class="text-accent mt-10 h-full text-center text-3xl">
-              No quests
+              No tasks
             </h3>
           </Show>
 

@@ -1,23 +1,23 @@
 import { animations, insert } from "@formkit/drag-and-drop";
 import { dragAndDrop } from "@formkit/drag-and-drop/solid";
 import {
-  queryOptions,
-  useQuery,
+    queryOptions,
+    useQuery,
 } from '@tanstack/solid-query';
 import {
-  createFileRoute,
-  useNavigate,
-  useRouter,
+    createFileRoute,
+    useNavigate,
+    useRouter,
 } from "@tanstack/solid-router";
 import ChevronLeft from "icons/chevron-left";
 import { Component, createSignal, For, Match, onMount, Show, Switch } from "solid-js";
 import {
-  addQuest,
-  deleteQuest,
-  loadQuest,
-  loadSubQuests,
-  updateQuestCompleted,
-  updateQuestTitle,
+    addQuest,
+    deleteQuest,
+    loadQuest,
+    loadSubQuests,
+    updateQuestCompleted,
+    updateQuestTitle,
 } from "~/actions";
 import { updateQuestsOrder } from "~/actions/update-quests-order";
 import { Quest } from "~/bindings";
@@ -251,7 +251,7 @@ function RouteComponent() {
             dialogRef()?.showModal();
           }}
         >
-          Add Sub Quest
+          Add subtask
         </Button>
       </section>
 
@@ -341,7 +341,7 @@ const SubQuests: Component<{
       style={{ "view-transition-name": "sub-quests-container" }}
     >
       <Show when={props.quests.length > 0}>
-        <h3 class="text-muted-foreground pl-4 text-xl">Sub Quests</h3>
+        <h3 class="text-muted-foreground pl-4 text-xl">Subtasks</h3>
         <div ref={questsContainer} class="flex flex-col gap-1 px-6 pb-3">
           <For each={props.quests}>
             {(q) => (
