@@ -1,6 +1,6 @@
 {
   "name": "qwesti",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "",
   "type": "module",
   "scripts": {
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@formkit/drag-and-drop": "^0.5.3",
-    "@kobalte/core": "^0.13.7",
+    "@kobalte/core": "^0.13.9",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/solid-query": "^5.74.4",
     "@tanstack/solid-router": "^1.114.25",
