@@ -1,6 +1,6 @@
 [package]
 name = "qwesti"
-version = "0.1.11"
+version = "0.2.0"
 description = "Your personal quests tracker"
 authors = ["you"]
 edition = "2021"
