@@ -9,6 +9,26 @@ import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
 import { LAST_VISITED_PAGE_KEY } from '~/lib/localstorage';
 
 export const queryClient = new QueryClient();
+const UPDATE_CHECK_TIMEOUT_MS = 15_000;
+const UPDATE_INSTALL_TIMEOUT_MS = 5 * 60_000;
+
+const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, operation: string): Promise<T> => {
+  let timeoutId: number | null = null;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = window.setTimeout(() => {
+      reject(new Error(`${operation} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+    }
+  }
+}
 
 export const Route = createRootRoute({
   component: Layout,
@@ -19,33 +39,23 @@ export const Route = createRootRoute({
 });
 
 function Layout() {
-  const [isOnline, setIsOnline] = createSignal(navigator.onLine);
-
   // TODO: at some point should check if we are online to check for update
   // should open app without checking in offline mode
   const [updateChecked, setUpdateChecked] = createSignal(navigator.onLine ? false : true);
-
-  const updateNetworkStatus = () => {
-    setIsOnline(navigator.onLine);
+  const handleReloadShortcut = (e: KeyboardEvent) => {
+    if (e.code === "KeyR" && e.metaKey) {
+      window.location.reload();
+    }
   };
 
   onMount(() => {
-    window.addEventListener('online', updateNetworkStatus);
-    window.addEventListener('offline', updateNetworkStatus);
-
     const body = document.querySelector("body");
-    body?.addEventListener("keydown", (e) => {
-      if (e.code === "KeyR") {
-        if (e.metaKey) {
-          window.location.reload();
-        }
-      }
-    });
+    body?.addEventListener("keydown", handleReloadShortcut);
   });
 
   onCleanup(() => {
-    window.removeEventListener('online', updateNetworkStatus);
-    window.removeEventListener('offline', updateNetworkStatus);
+    const body = document.querySelector("body");
+    body?.removeEventListener("keydown", handleReloadShortcut);
   })
 
   return (
@@ -68,39 +78,56 @@ interface UpdateScreenProps {
 const UpdateScreen: Component<UpdateScreenProps> = (props) => {
 
   const [length, setLength] = createSignal(0);
-  const [downloaded, setDownloaded] = createSignal(0); 0
+  const [downloaded, setDownloaded] = createSignal(0);
 
   onMount(async () => {
-    const update = await check();
+    try {
+      if (!navigator.onLine) {
+        console.info('Offline detected, skipping update check.');
+        props.onUpToDate();
+        return;
+      }
 
-    if (update) {
+      const update = await withTimeout(check(), UPDATE_CHECK_TIMEOUT_MS, 'Update check');
+
+      if (!update) {
+        props.onUpToDate();
+        return;
+      }
+
       console.log(
         `found update ${update.version} from ${update.date} with notes ${update.body}`
       );
-      let downloaded = 0;
+
+      let downloadedBytes = 0;
       let contentLength = 0;
 
-      await update.downloadAndInstall((event) => {
-        switch (event.event) {
-          case 'Started':
-            setLength(event.data.contentLength ?? 0)
-            // contentLength = event.data.contentLength ?? 0;
-            console.log(`started downloading ${event.data.contentLength} bytes`);
-            break;
-          case 'Progress':
-            // downloaded += event.data.chunkLength;
-            setDownloaded((d) => d + event.data.chunkLength)
-            console.log(`downloaded ${downloaded} from ${contentLength}`);
-            break;
-          case 'Finished':
-            console.log('download finished');
-            break;
-        }
-      });
+      await withTimeout(
+        update.downloadAndInstall((event) => {
+          switch (event.event) {
+            case 'Started':
+              contentLength = event.data.contentLength ?? 0;
+              setLength(contentLength);
+              console.log(`started downloading ${contentLength} bytes`);
+              break;
+            case 'Progress':
+              downloadedBytes += event.data.chunkLength;
+              setDownloaded(downloadedBytes);
+              console.log(`downloaded ${downloadedBytes} from ${contentLength}`);
+              break;
+            case 'Finished':
+              console.log('download finished');
+              break;
+          }
+        }),
+        UPDATE_INSTALL_TIMEOUT_MS,
+        'Update download and install',
+      );
 
       console.log('update installed');
       await relaunch();
-    } else {
+    } catch (error) {
+      console.error('Updater failed during startup, opening app without blocking.', error);
       props.onUpToDate()
     }
   })
