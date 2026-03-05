@@ -2,55 +2,102 @@ name: "prod release"
 
 on:
   push:
-    branches:
-      - "prod"
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing semver tag to rebuild (example: v0.1.9)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
 jobs:
   create-release:
-    permissions:
-      contents: write
     runs-on: ubuntu-latest
     outputs:
       release_id: ${{ steps.create-release.outputs.result }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
-      - name: get version
-        run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+      - name: validate versions and tag
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          TAURI_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('./src-tauri/tauri.conf.json', 'utf8')).version")
 
-      - name: create release
+          if [ "$PACKAGE_VERSION" != "$TAURI_VERSION" ]; then
+            echo "Version mismatch: package.json=$PACKAGE_VERSION src-tauri/tauri.conf.json=$TAURI_VERSION"
+            exit 1
+          fi
+
+          EXPECTED_TAG="v$PACKAGE_VERSION"
+          if [ "$RELEASE_TAG" != "$EXPECTED_TAG" ]; then
+            echo "Tag/version mismatch: expected $EXPECTED_TAG but got $RELEASE_TAG"
+            exit 1
+          fi
+
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> "$GITHUB_ENV"
+
+      - name: create or reuse release
         id: create-release
         uses: actions/github-script@v6
         with:
           script: |
+            const tagName = process.env.RELEASE_TAG;
+            const releaseName = `v${process.env.PACKAGE_VERSION}`;
+
+            try {
+              const existing = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: tagName
+              });
+
+              core.info(`Reusing existing release ${existing.data.id} for ${tagName}`);
+              return existing.data.id;
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
             const { data } = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `app-v${process.env.PACKAGE_VERSION}`,
-              name: `v${process.env.PACKAGE_VERSION}`,
+              tag_name: tagName,
+              name: releaseName,
               body: 'Latest release.',
               draft: true,
               prerelease: false
-            })
-            return data.id
+            });
+
+            core.info(`Created release ${data.id} for ${tagName}`);
+            return data.id;
 
   build-tauri:
     env:
       SQLX_OFFLINE: true
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      # APPLE_ID: ${{ secrets.APPLE_ID }}
-      # APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
 
     needs: create-release
-    permissions:
-      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -59,16 +106,17 @@ jobs:
             args: "--target aarch64-apple-darwin"
           - platform: "macos-latest" # for Intel based macs.
             args: "--target x86_64-apple-darwin"
-          # Ignore linux for now
-          # - platform: "ubuntu-22.04"
-          #   args: ""
-          # Ignore Windows for now
-          # - platform: "windows-latest"
-          #   args: ""
+          - platform: "ubuntu-22.04"
+            args: ""
+          - platform: "windows-latest"
+            args: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -92,41 +140,16 @@ jobs:
         # webkitgtk 4.1 is for Tauri v2.
 
       - name: install frontend dependencies
-        run: pnpm install
-
-      # - name: Import Apple Developer Certificate
-      #   env:
-      #     APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-      #     APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      #     KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-      #   run: |
-      #     echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
-      #     security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-      #     security default-keychain -s build.keychain
-      #     security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-      #     security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-      #     security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-      #     security find-identity -v -p codesigning build.keychain
-      # - name: Verify Certificate
-      #   run: |
-      #     CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Apple Development")
-      #     CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
-      #     echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
-      #     echo "Certificate imported."
+        run: pnpm install --frozen-lockfile
 
       - uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.WORKFLOWS_TOKEN }}
-          # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          # APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }}
 
   publish-release:
-    permissions:
-      contents: write
     runs-on: ubuntu-latest
     needs: [create-release, build-tauri]
 
@@ -138,10 +161,10 @@ jobs:
           release_id: ${{ needs.create-release.outputs.release_id }}
         with:
           script: |
-            github.rest.repos.updateRelease({
+            await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: process.env.release_id,
               draft: false,
               prerelease: false
-            })
+            });
