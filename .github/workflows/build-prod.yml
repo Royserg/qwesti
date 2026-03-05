@@ -2,42 +2,34 @@ name: "prod release"
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - "prod"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Existing semver tag to rebuild (example: v0.1.9)"
-        required: true
-        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  group: release-${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: false
-
-env:
-  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
 jobs:
   create-release:
     runs-on: ubuntu-latest
     outputs:
-      release_id: ${{ steps.create-release.outputs.result }}
+      release_id: ${{ steps.resolve-release.outputs.release_id }}
+      should_release: ${{ steps.resolve-release.outputs.should_release }}
+      release_tag: ${{ steps.resolve-release.outputs.release_tag }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.RELEASE_TAG }}
 
       - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
-      - name: validate versions and tag
+      - name: validate versions
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           TAURI_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('./src-tauri/tauri.conf.json', 'utf8')).version")
@@ -47,21 +39,18 @@ jobs:
             exit 1
           fi
 
-          EXPECTED_TAG="v$PACKAGE_VERSION"
-          if [ "$RELEASE_TAG" != "$EXPECTED_TAG" ]; then
-            echo "Tag/version mismatch: expected $EXPECTED_TAG but got $RELEASE_TAG"
-            exit 1
-          fi
-
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> "$GITHUB_ENV"
 
-      - name: create or reuse release
-        id: create-release
+      - name: create or skip release
+        id: resolve-release
         uses: actions/github-script@v6
         with:
           script: |
-            const tagName = process.env.RELEASE_TAG;
-            const releaseName = `v${process.env.PACKAGE_VERSION}`;
+            const packageVersion = process.env.PACKAGE_VERSION;
+            const tagName = `v${packageVersion}`;
+            const releaseName = `v${packageVersion}`;
+
+            core.setOutput('release_tag', tagName);
 
             try {
               const existing = await github.rest.repos.getReleaseByTag({
@@ -70,8 +59,10 @@ jobs:
                 tag: tagName
               });
 
-              core.info(`Reusing existing release ${existing.data.id} for ${tagName}`);
-              return existing.data.id;
+              core.notice(`Release ${tagName} already exists (id ${existing.data.id}). Version was not bumped; skipping release build.`);
+              core.setOutput('should_release', 'false');
+              core.setOutput('release_id', String(existing.data.id));
+              return;
             } catch (error) {
               if (error.status !== 404) {
                 throw error;
@@ -82,6 +73,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: tagName,
+              target_commitish: context.sha,
               name: releaseName,
               body: 'Latest release.',
               draft: true,
@@ -89,9 +81,11 @@ jobs:
             });
 
             core.info(`Created release ${data.id} for ${tagName}`);
-            return data.id;
+            core.setOutput('should_release', 'true');
+            core.setOutput('release_id', String(data.id));
 
   build-tauri:
+    if: needs.create-release.outputs.should_release == 'true'
     env:
       SQLX_OFFLINE: true
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -114,8 +108,6 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.RELEASE_TAG }}
 
       - uses: pnpm/action-setup@v4
         with:
@@ -150,6 +142,7 @@ jobs:
           args: ${{ matrix.args }}
 
   publish-release:
+    if: needs.create-release.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     needs: [create-release, build-tauri]
 
@@ -158,13 +151,13 @@ jobs:
         id: publish-release
         uses: actions/github-script@v6
         env:
-          release_id: ${{ needs.create-release.outputs.release_id }}
+          RELEASE_ID: ${{ needs.create-release.outputs.release_id }}
         with:
           script: |
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: process.env.release_id,
+              release_id: Number(process.env.RELEASE_ID),
               draft: false,
               prerelease: false
             });
