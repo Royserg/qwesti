@@ -54,14 +54,14 @@ export const AddQuestDialog: Component<Props> = (props) => {
           handleSubmit();
         }}
       >
-        <h4 class="text-center text-3xl pb-2">Create quest</h4>
+        <h4 class="text-center text-3xl pb-2">Create task</h4>
         <input
           autocomplete="off"
           autoCapitalize="off"
           autocorrect="off"
           name="title"
           class="h-[65px] w-full outline-none p-3 py-4 focus-within:border-[#222] focus-within:shadow-inner border-[#dedede] border"
-          placeholder="Quest..."
+          placeholder="Create task"
           ref={inputRef}
           autofocus
         />
@@ -69,4 +69,3 @@ export const AddQuestDialog: Component<Props> = (props) => {
     </dialog>
   );
 };
-
