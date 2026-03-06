@@ -6,6 +6,7 @@ import {
 } from '@tanstack/solid-query';
 import {
     createFileRoute,
+    Link,
     useNavigate,
     useRouter,
 } from "@tanstack/solid-router";
@@ -30,6 +31,10 @@ import { BaseLayout } from "~/layouts/base";
 import { cn } from "~/lib/utils";
 import { queryClient } from "./__root";
 
+type BreadcrumbQuest = {
+  id: string;
+  title: string;
+};
 
 const questQueryOptions = (questId: string) => queryOptions({
   queryKey: ['quest', questId],
@@ -45,12 +50,35 @@ const subQuestsQueryOptions = (questId: string) => queryOptions({
   // But without this the "go back" will not animate
   // staleTime: 10 * 1000, // 10seconds
 })
+const breadcrumbsQueryOptions = (questId: string) => queryOptions({
+  queryKey: ['questBreadcrumbs', questId],
+  queryFn: async () => {
+    const chain: BreadcrumbQuest[] = [];
+    const seen = new Set<string>();
+    let currentQuestId: string | null = questId;
+
+    while (currentQuestId && !seen.has(currentQuestId)) {
+      seen.add(currentQuestId);
+
+      const quest = await loadQuest({ id: currentQuestId });
+      chain.push({
+        id: quest.id,
+        title: quest.title,
+      });
+
+      currentQuestId = quest.parentId;
+    }
+
+    return chain.reverse();
+  },
+})
 
 export const Route = createFileRoute("/quests/$questId")({
   component: RouteComponent,
   loader: async ({ params }) => {
     await queryClient.ensureQueryData(questQueryOptions(params.questId))
     await queryClient.ensureQueryData(subQuestsQueryOptions(params.questId))
+    await queryClient.ensureQueryData(breadcrumbsQueryOptions(params.questId))
   },
   gcTime: 0,
   shouldReload: false,
@@ -63,6 +91,7 @@ function RouteComponent() {
 
   const questQuery = useQuery(() => questQueryOptions(params().questId))
   const subQuestsQuery = useQuery(() => subQuestsQueryOptions(params().questId))
+  const breadcrumbsQuery = useQuery(() => breadcrumbsQueryOptions(params().questId))
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
 
@@ -86,6 +115,7 @@ function RouteComponent() {
     try {
       await updateQuestTitle({ questId: questId, title });
       questQuery.refetch();
+      breadcrumbsQuery.refetch();
     } catch (err) {
       console.error(err);
     }
@@ -181,6 +211,8 @@ function RouteComponent() {
         </button>
 
         <div class="flex h-full w-full flex-col pt-3">
+          <Breadcrumbs crumbs={breadcrumbsQuery.data ?? []} />
+
           <div
             style={{
               contain: "layout",
@@ -263,6 +295,50 @@ function RouteComponent() {
     </BaseLayout>
   );
 }
+
+const Breadcrumbs: Component<{
+  crumbs: BreadcrumbQuest[];
+}> = (props) => {
+  return (
+    <div class="w-full overflow-x-auto px-4 pb-2">
+      <div class="flex min-w-max items-center gap-1 text-sm">
+        <Link to="/" search={{ filter: "all" }} class="text-gray-500 transition-colors hover:text-gray-900">
+          Tasks
+        </Link>
+
+        <For each={props.crumbs}>
+          {(crumb, index) => {
+            const isLast = () => index() === props.crumbs.length - 1;
+
+            return (
+              <>
+                <span class="text-gray-400">/</span>
+
+                <Show
+                  when={!isLast()}
+                  fallback={
+                    <span class="max-w-[220px] truncate font-medium text-gray-900" title={crumb.title}>
+                      {crumb.title}
+                    </span>
+                  }
+                >
+                  <Link
+                    to="/quests/$questId"
+                    params={{ questId: crumb.id }}
+                    class="max-w-[180px] truncate text-gray-500 transition-colors hover:text-gray-900"
+                    title={crumb.title}
+                  >
+                    {crumb.title}
+                  </Link>
+                </Show>
+              </>
+            );
+          }}
+        </For>
+      </div>
+    </div>
+  );
+};
 
 
 const createInsertPointElement = () => {
