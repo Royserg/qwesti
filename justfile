@@ -12,3 +12,6 @@ db-migrate:
 
 db-prepare:
   cd src-tauri && cargo sqlx prepare -- --all-targets --all-features
+
+bump-version version:
+  node scripts/bump-version.mjs {{version}}
