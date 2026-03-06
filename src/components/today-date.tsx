@@ -1,8 +1,10 @@
-import { Link, useSearch } from "@tanstack/solid-router";
+import { Link, useNavigate, useSearch } from "@tanstack/solid-router";
 import { addDays, format, isEqual, isValid, parse } from "date-fns";
 import ChevronLeft from 'icons/chevron-left';
 import ChevronRight from 'icons/chevron-right';
 import ChevronsRight from 'icons/chevrons-right';
+import List from 'icons/list';
+import ListTree from 'icons/list-tree';
 import Settings from 'icons/settings';
 import { createSignal } from "solid-js";
 import { SettingsDialog } from "~/components/settings-dialog";
@@ -18,6 +20,7 @@ import { cn } from "~/lib/utils";
 import { BE_DATE_FROMAT } from "~/stores/date";
 
 export const TodayDate = () => {
+  const navigate = useNavigate({ from: "/" });
   const search = useSearch({ from: '/' })
   const [settingsDialogRef, setSettingsDialogRef] = createSignal<HTMLDialogElement>();
   const [dateFormatOption, setDateFormatOption] = createSignal<HeaderDateFormatOption>(getHeaderDateFormat());
@@ -53,8 +56,31 @@ export const TodayDate = () => {
     setHeaderDateFormat(formatValue);
   };
 
+  const currentView = () => search().view ?? "list";
+  const isTreeView = () => currentView() === "tree";
+  const toggleView = () => {
+    navigate({
+      to: "/",
+      search: (prev) => ({
+        ...prev,
+        view: prev.view === "tree" ? "list" : "tree",
+      }),
+      replace: true,
+    });
+  };
+
   return (
     <div class="flex relative mx-auto gap-2">
+      <button
+        type="button"
+        onClick={toggleView}
+        class="fixed left-4 top-4 z-20 rounded-xs border bg-card p-2 shadow-sm transition-colors hover:bg-gray-100"
+        title={isTreeView() ? "Switch to list view" : "Switch to tree view"}
+        aria-label={isTreeView() ? "Switch to list view" : "Switch to tree view"}
+      >
+        {isTreeView() ? <List class="size-5" /> : <ListTree class="size-5" />}
+      </button>
+
       <button
         type="button"
         onClick={openSettings}
@@ -76,6 +102,7 @@ export const TodayDate = () => {
         to="/"
         search={{
           filter: 'all',
+          view: currentView(),
           date: dateToString(addDays(new Date(search().date ?? getTodayDate()), -1))
         }}
         class="flex items-center"
@@ -94,6 +121,7 @@ export const TodayDate = () => {
         to="/"
         search={{
           filter: 'all',
+          view: currentView(),
           // Don't set date in the url when navigating to Today's date (keep "go back" functionality to properly work after midnight)
           // so "/" is always the current date, because after midnigh 'go back' would go to previous day
           date: isEqual(
@@ -112,7 +140,7 @@ export const TodayDate = () => {
 
       <Link
         to="/"
-        search={{ filter: 'all' }}
+        search={{ filter: 'all', view: currentView() }}
         class={cn("absolute flex items-center text-gray-400 hover:text-gray-900 top-[8px] right-[-40px]", {
           "invisible": isTodaySelected()
         })}
