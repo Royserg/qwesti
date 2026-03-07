@@ -91,7 +91,7 @@ const TreeNode: Component<TreeNodeProps> = (props) => {
   const guideColumns = createMemo(() => Array.from({ length: props.level }, (_, index) => index));
 
   return (
-    <div class="relative min-w-max pb-2">
+    <div class="relative min-w-max pb-1">
       <div class="pointer-events-none absolute bottom-0 left-0 top-0" style={{ width: `${props.level * 20}px` }}>
         <For each={guideColumns()}>
           {(guideIndex) => (

@@ -93,7 +93,7 @@ export const QuestsList: Component<Props> = (props) => {
             <div class="pixel-empty-state">no tasks</div>
           </Show>
 
-          <div ref={questsContainer} class="relative flex flex-col gap-3 self-stretch pr-1">
+          <div ref={questsContainer} class="relative flex flex-col gap-2 self-stretch pr-1">
             <For each={props.quests}>
               {(quest) => (
                 <QuestCard

@@ -27,6 +27,7 @@
   --accent-soft-color: #f7e9b0;
   --danger-color: #de8d8d;
   --danger-dark-color: #c77777;
+  --danger-progress-color: #e74458;
   --danger-light-color: #f0b5b5;
   --danger-shadow-color: #a86161;
   --button-panel-color: #1e1f1f;
@@ -649,7 +650,7 @@
     background:
       linear-gradient(
         to top,
-        var(--danger-dark-color) 0 var(--delete-progress, 0%),
+        var(--danger-progress-color) 0 var(--delete-progress, 0%),
         transparent var(--delete-progress, 0%) 100%
       ),
       var(--danger-color);

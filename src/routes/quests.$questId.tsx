@@ -376,12 +376,12 @@ const SubQuests: Component<{
 
   return (
     <section
-      class="flex min-h-0 flex-1 flex-col gap-3 overflow-auto"
+      class="flex min-h-0 flex-1 flex-col gap-2 overflow-auto"
       style={{ "view-transition-name": "sub-quests-container" }}
     >
       <Show when={props.quests.length > 0}>
         <h3 class="pixel-section-title px-1 text-[var(--muted-color)]">subtasks</h3>
-        <div ref={questsContainer} class="flex flex-col gap-3 pr-1">
+        <div ref={questsContainer} class="flex flex-col gap-2 pr-1">
           <For each={props.quests}>
             {(quest) => (
               <QuestCard
