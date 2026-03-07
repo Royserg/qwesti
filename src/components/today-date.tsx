@@ -77,7 +77,7 @@ export const TodayDate = () => {
         onClose={closeSettings}
       />
 
-      <div class="mx-auto flex w-full max-w-[640px] items-center gap-2 sm:gap-3">
+      <div class="mx-auto flex w-full max-w-[600px] items-center justify-between gap-2 sm:gap-3">
         <button
           type="button"
           onClick={toggleView}
@@ -88,7 +88,7 @@ export const TodayDate = () => {
           {isTreeView() ? <List class="size-[18px]" /> : <ListTree class="size-[18px]" />}
         </button>
 
-        <div class="pixel-panel flex min-w-0 flex-1 items-center gap-2 px-2 py-2 sm:px-3 sm:py-2.5">
+        <div class="pixel-panel flex w-full max-w-[360px] min-w-0 items-center gap-2 px-2 py-1.5 sm:max-w-[400px] sm:px-3 sm:py-2">
           <Link
             to="/"
             search={{

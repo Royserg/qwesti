@@ -203,7 +203,7 @@ function RouteComponent() {
               "view-transition-name": `quest-${params().questId}`,
             }}
             class="min-h-[70px]"
-            leftClass="w-[74px]"
+            leftClass="w-[68px]"
             rightClass="w-[62px]"
             left={
               <Switch>

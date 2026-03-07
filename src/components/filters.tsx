@@ -43,7 +43,9 @@ export const Filters: Component<FiltersProps> = (props) => {
   return (
     <div class="relative mx-auto flex w-full justify-end">
       <div class="flex items-center gap-2">
-        <span class="pixel-tag min-w-[76px] justify-center">{props.filter}</span>
+        <span class="pixel-tag min-h-[34px] min-w-[68px] justify-center px-3 text-[0.68rem]">
+          {props.filter}
+        </span>
 
         <DropdownMenu onOpenChange={setIsOpen}>
           <DropdownMenuTrigger class="pixel-inline-button gap-2 px-4">
