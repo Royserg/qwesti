@@ -15,7 +15,7 @@
   --paper-color: #f1eee6;
   --panel-color: #fbfaf5;
   --panel-muted-color: #e2dbce;
-  --completion-box-color: #ffffff;
+  --completion-box-color: var(--panel-color);
   --line-color: #787064;
   --ink-color: #16130f;
   --muted-color: #857d6d;
@@ -188,12 +188,7 @@
     background-image: var(--paper-background-image);
     background-color: var(--paper-color);
     background-size: var(--paper-background-size);
-    border-left: 2px solid var(--line-color);
-    border-right: 2px solid var(--line-color);
-    border-radius: calc(var(--surface-radius) + 2px);
-    box-shadow:
-      0 0 0 1px rgba(22, 19, 15, 0.02),
-      0 0 0 4px rgba(251, 250, 245, 0.58);
+    box-shadow: none;
   }
 
   .pixel-panel {
@@ -435,8 +430,14 @@
   }
 
   .pixel-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin: 0;
     width: min(92vw, 560px);
+    max-width: calc(100vw - 2rem);
     background: transparent;
+    transform: translate(-50%, -50%);
   }
 
   .pixel-dialog__panel {

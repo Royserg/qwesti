@@ -76,6 +76,7 @@ const AddTaskBody: Component<AddTaskBodyProps> = (props) => {
         autocomplete="off"
         autoCapitalize="off"
         autocorrect="off"
+        autofocus
         name="title"
         class="pixel-field"
         placeholder="create new task"
@@ -102,6 +103,48 @@ export const AddQuestDialog: Component<Props> = (props) => {
 
   const close = () => {
     props.onOpenChange(false);
+  };
+
+  const focusInput = () => {
+    if (!inputRef) {
+      return;
+    }
+
+    inputRef.focus({ preventScroll: true });
+    inputRef.select();
+  };
+
+  const scheduleInputFocus = () => {
+    const timeouts: number[] = [];
+    const frames: number[] = [];
+
+    const scheduleTimeoutFocus = (delay = 0) => {
+      timeouts.push(
+        window.setTimeout(() => {
+          focusInput();
+        }, delay),
+      );
+    };
+
+    frames.push(
+      window.requestAnimationFrame(() => {
+        focusInput();
+        frames.push(window.requestAnimationFrame(() => focusInput()));
+      }),
+    );
+
+    scheduleTimeoutFocus();
+    scheduleTimeoutFocus(120);
+
+    return () => {
+      for (const frame of frames) {
+        window.cancelAnimationFrame(frame);
+      }
+
+      for (const timeout of timeouts) {
+        window.clearTimeout(timeout);
+      }
+    };
   };
 
   const handleSubmit = async () => {
@@ -136,14 +179,9 @@ export const AddQuestDialog: Component<Props> = (props) => {
       return;
     }
 
-    const frame = window.requestAnimationFrame(() => {
-      inputRef?.focus();
-      inputRef?.select();
-    });
+    const cleanupFocus = scheduleInputFocus();
 
-    onCleanup(() => {
-      window.cancelAnimationFrame(frame);
-    });
+    onCleanup(cleanupFocus);
   });
 
   createEffect(() => {
@@ -187,6 +225,10 @@ export const AddQuestDialog: Component<Props> = (props) => {
               onSubmit={handleSubmit}
               registerInput={(element) => {
                 inputRef = element;
+
+                if (props.open) {
+                  window.requestAnimationFrame(() => focusInput());
+                }
               }}
               titleId={titleId}
               descriptionId={descriptionId}
@@ -219,6 +261,10 @@ export const AddQuestDialog: Component<Props> = (props) => {
               onSubmit={handleSubmit}
               registerInput={(element) => {
                 inputRef = element;
+
+                if (props.open) {
+                  window.requestAnimationFrame(() => focusInput());
+                }
               }}
               useDrawerA11y
               titleId={titleId}
