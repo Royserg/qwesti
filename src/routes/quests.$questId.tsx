@@ -35,6 +35,8 @@ import {
   dragSensors,
   isFlatInsertDropData,
   isFlatItemDragData,
+  logDragDebug,
+  logDragOperation,
   moveItemToIndex,
   type FlatInsertDropData,
   type FlatItemDragData,
@@ -366,8 +368,10 @@ const SubQuests: Component<{
   };
 
   const handleDragStart = (event: ProviderDragStartEvent) => {
+    logDragOperation("detail-subtasks", "dragstart", event);
     const sourceData = event.operation.source?.data;
     if (!isFlatItemDragData(sourceData)) {
+      logDragDebug("detail-subtasks", "dragstart ignored: source data did not match flat-item", sourceData);
       return;
     }
 
@@ -378,8 +382,10 @@ const SubQuests: Component<{
   };
 
   const handleDragOver = (event: ProviderDragOverEvent) => {
+    logDragOperation("detail-subtasks", "dragover", event);
     const sourceData = event.operation.source?.data;
     if (!isFlatItemDragData(sourceData)) {
+      logDragDebug("detail-subtasks", "dragover ignored: source data did not match flat-item", sourceData);
       return;
     }
 
@@ -391,6 +397,7 @@ const SubQuests: Component<{
         : null;
 
     if (targetIndex === null) {
+      logDragDebug("detail-subtasks", "dragover ignored: target index could not be resolved", event.operation.target?.data);
       resetPreview();
       return;
     }
@@ -402,6 +409,10 @@ const SubQuests: Component<{
 
     const nextQuests = moveItemToIndex(orderedQuests(), sourceData.questId, targetIndex);
     if (!nextQuests) {
+      logDragDebug("detail-subtasks", "dragover preview rejected", {
+        questId: sourceData.questId,
+        targetIndex,
+      });
       resetPreview();
       return;
     }
@@ -412,6 +423,7 @@ const SubQuests: Component<{
   };
 
   const handleDragEnd = async (event: ProviderDragEndEvent) => {
+    logDragOperation("detail-subtasks", "dragend", event);
     const shouldPersist = !event.canceled && pendingIds && pendingIds.length > 0;
     const ids = pendingIds;
 
@@ -420,6 +432,10 @@ const SubQuests: Component<{
     clearDragState();
 
     if (!shouldPersist || !ids) {
+      logDragDebug("detail-subtasks", "dragend skipped persistence", {
+        canceled: event.canceled,
+        pendingIds: ids,
+      });
       setOrderedQuests(props.quests);
       return;
     }
@@ -436,6 +452,9 @@ const SubQuests: Component<{
   return (
     <DragDropProvider
       sensors={dragSensors}
+      onBeforeDragStart={(event) => {
+        logDragOperation("detail-subtasks", "beforedragstart", event);
+      }}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={(event) => {
@@ -531,8 +550,6 @@ const SortableSubQuestCard: Component<{
     id: `flat-row:${props.quest.id}`,
     group: `subquests:${props.groupId}`,
     index: props.index,
-    transition: null,
-    feedback: "none",
     data: {
       kind: "flat-item",
       questId: props.quest.id,
@@ -545,20 +562,28 @@ const SortableSubQuestCard: Component<{
     },
   });
 
+  const setSortableRowRef = (element: Element | undefined) => {
+    sortable.ref(element);
+    sortable.sourceRef(element);
+    sortable.targetRef(element);
+  };
+
   return (
-    <div
-      ref={sortable.ref}
-      classList={{
-        "pixel-task-row--drag-source": sortable.isDragging(),
+    <QuestCard
+      quest={props.quest}
+      rowRef={setSortableRowRef}
+      class={sortable.isDragging() ? "pixel-task-row--drag-source" : undefined}
+      titleButtonRef={sortable.handleRef}
+      onTitlePointerDown={(event) => {
+        logDragDebug("detail-subtasks", "handle pointerdown", {
+          questId: props.quest.id,
+          pointerType: event.pointerType,
+          targetTag: event.currentTarget.tagName,
+        });
       }}
-    >
-      <QuestCard
-        quest={props.quest}
-        titleButtonRef={sortable.handleRef}
-        canOpen={props.canOpen}
-        onDeleted={props.onDeleted}
-        onToggled={props.onToggled}
-      />
-    </div>
+      canOpen={props.canOpen}
+      onDeleted={props.onDeleted}
+      onToggled={props.onToggled}
+    />
   );
 };

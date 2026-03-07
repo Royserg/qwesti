@@ -14,6 +14,8 @@ import {
   dragSensors,
   isTreeInsertDropData,
   isTreeItemDragData,
+  logDragDebug,
+  logDragOperation,
   serializeParentId,
   type TaskDragSnapshot,
   type TreeInsertDropData,
@@ -154,8 +156,10 @@ export const QuestsTree: Component<Props> = (props) => {
   };
 
   const handleDragStart = (event: ProviderDragStartEvent) => {
+    logDragOperation("tree", "dragstart", event);
     const sourceData = event.operation.source?.data;
     if (!isTreeItemDragData(sourceData)) {
+      logDragDebug("tree", "dragstart ignored: source data did not match tree-item", sourceData);
       return;
     }
 
@@ -168,13 +172,16 @@ export const QuestsTree: Component<Props> = (props) => {
   };
 
   const handleDragOver = (event: ProviderDragOverEvent) => {
+    logDragOperation("tree", "dragover", event);
     const sourceData = event.operation.source?.data;
     if (!isTreeItemDragData(sourceData)) {
+      logDragDebug("tree", "dragover ignored: source data did not match tree-item", sourceData);
       return;
     }
 
     const resolvedTarget = resolveTargetMove(event.operation.target?.data);
     if (!resolvedTarget) {
+      logDragDebug("tree", "dragover ignored: target could not be resolved", event.operation.target?.data);
       clearHoverExpandTimer();
       resetPreview();
       return;
@@ -193,6 +200,11 @@ export const QuestsTree: Component<Props> = (props) => {
     );
 
     if (!previewResult) {
+      logDragDebug("tree", "dragover preview rejected", {
+        questId: sourceData.questId,
+        requestedParentId: resolvedTarget.parentId,
+        requestedIndex: resolvedTarget.index,
+      });
       resetPreview();
       return;
     }
@@ -206,12 +218,18 @@ export const QuestsTree: Component<Props> = (props) => {
   };
 
   const handleDragEnd = async (event: ProviderDragEndEvent) => {
+    logDragOperation("tree", "dragend", event);
     const sourceData = event.operation.source?.data;
     const moveResult = pendingMove;
 
     clearHoverExpandTimer();
 
     if (event.canceled || !isTreeItemDragData(sourceData) || !moveResult) {
+      logDragDebug("tree", "dragend skipped persistence", {
+        canceled: event.canceled,
+        sourceData,
+        moveResult,
+      });
       resetPreview();
       clearDragState();
       return;
@@ -235,6 +253,9 @@ export const QuestsTree: Component<Props> = (props) => {
   return (
     <DragDropProvider
       sensors={dragSensors}
+      onBeforeDragStart={(event) => {
+        logDragOperation("tree", "beforedragstart", event);
+      }}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={(event) => {
@@ -345,8 +366,6 @@ const TreeNode: Component<TreeNodeProps> = (props) => {
     id: `tree-row:${props.quest.id}`,
     group: `tree-parent:${serializeParentId(props.parentId)}`,
     index: props.index,
-    transition: null,
-    feedback: "none",
     data: {
       kind: "tree-item",
       questId: props.quest.id,
@@ -358,6 +377,12 @@ const TreeNode: Component<TreeNodeProps> = (props) => {
       snapshot: createSnapshot(props.quest, hasChildren() ? completionPercentage() : undefined),
     },
   });
+
+  const setSortableRowRef = (element: Element | undefined) => {
+    sortable.ref(element);
+    sortable.sourceRef(element);
+    sortable.targetRef(element);
+  };
 
   const handleQuestToggle = async () => {
     if (hasChildren()) {
@@ -414,52 +439,58 @@ const TreeNode: Component<TreeNodeProps> = (props) => {
       </div>
 
       <div style={{ "padding-left": `${props.level * 1.25}rem` }}>
-        <div ref={sortable.ref}>
-          <PixelTaskRow
-            style={{ "view-transition-name": `quest-${props.quest.id}` }}
-            class={cn({
-              "pixel-task-row--drag-source": sortable.isDragging(),
-              "pixel-task-row--drop-target": sortable.isDropTarget() && props.draggedQuestId !== props.quest.id,
-            })}
-            left={
-              <Show
-                when={hasChildren()}
-                fallback={
-                  <TaskStatusCell
-                    completed={props.quest.completed}
-                    onToggle={handleQuestToggle}
-                    ariaLabel={props.quest.completed ? "Mark task as pending" : "Mark task as completed"}
-                  />
-                }
-              >
+        <PixelTaskRow
+          ref={setSortableRowRef}
+          style={{ "view-transition-name": `quest-${props.quest.id}` }}
+          class={cn({
+            "pixel-task-row--drag-source": sortable.isDragging(),
+            "pixel-task-row--drop-target": sortable.isDropTarget() && props.draggedQuestId !== props.quest.id,
+          })}
+          left={
+            <Show
+              when={hasChildren()}
+              fallback={
                 <TaskStatusCell
-                  progress={completionPercentage()}
-                  onToggle={() => props.onToggleNode(props.quest.id)}
-                  ariaLabel={isCollapsed() ? "Expand subtasks" : "Collapse subtasks"}
+                  completed={props.quest.completed}
+                  onToggle={handleQuestToggle}
+                  ariaLabel={props.quest.completed ? "Mark task as pending" : "Mark task as completed"}
                 />
-              </Show>
-            }
-            right={<DeleteButton onDelete={handleDeleteQuest} />}
-          >
-            <button
-              ref={sortable.handleRef}
-              type="button"
-              onClick={() => {
-                void handleOpenQuestDetails();
-              }}
-              class="pixel-tree-row-button"
+              }
             >
-              <span
-                class={cn("pixel-title", {
-                  "pixel-title--done": props.quest.completed,
-                })}
-                title={props.quest.title}
-              >
-                {props.quest.title}
-              </span>
-            </button>
-          </PixelTaskRow>
-        </div>
+              <TaskStatusCell
+                progress={completionPercentage()}
+                onToggle={() => props.onToggleNode(props.quest.id)}
+                ariaLabel={isCollapsed() ? "Expand subtasks" : "Collapse subtasks"}
+              />
+            </Show>
+          }
+          right={<DeleteButton onDelete={handleDeleteQuest} />}
+        >
+          <button
+            ref={sortable.handleRef}
+            type="button"
+            onPointerDown={(event) => {
+              logDragDebug("tree", "handle pointerdown", {
+                questId: props.quest.id,
+                pointerType: event.pointerType,
+                targetTag: event.currentTarget.tagName,
+              });
+            }}
+            onClick={() => {
+              void handleOpenQuestDetails();
+            }}
+            class="pixel-tree-row-button"
+          >
+            <span
+              class={cn("pixel-title", {
+                "pixel-title--done": props.quest.completed,
+              })}
+              title={props.quest.title}
+            >
+              {props.quest.title}
+            </span>
+          </button>
+        </PixelTaskRow>
       </div>
 
       <Show when={hasChildren() && !isCollapsed()}>

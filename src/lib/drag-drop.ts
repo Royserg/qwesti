@@ -58,7 +58,6 @@ export const dragSensors: Sensors = [
         })]
         : [new PointerActivationConstraints.Distance({ value: DRAG_MOUSE_DISTANCE_PX })]
     ),
-    preventActivation: (event) => event.button !== 0,
   }),
 ];
 
@@ -100,3 +99,38 @@ export const moveItemToIndex = <T extends { id: string }>(
 };
 
 export const serializeParentId = (parentId: string | null) => parentId ?? ROOT_PARENT_ID;
+
+export const logDragDebug = (scope: string, label: string, payload?: unknown) => {
+  if (payload === undefined) {
+    console.debug(`[qwesti:dnd:${scope}] ${label}`);
+    return;
+  }
+
+  console.debug(`[qwesti:dnd:${scope}] ${label}`, payload);
+};
+
+export const logDragOperation = (
+  scope: string,
+  label: string,
+  event: {
+    canceled?: boolean;
+    operation?: {
+      source?: {
+        id?: string | number;
+        data?: unknown;
+      } | null;
+      target?: {
+        id?: string | number;
+        data?: unknown;
+      } | null;
+    };
+  },
+) => {
+  console.debug(`[qwesti:dnd:${scope}] ${label}`, {
+    canceled: event.canceled,
+    sourceId: event.operation?.source?.id,
+    sourceData: event.operation?.source?.data,
+    targetId: event.operation?.target?.id,
+    targetData: event.operation?.target?.data,
+  });
+};

@@ -12,7 +12,10 @@ interface Props {
   onDeleted?: () => void;
   onToggled?: () => void;
   titleButtonRef?: JSX.ButtonHTMLAttributes<HTMLButtonElement>["ref"];
+  onTitlePointerDown?: JSX.EventHandlerUnion<HTMLButtonElement, PointerEvent>;
+  rowRef?: JSX.HTMLAttributes<HTMLDivElement>["ref"];
   canOpen?: () => boolean;
+  class?: string;
 }
 
 // TODO: rename to TaskCard and other "Quest" components
@@ -59,6 +62,8 @@ export const QuestCard: Component<Props> = (props) => {
   return (
     <PixelTaskRow
       style={{ "view-transition-name": `quest-${props.quest.id}` }}
+      ref={props.rowRef}
+      class={props.class}
       left={
         <Show
           when={props.quest.hasChildren}
@@ -78,6 +83,7 @@ export const QuestCard: Component<Props> = (props) => {
       <button
         ref={props.titleButtonRef}
         type="button"
+        onPointerDown={props.onTitlePointerDown}
         onClick={handleQuestClick}
         class="drag-handle flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-2.5 text-left"
       >
