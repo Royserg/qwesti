@@ -1,34 +1,35 @@
 import { animations, insert } from "@formkit/drag-and-drop";
 import { dragAndDrop } from "@formkit/drag-and-drop/solid";
 import {
-    queryOptions,
-    useQuery,
-} from '@tanstack/solid-query';
+  queryOptions,
+  useQuery,
+} from "@tanstack/solid-query";
 import {
-    createFileRoute,
-    Link,
-    useNavigate,
-    useRouter,
+  createFileRoute,
+  Link,
+  useNavigate,
+  useRouter,
 } from "@tanstack/solid-router";
 import ChevronLeft from "icons/chevron-left";
-import { Component, createSignal, For, Match, onMount, Show, Switch } from "solid-js";
+import { Component, For, Match, Show, Switch, createSignal, onMount } from "solid-js";
 import {
-    addQuest,
-    deleteQuest,
-    loadQuest,
-    loadSubQuests,
-    updateQuestCompleted,
-    updateQuestTitle,
+  addQuest,
+  deleteQuest,
+  loadQuest,
+  loadSubQuests,
+  updateQuestCompleted,
+  updateQuestTitle,
 } from "~/actions";
 import { updateQuestsOrder } from "~/actions/update-quests-order";
 import { Quest } from "~/bindings";
 import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
 import { DeleteButton } from "~/components/delete-button";
 import { EditableText } from "~/components/editable-text";
+import { PixelTaskRow } from "~/components/pixel-task-row";
 import { QuestCard } from "~/components/quest-card";
+import { TaskStatusCell } from "~/components/task-status-cell";
 import { Button } from "~/components/ui/button";
 import { BaseLayout } from "~/layouts/base";
-import { cn } from "~/lib/utils";
 import { queryClient } from "./__root";
 
 type BreadcrumbQuest = {
@@ -37,21 +38,17 @@ type BreadcrumbQuest = {
 };
 
 const questQueryOptions = (questId: string) => queryOptions({
-  queryKey: ['quest', questId],
-  queryFn: () => { return loadQuest({ id: questId }) },
-  // NOTE: this mini-refreshes the view and glitches AddDialog
-  // But without this the "go back" will not animate
-  // staleTime: 10 * 1000, // 5 seconds
-})
+  queryKey: ["quest", questId],
+  queryFn: () => loadQuest({ id: questId }),
+});
+
 const subQuestsQueryOptions = (questId: string) => queryOptions({
-  queryKey: ['subQuests', questId],
-  queryFn: () => { return loadSubQuests(questId) },
-  // NOTE: this mini-refreshes the view and glitches AddDialog
-  // But without this the "go back" will not animate
-  // staleTime: 10 * 1000, // 10seconds
-})
+  queryKey: ["subQuests", questId],
+  queryFn: () => loadSubQuests(questId),
+});
+
 const breadcrumbsQueryOptions = (questId: string) => queryOptions({
-  queryKey: ['questBreadcrumbs', questId],
+  queryKey: ["questBreadcrumbs", questId],
   queryFn: async () => {
     const chain: BreadcrumbQuest[] = [];
     const seen = new Set<string>();
@@ -71,14 +68,14 @@ const breadcrumbsQueryOptions = (questId: string) => queryOptions({
 
     return chain.reverse();
   },
-})
+});
 
 export const Route = createFileRoute("/quests/$questId")({
   component: RouteComponent,
   loader: async ({ params }) => {
-    await queryClient.ensureQueryData(questQueryOptions(params.questId))
-    await queryClient.ensureQueryData(subQuestsQueryOptions(params.questId))
-    await queryClient.ensureQueryData(breadcrumbsQueryOptions(params.questId))
+    await queryClient.ensureQueryData(questQueryOptions(params.questId));
+    await queryClient.ensureQueryData(subQuestsQueryOptions(params.questId));
+    await queryClient.ensureQueryData(breadcrumbsQueryOptions(params.questId));
   },
   gcTime: 0,
   shouldReload: false,
@@ -89,14 +86,14 @@ function RouteComponent() {
   const router = useRouter();
   const navigate = useNavigate({ from: "/quests/$questId" });
 
-  const questQuery = useQuery(() => questQueryOptions(params().questId))
-  const subQuestsQuery = useQuery(() => subQuestsQueryOptions(params().questId))
-  const breadcrumbsQuery = useQuery(() => breadcrumbsQueryOptions(params().questId))
+  const questQuery = useQuery(() => questQueryOptions(params().questId));
+  const subQuestsQuery = useQuery(() => subQuestsQueryOptions(params().questId));
+  const breadcrumbsQuery = useQuery(() => breadcrumbsQueryOptions(params().questId));
 
   const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
 
   const handleBackClick = () => {
-    queryClient.clear(); // helps out with re-triggering other queries I think
+    queryClient.clear();
 
     if (router.history.canGoBack()) {
       router.history.back();
@@ -107,15 +104,13 @@ function RouteComponent() {
 
   const handleTitleChange = async (title: string) => {
     const questId = params().questId;
-
     if (!questId) {
       return;
     }
 
     try {
-      await updateQuestTitle({ questId: questId, title });
-      questQuery.refetch();
-      breadcrumbsQuery.refetch();
+      await updateQuestTitle({ questId, title });
+      await Promise.all([questQuery.refetch(), breadcrumbsQuery.refetch()]);
     } catch (err) {
       console.error(err);
     }
@@ -123,14 +118,16 @@ function RouteComponent() {
 
   const handleDeleteQuest = async () => {
     const questId = params().questId;
-    if (questId) {
-      await deleteQuest({ questId });
+    if (!questId) {
+      return;
+    }
 
-      if (router.history.canGoBack()) {
-        router.history.back();
-      } else {
-        navigate({ to: "/" });
-      }
+    await deleteQuest({ questId });
+
+    if (router.history.canGoBack()) {
+      router.history.back();
+    } else {
+      navigate({ to: "/" });
     }
   };
 
@@ -141,13 +138,12 @@ function RouteComponent() {
     }
 
     try {
-      const nextCompleted = !currentQuest.completed;
       await updateQuestCompleted({
         questId: currentQuest.id,
-        completed: nextCompleted,
+        completed: !currentQuest.completed,
       });
 
-      questQuery.refetch();
+      await questQuery.refetch();
     } catch (err) {
       console.error(err);
     }
@@ -160,10 +156,8 @@ function RouteComponent() {
     }
 
     try {
-      // pass in parent id
       await addQuest({ title, parentId: questId });
-
-      subQuestsQuery.refetch();
+      await subQuestsQuery.refetch();
       closeDialog();
     } catch (err) {
       console.error(err);
@@ -178,112 +172,98 @@ function RouteComponent() {
     subQuestsQuery.refetch();
   };
 
-  const handleSubQuestToggled = (_id: string) => {
+  const handleSubQuestToggled = () => {
     subQuestsQuery.refetch();
-  }
+    questQuery.refetch();
+  };
 
   const subQuestsCount = () => subQuestsQuery.data?.length ?? 0;
-  const subQuestsCompletedCount = () => subQuestsQuery.data?.filter((q) => q.completed).length ?? 0;
+  const subQuestsCompletedCount = () => subQuestsQuery.data?.filter((quest) => quest.completed).length ?? 0;
   const completionPercentage = () =>
     subQuestsCompletedCount() === 0
       ? 0
       : Math.floor((subQuestsCompletedCount() / subQuestsCount()) * 100);
-  const completionBgGradient = () => {
-    if (subQuestsCompletedCount() === 0) {
-      return "var(--color-white)";
-    }
-    return `linear-gradient(
-                0deg,
-                var(--color-amber-300) 0%,
-                var(--color-amber-400) ${completionPercentage()}%,
-                var(--color-white) ${completionPercentage() + 2}%
-              )`;
-  };
 
   return (
-    <BaseLayout class="flex flex-col">
-      <div class="flex h-[calc(100%-70px)]">
+    <BaseLayout class="flex min-h-0 flex-col px-4 pb-4 pt-20 sm:px-6 sm:pb-5 sm:pt-24">
+      <div class="flex items-start gap-4">
         <button
+          type="button"
           onClick={handleBackClick}
-          class="flex h-full w-4 cursor-pointer items-center justify-center border-r bg-gray-50"
+          class="pixel-icon-button mt-1 shrink-0"
+          aria-label="Go back"
         >
-          <ChevronLeft class="text-gray-600" />
+          <ChevronLeft />
         </button>
 
-        <div class="flex h-full w-full flex-col pt-3">
-          <Breadcrumbs crumbs={breadcrumbsQuery.data ?? []} />
+        <div class="flex min-w-0 flex-1 flex-col gap-3">
+          <div class="pixel-shell-card pixel-scroll overflow-x-auto px-4 py-3">
+            <Breadcrumbs crumbs={breadcrumbsQuery.data ?? []} />
+          </div>
 
-          <div
+          <PixelTaskRow
             style={{
               contain: "layout",
               "view-transition-name": `quest-${params().questId}`,
             }}
-            class="border-b-secondary flex h-12 w-full items-center gap-6 border-b px-4 pb-2"
+            class="min-h-[88px]"
+            leftClass="w-[84px]"
+            rightClass="w-[68px]"
+            left={
+              <Switch>
+                <Match when={subQuestsQuery.data?.length === 0}>
+                  <TaskStatusCell
+                    completed={questQuery.data?.completed}
+                    onToggle={handleQuestToggle}
+                    ariaLabel={
+                      questQuery.data?.completed ? "Mark task as pending" : "Mark task as completed"
+                    }
+                  />
+                </Match>
+
+                <Match when={subQuestsQuery.data?.length && subQuestsQuery.data.length > 0}>
+                  <TaskStatusCell progress={completionPercentage()} />
+                </Match>
+              </Switch>
+            }
+            right={<DeleteButton class="h-full" onDelete={handleDeleteQuest} />}
           >
-            <Switch>
-              <Match when={subQuestsQuery.data?.length === 0}>
-                <button
-                  type="button"
-                  class={cn(
-                    "flex h-full w-12 cursor-pointer justify-center border shadow-inner shadow-black/20",
-                    {
-                      "bg-amber-300": questQuery.data?.completed,
-                      "bg-card": !questQuery.data?.completed,
-                    },
-                  )}
-                  onClick={handleQuestToggle}
-                />
-              </Match>
-
-              <Match when={subQuestsQuery.data?.length && subQuestsQuery.data?.length > 0}>
-                <div
-                  class="group grid h-full w-14 place-items-center inset-shadow-sm inset-shadow-black/20"
-                  style={{
-                    background: completionBgGradient(),
-                  }}
-                >
-                  <p class="invisible group-hover:visible">
-                    {completionPercentage()}%
-                  </p>
-                </div>
-              </Match>
-            </Switch>
-
-            <EditableText
-              value={questQuery.data?.title ?? ''}
-              onSubmit={handleTitleChange}
-              focusable={() => true}
-            />
-
-            <DeleteButton class="mr-2 p-3" onDelete={handleDeleteQuest} />
-          </div>
-
-          {/* Sub-Quests */}
-          <div class="py-2" />
-
-          <SubQuests
-            quests={subQuestsQuery.data ?? []}
-            onQuestDeleted={handleSubQuestDeleted}
-            onQuestToggled={handleSubQuestToggled}
-            onOrderChanged={() => subQuestsQuery.refetch()}
-          />
+            <div class="flex min-w-0 flex-1 flex-col justify-center gap-2 px-4 py-4">
+              <span class="type-pixel text-[0.62rem] text-[var(--muted-color)]">task</span>
+              <EditableText
+                value={questQuery.data?.title ?? ""}
+                onSubmit={handleTitleChange}
+                focusable={() => true}
+                class="pixel-title text-[1rem] sm:text-[1.08rem]"
+                inputClass="min-h-[56px]"
+              />
+            </div>
+          </PixelTaskRow>
         </div>
+      </div>
+
+      <div class="mt-5 flex min-h-0 flex-1 overflow-hidden">
+        <SubQuests
+          quests={subQuestsQuery.data ?? []}
+          onQuestDeleted={handleSubQuestDeleted}
+          onQuestToggled={handleSubQuestToggled}
+          onOrderChanged={() => subQuestsQuery.refetch()}
+        />
       </div>
 
       <section
         style={{
           "view-transition-name": "bottom-bar",
         }}
-        // class="bg-background animate-in slide-in-from-bottom-5 mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1 rounded-t-xs"
-        class="bg-background mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1 rounded-t-xs"
+        class="mt-4"
       >
         <Button
-          class="h-[50px] w-3/5 rounded-xs"
+          class="pixel-button--action h-[60px] w-full"
           onClick={() => {
             dialogRef()?.showModal();
           }}
         >
-          Add subtask
+          add subtask
         </Button>
       </section>
 
@@ -300,136 +280,128 @@ const Breadcrumbs: Component<{
   crumbs: BreadcrumbQuest[];
 }> = (props) => {
   return (
-    <div class="w-full overflow-x-auto px-4 pb-2">
-      <div class="flex min-w-max items-center gap-1 text-sm">
-        <Link to="/" search={{ filter: "all" }} class="text-gray-500 transition-colors hover:text-gray-900">
-          Tasks
-        </Link>
+    <div class="pixel-breadcrumbs">
+      <Link to="/" search={{ filter: "all" }} class="underline underline-offset-2">
+        tasks
+      </Link>
 
-        <For each={props.crumbs}>
-          {(crumb, index) => {
-            const isLast = () => index() === props.crumbs.length - 1;
+      <For each={props.crumbs}>
+        {(crumb, index) => {
+          const isLast = () => index() === props.crumbs.length - 1;
 
-            return (
-              <>
-                <span class="text-gray-400">/</span>
+          return (
+            <>
+              <span>/</span>
 
-                <Show
-                  when={!isLast()}
-                  fallback={
-                    <span class="max-w-[220px] truncate font-medium text-gray-900" title={crumb.title}>
-                      {crumb.title}
-                    </span>
-                  }
-                >
-                  <Link
-                    to="/quests/$questId"
-                    params={{ questId: crumb.id }}
-                    class="max-w-[180px] truncate text-gray-500 transition-colors hover:text-gray-900"
-                    title={crumb.title}
-                  >
+              <Show
+                when={!isLast()}
+                fallback={
+                  <span class="max-w-[220px] truncate text-[var(--ink-color)]" title={crumb.title}>
                     {crumb.title}
-                  </Link>
-                </Show>
-              </>
-            );
-          }}
-        </For>
-      </div>
+                  </span>
+                }
+              >
+                <Link
+                  to="/quests/$questId"
+                  params={{ questId: crumb.id }}
+                  class="max-w-[180px] truncate underline underline-offset-2"
+                  title={crumb.title}
+                >
+                  {crumb.title}
+                </Link>
+              </Show>
+            </>
+          );
+        }}
+      </For>
     </div>
   );
 };
 
-
 const createInsertPointElement = () => {
   const div = document.createElement("div");
-  div.classList.add("absolute",
-    "bg-amber-500",
-    "z-200",
-    "rounded-full",
-    "duration-[5ms]",
-    "before:block",
-    'before:content-["Insert"]',
-    "before:whitespace-nowrap",
-    "before:block",
-    "before:bg-amber-500",
-    "before:py-1",
-    "before:px-2",
-    "before:rounded-full",
-    "before:text-xs",
-    "before:absolute",
-    "before:top-1/2",
-    "before:left-1/2",
-    "before:-translate-y-1/2",
-    "before:-translate-x-1/2",
-    "before:text-white",
-    "before:text-xs",);
-  return div;
-}
+  div.classList.add("relative", "h-3", "w-full");
 
-// -- Sub Quests --
+  const line = document.createElement("div");
+  line.classList.add("absolute", "left-0", "right-0", "top-1/2", "h-[2px]", "bg-[var(--accent-color)]");
+
+  const label = document.createElement("div");
+  label.classList.add(
+    "type-pixel",
+    "absolute",
+    "left-1/2",
+    "top-1/2",
+    "-translate-x-1/2",
+    "-translate-y-1/2",
+    "border-2",
+    "border-[var(--line-color)]",
+    "bg-[var(--panel-color)]",
+    "px-2",
+    "py-0.5",
+    "text-[0.55rem]",
+    "text-[var(--ink-color)]",
+  );
+  label.textContent = "insert";
+
+  div.append(line, label);
+  return div;
+};
+
 const SubQuests: Component<{
   quests: Quest[];
   onQuestDeleted?: (id: string) => void;
   onQuestToggled?: (id: string) => void;
   onOrderChanged?: () => void;
 }> = (props) => {
-
   let questsContainer!: HTMLDivElement;
 
   onMount(() => {
     dragAndDrop({
       parent: questsContainer,
-      group: 'quests',
+      group: "quests",
       state: [
         () => props.quests,
         async (data) => {
-          const newOrderedQuests = data;
-          const ids = newOrderedQuests.map(q => q.id);
+          const ids = data.map((quest) => quest.id);
           await updateQuestsOrder({ ids });
-          props.onOrderChanged?.()
-        }
+          props.onOrderChanged?.();
+        },
       ],
       handleNodePointerdown: () => { },
       handlePointercancel: () => { },
-      dragHandle: '.drag-handle',
+      dragHandle: ".drag-handle",
       plugins: [
         animations(),
         insert({
-          insertPoint: (_parent) => {
-            return createInsertPointElement();
-          }
-        })
-      ]
+          insertPoint: () => createInsertPointElement(),
+        }),
+      ],
     });
-  })
-
-  const onQuestDeleted = (id: string) => {
-    props.onQuestDeleted?.(id);
-  }
-  const onQuestToggled = (id: string) => {
-    props.onQuestToggled?.(id);
-  }
+  });
 
   return (
     <section
-      class="flex flex-1 flex-col gap-2 overflow-auto"
+      class="flex min-h-0 flex-1 flex-col gap-3 overflow-auto"
       style={{ "view-transition-name": "sub-quests-container" }}
     >
       <Show when={props.quests.length > 0}>
-        <h3 class="text-muted-foreground pl-4 text-xl">Subtasks</h3>
-        <div ref={questsContainer} class="flex flex-col gap-1 px-6 pb-3">
+        <h3 class="pixel-section-title px-1 text-[var(--muted-color)]">subtasks</h3>
+        <div ref={questsContainer} class="flex flex-col gap-3 pr-1">
           <For each={props.quests}>
-            {(q) => (
+            {(quest) => (
               <QuestCard
-                data-label={q.id}
-                quest={q}
-                onDeleted={() => onQuestDeleted(q.id)}
-                onToggled={() => onQuestToggled(q.id)}
+                data-label={quest.id}
+                quest={quest}
+                onDeleted={() => props.onQuestDeleted?.(quest.id)}
+                onToggled={() => props.onQuestToggled?.(quest.id)}
               />
             )}
           </For>
         </div>
+      </Show>
+
+      <Show when={props.quests.length === 0}>
+        <div class="pixel-empty-state w-full">no subtasks yet</div>
       </Show>
     </section>
   );

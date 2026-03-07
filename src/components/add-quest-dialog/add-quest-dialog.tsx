@@ -1,5 +1,7 @@
-import { Component, onMount, Setter } from "solid-js";
-import { DOMElement } from "solid-js/jsx-runtime";
+import X from "icons/x";
+import { type Component, onMount, type Setter } from "solid-js";
+import type { DOMElement } from "solid-js/jsx-runtime";
+import { Button } from "~/components/ui/button";
 
 type DialogClickEvent = MouseEvent & {
   currentTarget: HTMLDialogElement;
@@ -11,61 +13,81 @@ interface Props {
   onClose: () => void;
   onSubmit: (title: string) => Promise<void>;
 }
+
 export const AddQuestDialog: Component<Props> = (props) => {
   let inputRef!: HTMLInputElement;
 
-
   const handleSubmit = async () => {
-    const title = inputRef.value;
-    await props.onSubmit(title)
+    const title = inputRef.value.trim();
+    if (!title) {
+      return;
+    }
 
-    // clear input
+    await props.onSubmit(title);
     inputRef.value = "";
-  }
+  };
 
   onMount(() => {
     inputRef.focus();
-  })
+  });
 
-  // Closes dialog when backdrop is clicked
   const handleDialogClick = (e: DialogClickEvent) => {
-    let rect = e.target.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
 
-    if (rect.left > e.clientX ||
+    if (
+      rect.left > e.clientX ||
       rect.right < e.clientX ||
       rect.top > e.clientY ||
       rect.bottom < e.clientY
     ) {
-      props.onClose()
+      props.onClose();
     }
-  }
+  };
 
   return (
-    <dialog onClick={handleDialogClick} ref={props.dialogRef} class={`w-full overflow-hidden backdrop:bg-black/70 max-w-full animate-in slide-in-from-top-36 duration-300`}>
-      <button onClick={props.onClose} class="absolute right-5 top-3 cursor-pointer rounded-xs border-2 px-2 grid place-items-center">X</button>
+    <dialog onClick={handleDialogClick} ref={props.dialogRef} class="pixel-dialog">
+      <div class="pixel-dialog__panel relative mx-auto">
+        <button
+          type="button"
+          onClick={props.onClose}
+          class="pixel-icon-button absolute right-4 top-4 z-10 size-10"
+          aria-label="Close create task dialog"
+        >
+          <X />
+        </button>
 
-      <form
-        class="w-full mx-auto rounded-t-xs bg-background text-2xl py-8 border-b px-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!inputRef.value.trim()) {
-            return;
-          }
-          handleSubmit();
-        }}
-      >
-        <h4 class="text-center text-3xl pb-2">Create task</h4>
-        <input
-          autocomplete="off"
-          autoCapitalize="off"
-          autocorrect="off"
-          name="title"
-          class="h-[65px] w-full outline-none p-3 py-4 focus-within:border-[#222] focus-within:shadow-inner border-[#dedede] border"
-          placeholder="Create task"
-          ref={inputRef}
-          autofocus
-        />
-      </form>
+        <form
+          class="flex flex-col gap-5 px-6 py-6 pt-8"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+        >
+          <div class="flex flex-col gap-2 pr-12">
+            <h4 class="type-pixel text-xl">create new task</h4>
+            <p class="type-copy text-sm text-[var(--muted-color)]">
+              add a new task for the current day or branch.
+            </p>
+          </div>
+
+          <input
+            autocomplete="off"
+            autoCapitalize="off"
+            autocorrect="off"
+            name="title"
+            class="pixel-field"
+            placeholder="create new task"
+            ref={inputRef}
+            autofocus
+          />
+
+          <div class="flex justify-end">
+            <Button type="submit" class="min-w-[160px]">
+              add task
+            </Button>
+          </div>
+        </form>
+      </div>
     </dialog>
   );
 };

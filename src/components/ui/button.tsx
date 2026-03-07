@@ -9,25 +9,22 @@ import { cva } from "class-variance-authority";
 import { cn } from "~/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xs text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 cursor-pointer",
+  "pixel-button whitespace-nowrap disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-input hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        default: "",
+        destructive: "bg-[var(--line-color)] text-[var(--panel-color)] hover:bg-[var(--line-color)]",
+        outline: "pixel-button--ghost",
+        secondary: "bg-[var(--panel-muted-color)] text-[var(--ink-color)] hover:bg-[var(--accent-soft-color)]",
+        ghost: "pixel-button--ghost",
+        link: "pixel-button--ghost underline underline-offset-4",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 px-3 text-xs",
-        lg: "h-11 px-8",
-        icon: "size-10",
+        default: "",
+        sm: "min-h-[42px] px-3 text-[0.72rem]",
+        lg: "min-h-[56px] px-8 text-[0.84rem]",
+        icon: "size-[54px] px-0",
       },
     },
     defaultVariants: {

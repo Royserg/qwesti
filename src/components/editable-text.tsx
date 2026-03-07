@@ -1,10 +1,12 @@
-import { type Accessor, type Component, createSignal, Show } from "solid-js";
+import { createEffect, type Accessor, type Component, createSignal, Show } from "solid-js";
 import { cn } from "~/lib/utils";
 
 interface Props {
   value: string;
   focusable: Accessor<boolean>;
   onSubmit: (value: string) => Promise<void>;
+  class?: string;
+  inputClass?: string;
 }
 
 export const EditableText: Component<Props> = (props) => {
@@ -13,6 +15,10 @@ export const EditableText: Component<Props> = (props) => {
 
   const [editEnabled, setEditEnabled] = createSignal(false);
   const [newValue, setNewValue] = createSignal(props.value);
+
+  createEffect(() => {
+    setNewValue(props.value);
+  });
 
   const handleKeyUp = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -65,7 +71,7 @@ export const EditableText: Component<Props> = (props) => {
             input.focus();
           }}
           ref={textDisplay}
-          class="w-full"
+          class={cn("w-full", props.class)}
           tabIndex={props.focusable() ? 0 : -1}
           onKeyUp={handleKeyUp}
         >
@@ -81,11 +87,16 @@ export const EditableText: Component<Props> = (props) => {
             setEditEnabled(false);
           }}
           ref={input}
-          class={cn("w-full ", {
-            hidden: !editEnabled(),
-          })}
+          class={cn(
+            "pixel-field w-full",
+            props.class,
+            props.inputClass,
+            {
+              hidden: !editEnabled(),
+            },
+          )}
           onInput={(e) => setNewValue(e.currentTarget.value)}
-          value={props.value}
+          value={newValue()}
         />
       </Show >
 

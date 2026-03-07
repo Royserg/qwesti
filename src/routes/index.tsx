@@ -154,19 +154,15 @@ function Index() {
 
   const handleQuestToggled = async () => {
     await refreshViews();
-  }
+  };
 
   const onOrderChanged = async () => {
     await refreshViews();
-  }
+  };
 
   return (
-    <BaseLayout class="relative flex flex-col pt-2">
-      <div class="py-2" />
-
+    <BaseLayout class="relative flex min-h-0 flex-col px-4 pb-4 pt-24 sm:px-6 sm:pb-5 sm:pt-28">
       <TodayDate />
-
-      <div class="py-2" />
 
       <AddQuestDialog
         dialogRef={setDialogRef}
@@ -174,7 +170,7 @@ function Index() {
         onClose={closeDialog}
       />
 
-      <section class="flex flex-1 flex-col gap-1 overflow-hidden px-4">
+      <section class="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden">
         <Show
           when={selectedView() === QuestsViewEnum.enum.tree}
           fallback={
@@ -199,15 +195,15 @@ function Index() {
           style={{
             "view-transition-name": "bottom-bar",
           }}
-          class="bg-background animate-in slide-in-from-bottom-5 mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1 rounded-t-xs"
+          class="mt-4"
         >
           <Button
-            class="h-[50px] w-3/5 rounded-xs"
+            class="pixel-button--action h-[60px] w-full"
             onClick={() => {
               dialogRef()?.showModal();
             }}
           >
-            Add
+            add
           </Button>
         </section>
       </Show>

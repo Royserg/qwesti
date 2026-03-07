@@ -2,11 +2,11 @@ import { animations, insert } from "@formkit/drag-and-drop";
 import { dragAndDrop } from "@formkit/drag-and-drop/solid";
 import { useSearch } from "@tanstack/solid-router";
 import {
-    type Component,
-    ErrorBoundary,
-    For,
-    onMount,
-    Show
+  type Component,
+  ErrorBoundary,
+  For,
+  onMount,
+  Show,
 } from "solid-js";
 import { updateQuestsOrder } from "~/actions/update-quests-order";
 import type { Quest } from "~/bindings";
@@ -24,104 +24,89 @@ interface Props {
 
 const createInsertPointElement = () => {
   const div = document.createElement("div");
-  div.classList.add("absolute",
-    "bg-amber-500",
-    "z-200",
-    "rounded-full",
-    "duration-[5ms]",
-    "before:block",
-    'before:content-["Insert"]',
-    "before:whitespace-nowrap",
-    "before:block",
-    "before:bg-amber-500",
-    "before:py-1",
-    "before:px-2",
-    "before:rounded-full",
-    "before:text-xs",
-    "before:absolute",
-    "before:top-1/2",
-    "before:left-1/2",
-    "before:-translate-y-1/2",
-    "before:-translate-x-1/2",
-    "before:text-white",
-    "before:text-xs",);
+  div.classList.add("relative", "h-3", "w-full");
+
+  const line = document.createElement("div");
+  line.classList.add("absolute", "left-0", "right-0", "top-1/2", "h-[2px]", "bg-[var(--accent-color)]");
+
+  const label = document.createElement("div");
+  label.classList.add(
+    "type-pixel",
+    "absolute",
+    "left-1/2",
+    "top-1/2",
+    "-translate-x-1/2",
+    "-translate-y-1/2",
+    "border-2",
+    "border-[var(--line-color)]",
+    "bg-[var(--panel-color)]",
+    "px-2",
+    "py-0.5",
+    "text-[0.55rem]",
+    "text-[var(--ink-color)]",
+  );
+  label.textContent = "insert";
+
+  div.append(line, label);
   return div;
-}
+};
 
 export const QuestsList: Component<Props> = (props) => {
   let questsContainer!: HTMLDivElement;
-
   const search = useSearch({ from: "/" });
 
-  /**
-   * today's date doesn't set the search param
-   */
-  const isTodaySelected = () => {
-    return !search().date;
-  };
+  const isTodaySelected = () => !search().date;
 
-  // NOTE: check how to handle this or change the dnd solution
   onMount(() => {
     dragAndDrop({
       parent: questsContainer,
-      group: 'quests',
+      group: "quests",
       state: [
         () => props.quests,
         async (data) => {
-          const newOrderedQuests = data;
-          const ids = newOrderedQuests.map(q => q.id);
+          const ids = data.map((quest) => quest.id);
           await updateQuestsOrder({ ids });
-          props.onOrderChanged?.()
-        }
+          props.onOrderChanged?.();
+        },
       ],
-      dragHandle: '.drag-handle',
+      dragHandle: ".drag-handle",
       handleNodePointerdown: () => { },
       handlePointercancel: () => { },
       plugins: [
         animations(),
         insert({
-          insertPoint: (_parent) => {
-            return createInsertPointElement();
-          }
-        })
-      ]
+          insertPoint: () => createInsertPointElement(),
+        }),
+      ],
     });
-  })
+  });
 
   return (
-    <div class="flex h-full flex-col gap-6 overflow-hidden">
-      {/* NOTE: Show only for today's date */}
+    <div class="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
       <Show when={isTodaySelected()}>
         <Filters filter={(props.filter as string) ?? "all"} />
       </Show>
 
-      <ul class="scrollbar-hide flex h-full flex-col gap-1 overflow-y-auto pb-3">
-        <ErrorBoundary fallback={<div>Error</div>}>
+      <div class="pixel-scroll flex min-h-0 flex-1 flex-col overflow-y-auto pb-4">
+        <ErrorBoundary fallback={<div class="pixel-empty-state">error loading tasks</div>}>
           <Show when={props.quests.length === 0}>
-            <h3 class="text-accent mt-10 h-full text-center text-3xl">
-              No tasks
-            </h3>
+            <div class="pixel-empty-state">no tasks</div>
           </Show>
 
-          <div
-            ref={questsContainer}
-            class="relative flex flex-col gap-1 self-stretch"
-          >
+          <div ref={questsContainer} class="relative flex flex-col gap-3 self-stretch pr-1">
             <For each={props.quests}>
-              {(q) => {
-                return (
-                  <QuestCard
-                    quest={q}
-                    onDeleted={props.onQuestDeleted}
-                    onToggled={() => props.onQuestToggled?.(q.id)}
-                    data-label={q.id}
-                  />
-                );
-              }}
+              {(quest) => (
+                <QuestCard
+                  quest={quest}
+                  onDeleted={props.onQuestDeleted}
+                  onToggled={() => props.onQuestToggled?.(quest.id)}
+                  data-label={quest.id}
+                />
+              )}
             </For>
           </div>
         </ErrorBoundary>
-      </ul>
+      </div>
     </div>
   );
 };
