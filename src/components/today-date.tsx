@@ -6,7 +6,7 @@ import ChevronsRight from "icons/chevrons-right";
 import List from "icons/list";
 import ListTree from "icons/list-tree";
 import Settings from "icons/settings";
-import { createSignal } from "solid-js";
+import { Show, createSignal } from "solid-js";
 import { SettingsDialog } from "~/components/settings-dialog";
 import { dateToString, getTodayDate } from "~/lib/date";
 import {
@@ -70,26 +70,6 @@ export const TodayDate = () => {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={toggleView}
-        class="pixel-icon-button fixed left-4 top-4 z-20 sm:left-6 sm:top-6"
-        title={isTreeView() ? "Switch to list view" : "Switch to tree view"}
-        aria-label={isTreeView() ? "Switch to list view" : "Switch to tree view"}
-      >
-        {isTreeView() ? <List class="size-5" /> : <ListTree class="size-5" />}
-      </button>
-
-      <button
-        type="button"
-        onClick={openSettings}
-        class="pixel-icon-button fixed right-4 top-4 z-20 sm:right-6 sm:top-6"
-        title="Settings"
-        aria-label="Open settings"
-      >
-        <Settings class="size-5" />
-      </button>
-
       <SettingsDialog
         dialogRef={setSettingsDialogRef}
         selectedFormat={dateFormatOption}
@@ -97,8 +77,18 @@ export const TodayDate = () => {
         onClose={closeSettings}
       />
 
-      <div class="mx-auto flex w-full max-w-[420px] flex-col items-center gap-3 px-4">
-        <div class="pixel-panel flex w-full items-center justify-between gap-2 px-3 py-3 sm:px-4">
+      <div class="mx-auto flex w-full max-w-[640px] items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          onClick={toggleView}
+          class="pixel-icon-button h-11 w-11 shrink-0 sm:h-12 sm:w-12"
+          title={isTreeView() ? "Switch to list view" : "Switch to tree view"}
+          aria-label={isTreeView() ? "Switch to list view" : "Switch to tree view"}
+        >
+          {isTreeView() ? <List class="size-[18px]" /> : <ListTree class="size-[18px]" />}
+        </button>
+
+        <div class="pixel-panel flex min-w-0 flex-1 items-center gap-2 px-2 py-2 sm:px-3 sm:py-2.5">
           <Link
             to="/"
             search={{
@@ -106,18 +96,31 @@ export const TodayDate = () => {
               view: currentView(),
               date: dateToString(addDays(new Date(search().date ?? getTodayDate()), -1)),
             }}
-            class="pixel-link-button"
+            class="pixel-link-button h-9 w-9 min-h-0 min-w-0 shrink-0 sm:h-10 sm:w-10"
             aria-label="Go to previous day"
           >
-            <ChevronLeft />
+            <ChevronLeft class="size-4" />
           </Link>
 
-          <h1
-            class="type-pixel min-w-0 flex-1 px-2 text-center text-[1.45rem] leading-none sm:text-[1.8rem]"
-            title="Date format can be changed in localStorage key: headerDateFormat"
-          >
-            {renderDate()}
-          </h1>
+          <div class="flex min-w-0 flex-1 items-center justify-center gap-2">
+            <h1
+              class="type-pixel truncate px-1 text-center text-[1.05rem] leading-none sm:text-[1.2rem]"
+              title="Date format can be changed in localStorage key: headerDateFormat"
+            >
+              {renderDate()}
+            </h1>
+
+            <Show when={!isTodaySelected()}>
+              <Link
+                to="/"
+                search={{ filter: "all", view: currentView() }}
+                class="pixel-inline-button min-h-[32px] shrink-0 px-2.5 text-[0.62rem]"
+              >
+                <ChevronsRight class="size-3.5" />
+                <span class="hidden sm:inline">today</span>
+              </Link>
+            </Show>
+          </div>
 
           <Link
             to="/"
@@ -131,25 +134,24 @@ export const TodayDate = () => {
                 ? undefined
                 : dateToString(addDays(new Date(search().date ?? getTodayDate()), 1)),
             }}
-            class={cn("pixel-link-button", {
+            class={cn("pixel-link-button h-9 w-9 min-h-0 min-w-0 shrink-0 sm:h-10 sm:w-10", {
               invisible: isTodaySelected(),
             })}
             aria-label="Go to next day"
           >
-            <ChevronRight />
+            <ChevronRight class="size-4" />
           </Link>
         </div>
 
-        <Link
-          to="/"
-          search={{ filter: "all", view: currentView() }}
-          class={cn("pixel-inline-button", {
-            invisible: isTodaySelected(),
-          })}
+        <button
+          type="button"
+          onClick={openSettings}
+          class="pixel-icon-button h-11 w-11 shrink-0 sm:h-12 sm:w-12"
+          title="Settings"
+          aria-label="Open settings"
         >
-          <ChevronsRight />
-          today
-        </Link>
+          <Settings class="size-[18px]" />
+        </button>
       </div>
     </>
   );

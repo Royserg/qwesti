@@ -119,14 +119,10 @@ function Index() {
     enabled: selectedView() === QuestsViewEnum.enum.tree,
   }));
 
-  const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
+  const [isAddDialogOpen, setIsAddDialogOpen] = createSignal(false);
 
   const isTodaySelected = () => {
     return !searchParams().date;
-  };
-
-  const closeDialog = () => {
-    dialogRef()?.close();
   };
 
   const refreshViews = async () => {
@@ -141,10 +137,10 @@ function Index() {
   const handleAddQuest = async (title: string) => {
     try {
       await addQuest({ title });
-      closeDialog();
       await refreshViews();
     } catch (err) {
       console.error(err);
+      throw err;
     }
   };
 
@@ -161,13 +157,13 @@ function Index() {
   };
 
   return (
-    <BaseLayout class="relative flex min-h-0 flex-col px-4 pb-4 pt-24 sm:px-6 sm:pb-5 sm:pt-28">
+    <BaseLayout class="relative flex min-h-0 flex-col px-4 pb-4 pt-5 sm:px-6 sm:pb-5 sm:pt-6">
       <TodayDate />
 
       <AddQuestDialog
-        dialogRef={setDialogRef}
+        open={isAddDialogOpen()}
+        onOpenChange={setIsAddDialogOpen}
         onSubmit={handleAddQuest}
-        onClose={closeDialog}
       />
 
       <section class="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -200,7 +196,7 @@ function Index() {
           <Button
             class="pixel-button--action h-[60px] w-full"
             onClick={() => {
-              dialogRef()?.showModal();
+              setIsAddDialogOpen(true);
             }}
           >
             add

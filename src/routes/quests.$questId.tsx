@@ -90,7 +90,7 @@ function RouteComponent() {
   const subQuestsQuery = useQuery(() => subQuestsQueryOptions(params().questId));
   const breadcrumbsQuery = useQuery(() => breadcrumbsQueryOptions(params().questId));
 
-  const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
+  const [isAddDialogOpen, setIsAddDialogOpen] = createSignal(false);
 
   const handleBackClick = () => {
     queryClient.clear();
@@ -158,14 +158,10 @@ function RouteComponent() {
     try {
       await addQuest({ title, parentId: questId });
       await subQuestsQuery.refetch();
-      closeDialog();
     } catch (err) {
       console.error(err);
+      throw err;
     }
-  };
-
-  const closeDialog = () => {
-    dialogRef()?.close();
   };
 
   const handleSubQuestDeleted = () => {
@@ -185,19 +181,19 @@ function RouteComponent() {
       : Math.floor((subQuestsCompletedCount() / subQuestsCount()) * 100);
 
   return (
-    <BaseLayout class="flex min-h-0 flex-col px-4 pb-4 pt-20 sm:px-6 sm:pb-5 sm:pt-24">
-      <div class="flex items-start gap-4">
+    <BaseLayout class="flex min-h-0 flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5">
+      <div class="flex items-start gap-3">
         <button
           type="button"
           onClick={handleBackClick}
-          class="pixel-icon-button mt-1 shrink-0"
+          class="pixel-icon-button h-11 w-11 shrink-0 sm:h-12 sm:w-12"
           aria-label="Go back"
         >
           <ChevronLeft />
         </button>
 
-        <div class="flex min-w-0 flex-1 flex-col gap-3">
-          <div class="pixel-shell-card pixel-scroll overflow-x-auto px-4 py-3">
+        <div class="flex min-w-0 flex-1 flex-col gap-2">
+          <div class="pixel-scroll overflow-x-auto px-1 py-1">
             <Breadcrumbs crumbs={breadcrumbsQuery.data ?? []} />
           </div>
 
@@ -206,9 +202,9 @@ function RouteComponent() {
               contain: "layout",
               "view-transition-name": `quest-${params().questId}`,
             }}
-            class="min-h-[88px]"
-            leftClass="w-[84px]"
-            rightClass="w-[68px]"
+            class="min-h-[70px]"
+            leftClass="w-[74px]"
+            rightClass="w-[62px]"
             left={
               <Switch>
                 <Match when={subQuestsQuery.data?.length === 0}>
@@ -222,20 +218,19 @@ function RouteComponent() {
                 </Match>
 
                 <Match when={subQuestsQuery.data?.length && subQuestsQuery.data.length > 0}>
-                  <TaskStatusCell progress={completionPercentage()} />
+                  <TaskStatusCell class="pixel-progress-box--centered" progress={completionPercentage()} />
                 </Match>
               </Switch>
             }
-            right={<DeleteButton class="h-full" onDelete={handleDeleteQuest} />}
+            right={<DeleteButton onDelete={handleDeleteQuest} />}
           >
-            <div class="flex min-w-0 flex-1 flex-col justify-center gap-2 px-4 py-4">
-              <span class="type-pixel text-[0.62rem] text-[var(--muted-color)]">task</span>
+            <div class="flex min-w-0 flex-1 items-center px-4 py-2.5">
               <EditableText
                 value={questQuery.data?.title ?? ""}
                 onSubmit={handleTitleChange}
                 focusable={() => true}
                 class="pixel-title text-[1rem] sm:text-[1.08rem]"
-                inputClass="min-h-[56px]"
+                inputClass="min-h-[44px]"
               />
             </div>
           </PixelTaskRow>
@@ -260,7 +255,7 @@ function RouteComponent() {
         <Button
           class="pixel-button--action h-[60px] w-full"
           onClick={() => {
-            dialogRef()?.showModal();
+            setIsAddDialogOpen(true);
           }}
         >
           add subtask
@@ -268,9 +263,9 @@ function RouteComponent() {
       </section>
 
       <AddQuestDialog
-        dialogRef={setDialogRef}
+        open={isAddDialogOpen()}
+        onOpenChange={setIsAddDialogOpen}
         onSubmit={handleAddSubQuest}
-        onClose={closeDialog}
       />
     </BaseLayout>
   );
