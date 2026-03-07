@@ -271,6 +271,7 @@
   .pixel-link-button:focus-visible,
   .pixel-inline-button:focus-visible,
   .pixel-field:focus-visible,
+  .pixel-tree-row-button:focus-visible,
   .pixel-delete-button:focus-visible {
     outline: 2px solid var(--accent-color);
     outline-offset: 2px;
@@ -331,6 +332,10 @@
   .pixel-link-button:active {
     transform: translate(1px, 1px);
     box-shadow: 1px 1px 0 var(--shadow-color);
+  }
+
+  .pixel-icon-button:disabled {
+    cursor: default;
   }
 
   .pixel-link-button {
@@ -522,7 +527,7 @@
     display: flex;
     align-items: stretch;
     justify-content: stretch;
-    width: 64px;
+    width: 58px;
     flex-shrink: 0;
     border-right: 2px solid var(--line-color);
     background: var(--completion-box-color);
@@ -546,6 +551,62 @@
     background: var(--panel-color);
   }
 
+  .pixel-tree-row-button {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    border: 0;
+    background: var(--panel-color);
+    text-align: left;
+    cursor: pointer;
+    touch-action: pan-y;
+  }
+
+  .pixel-tree-list {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: max-content;
+  }
+
+  .pixel-tree-list--root {
+    padding-right: 0.25rem;
+  }
+
+  .pixel-tree-list--empty {
+    min-height: 12px;
+    padding-top: 3px;
+  }
+
+  .pixel-drop-slot {
+    position: relative;
+    height: 8px;
+    margin: 0;
+    border-radius: var(--surface-radius-xs);
+  }
+
+  .pixel-drop-slot--active::before {
+    content: "";
+    position: absolute;
+    inset: 3px 0;
+    border-radius: 999px;
+    background: var(--accent-color);
+    box-shadow: 0 0 0 1px rgba(194, 139, 16, 0.18);
+  }
+
+  .pixel-tree-node--dragging {
+    opacity: 0.72;
+  }
+
+  .pixel-tree-node--placeholder {
+    opacity: 0.28;
+  }
+
   .pixel-status-box {
     position: relative;
     display: grid;
@@ -562,6 +623,26 @@
     font-size: 0.65rem;
     letter-spacing: 0.08em;
     text-transform: lowercase;
+  }
+
+  .pixel-task-row--drag-source {
+    opacity: 0.42;
+  }
+
+  .pixel-task-row--drop-target {
+    background:
+      linear-gradient(rgba(247, 202, 67, 0.12), rgba(247, 202, 67, 0.12)),
+      var(--panel-color);
+  }
+
+  .pixel-drag-overlay-shell {
+    width: min(560px, calc(100vw - 2rem));
+    pointer-events: none;
+    filter: drop-shadow(4px 6px 0 rgba(29, 26, 21, 0.16));
+  }
+
+  .pixel-delete-button--static {
+    pointer-events: none;
   }
 
   .pixel-status-box--tile {
@@ -597,14 +678,9 @@
 
   .pixel-progress-box {
     position: relative;
-    display: flex;
     width: 100%;
     height: 100%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
     background: var(--completion-box-color);
-    padding: 0.7rem 0.45rem 0.75rem;
   }
 
   .pixel-progress-box--centered {
@@ -617,7 +693,7 @@
       "Silkscreen",
       "IBM Plex Mono",
       monospace;
-    font-size: 0.65rem;
+    font-size: 1rem;
     letter-spacing: 0.08em;
     text-transform: lowercase;
   }
@@ -648,11 +724,9 @@
     border: 0;
     border-radius: var(--surface-radius-sm);
     background:
-      linear-gradient(
-        to top,
+      linear-gradient(to top,
         var(--danger-progress-color) 0 var(--delete-progress, 0%),
-        transparent var(--delete-progress, 0%) 100%
-      ),
+        transparent var(--delete-progress, 0%) 100%),
       var(--danger-color);
     cursor: pointer;
     overflow: hidden;
@@ -772,10 +846,6 @@
 
   .pixel-task-row {
     min-height: 52px;
-  }
-
-  .pixel-task-row__left {
-    width: 58px;
   }
 
   .pixel-task-row__right {

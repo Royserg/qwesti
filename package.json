@@ -21,7 +21,8 @@
   },
   "dependencies": {
     "@corvu/drawer": "^0.2.4",
-    "@formkit/drag-and-drop": "^0.5.3",
+    "@dnd-kit/dom": "^0.3.2",
+    "@dnd-kit/solid": "^0.3.2",
     "@kobalte/core": "^0.13.9",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/solid-query": "^5.74.4",

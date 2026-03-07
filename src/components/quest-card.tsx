@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/solid-router";
-import { type Component, Show } from "solid-js";
+import { type Component, type JSX, Show } from "solid-js";
 import { deleteQuest, updateQuestCompleted } from "~/actions";
 import type { Quest } from "~/bindings";
 import { PixelTaskRow } from "~/components/pixel-task-row";
@@ -11,12 +11,19 @@ interface Props {
   quest: Quest;
   onDeleted?: () => void;
   onToggled?: () => void;
+  titleButtonRef?: JSX.ButtonHTMLAttributes<HTMLButtonElement>["ref"];
+  canOpen?: () => boolean;
 }
 
+// TODO: rename to TaskCard and other "Quest" components
 export const QuestCard: Component<Props> = (props) => {
   const navigate = useNavigate();
 
   const handleQuestClick = async () => {
+    if (props.canOpen && !props.canOpen()) {
+      return;
+    }
+
     await navigate({ to: "/quests/$questId", params: { questId: props.quest.id } });
   };
 
@@ -69,6 +76,7 @@ export const QuestCard: Component<Props> = (props) => {
       right={<DeleteButton onDelete={handleDeleteQuest} />}
     >
       <button
+        ref={props.titleButtonRef}
         type="button"
         onClick={handleQuestClick}
         class="drag-handle flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-2.5 text-left"

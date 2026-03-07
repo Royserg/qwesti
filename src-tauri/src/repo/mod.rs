@@ -9,3 +9,6 @@ pub use add_quest::*;
 
 mod update_quest;
 pub use update_quest::*;
+
+mod move_quest;
+pub use move_quest::*;

@@ -1,15 +1,21 @@
 import { queryOptions, useQuery } from "@tanstack/solid-query";
-import { createFileRoute } from "@tanstack/solid-router";
+import { createFileRoute, useNavigate } from "@tanstack/solid-router";
 import { format } from "date-fns";
-import { createSignal, Show } from "solid-js";
+import { Show, createEffect, createMemo, createSignal } from "solid-js";
 import { z } from "zod";
-import { addQuest, loadQuestsForDate, loadSubQuests } from "~/actions";
+import { addQuest, loadQuest, loadQuestsForDate, loadSubQuests, moveQuest } from "~/actions";
 import type { Quest } from "~/bindings";
 import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
-import { QuestsList } from "~/components/quests-list";
 import { QuestsTree } from "~/components/quests-tree";
 import { TodayDate } from "~/components/today-date";
 import { Button } from "~/components/ui/button";
+import {
+  collectExpandableIds,
+  moveTreeQuest,
+  recomputeTreeQuest,
+  type TreeMoveResult,
+  type TreeQuest,
+} from "~/lib/quest-tree";
 import { BaseLayout } from "~/layouts/base";
 import { BE_DATE_FROMAT } from "~/stores/date";
 import { queryClient } from "./__root";
@@ -17,69 +23,63 @@ import { queryClient } from "./__root";
 export const QuestsFilterEnum = z.enum(["all", "pending", "completed"]);
 export type QuestsFilterEnumType = z.infer<typeof QuestsFilterEnum>;
 export const QuestsViewEnum = z.enum(["list", "tree"]);
-export type QuestsViewEnumType = z.infer<typeof QuestsViewEnum>;
 
 const questsSearchSchema = z.object({
   filter: QuestsFilterEnum.default(QuestsFilterEnum.enum.all),
-  view: QuestsViewEnum.default(QuestsViewEnum.enum.list),
+  view: QuestsViewEnum.optional(),
   // Navigating back from quest details would navigate to default view
   // so it doesn't show 1 day ago if it happens after midnight
   date: z.string().optional(),
 });
 
-const todayInFormat = () => {
-  return format(new Date(), BE_DATE_FROMAT);
-}
+const todayInFormat = () => format(new Date(), BE_DATE_FROMAT);
+
+const areSetsEqual = (left: Set<string>, right: Set<string>) =>
+  left.size === right.size && [...left].every((value) => right.has(value));
 
 type QuestsSearch = z.infer<typeof questsSearchSchema>;
-
-
-const questsQueryOptions = (date: QuestsSearch['date'], filter: QuestsSearch['filter']) => queryOptions({
-  queryKey: ['quests', date, filter],
-  queryFn: () => loadQuestsForDate(date ?? todayInFormat(), filter),
-  // staleTime: 10 * 1000, // 5 seconds
-})
 
 const buildQuestTree = async (
   quest: Quest,
   parentChain: Set<string>,
-  seenQuestIds: Set<string>,
-): Promise<Quest> => {
-  if (parentChain.has(quest.id) || seenQuestIds.has(quest.id)) {
-    return {
-      ...quest,
-      hasChildren: false,
-      children: [],
-    };
+): Promise<TreeQuest> => {
+  const baseQuest: TreeQuest = {
+    ...quest,
+    children: [],
+    hasChildren: false,
+    directCompleted: quest.completed,
+  };
+
+  if (parentChain.has(quest.id)) {
+    return baseQuest;
   }
 
-  seenQuestIds.add(quest.id);
   const nextParentChain = new Set(parentChain);
   nextParentChain.add(quest.id);
 
   const subQuests = await loadSubQuests(quest.id);
-  const safeSubQuests = subQuests.filter(
-    (subQuest) => !nextParentChain.has(subQuest.id) && !seenQuestIds.has(subQuest.id),
-  );
-  const children: Quest[] = await Promise.all(
-    safeSubQuests.map((subQuest) => buildQuestTree(subQuest, nextParentChain, seenQuestIds)),
+  const safeSubQuests = subQuests.filter((subQuest) => !nextParentChain.has(subQuest.id));
+  const children = await Promise.all(
+    safeSubQuests.map((subQuest) => buildQuestTree(subQuest, nextParentChain)),
   );
 
-  return {
-    ...quest,
-    hasChildren: children.length > 0,
+  return recomputeTreeQuest({
+    ...baseQuest,
     children,
-  };
+  });
 };
 
 const loadQuestsTreeForDate = async (
   date: string,
   filter: QuestsSearch["filter"],
-): Promise<Quest[]> => {
+): Promise<TreeQuest[]> => {
   const rootQuests = await loadQuestsForDate(date, filter);
-  const seenQuestIds = new Set<string>();
+
   return Promise.all(
-    rootQuests.map((quest) => buildQuestTree(quest, new Set<string>(), seenQuestIds)),
+    rootQuests.map(async (quest) => {
+      const rootQuest = await loadQuest({ id: quest.id });
+      return buildQuestTree(rootQuest, new Set<string>());
+    }),
   );
 };
 
@@ -93,43 +93,74 @@ export const Route = createFileRoute("/")({
   component: Index,
   validateSearch: questsSearchSchema,
   loaderDeps: ({ search: { date, filter, view } }) => ({ date, filter, view }),
-  loader: async ({ deps }) => {
-    if (deps.view === QuestsViewEnum.enum.tree) {
-      return queryClient.ensureQueryData(questsTreeQueryOptions(deps.date ?? todayInFormat(), deps.filter));
-    }
-
-    return queryClient.ensureQueryData(questsQueryOptions(deps.date ?? todayInFormat(), deps.filter));
-  },
+  loader: async ({ deps }) =>
+    queryClient.ensureQueryData(questsTreeQueryOptions(deps.date ?? todayInFormat(), deps.filter)),
   gcTime: 0,
   shouldReload: false,
 });
 
 function Index() {
+  const navigate = useNavigate({ from: "/" });
   const searchParams = Route.useSearch();
   const selectedDate = () => searchParams().date ?? todayInFormat();
   const selectedFilter = () => searchParams().filter;
-  const selectedView = () => searchParams().view;
 
-  const questsQuery = useQuery(() => ({
-    ...questsQueryOptions(selectedDate(), selectedFilter()),
-    enabled: selectedView() === QuestsViewEnum.enum.list,
-  }));
-  const questsTreeQuery = useQuery(() => ({
-    ...questsTreeQueryOptions(selectedDate(), selectedFilter()),
-    enabled: selectedView() === QuestsViewEnum.enum.tree,
-  }));
+  const questsTreeQuery = useQuery(() => questsTreeQueryOptions(selectedDate(), selectedFilter()));
 
   const [isAddDialogOpen, setIsAddDialogOpen] = createSignal(false);
+  const [tree, setTree] = createSignal<TreeQuest[]>([]);
+  const [collapsedIds, setCollapsedIds] = createSignal<Set<string>>(new Set());
 
-  const isTodaySelected = () => {
-    return !searchParams().date;
-  };
+  const isTodaySelected = () => !searchParams().date;
 
-  const refreshViews = async () => {
+  createEffect(() => {
+    const legacyView = searchParams().view;
+    if (!legacyView) {
+      return;
+    }
+
+    navigate({
+      to: "/",
+      search: (prev) => {
+        const { view: _view, ...rest } = prev;
+        return rest;
+      },
+      replace: true,
+    });
+  });
+
+  createEffect(() => {
+    const nextTree = questsTreeQuery.data;
+    if (!nextTree) {
+      return;
+    }
+
+    setTree(nextTree);
+  });
+
+  const expandableIds = createMemo(() => new Set(collectExpandableIds(tree())));
+  const hasExpandableTasks = createMemo(() => expandableIds().size > 0);
+  const allExpanded = createMemo(() => {
+    const ids = expandableIds();
+    if (ids.size === 0) {
+      return false;
+    }
+
+    return [...ids].every((id) => !collapsedIds().has(id));
+  });
+
+  createEffect(() => {
+    const validIds = expandableIds();
+    setCollapsedIds((prev) => {
+      const next = new Set([...prev].filter((id) => validIds.has(id)));
+      return areSetsEqual(prev, next) ? prev : next;
+    });
+  });
+
+  const refreshTree = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["quests"] }),
       queryClient.invalidateQueries({ queryKey: ["questsTree"] }),
-      questsQuery.refetch(),
       questsTreeQuery.refetch(),
     ]);
   };
@@ -137,7 +168,7 @@ function Index() {
   const handleAddQuest = async (title: string) => {
     try {
       await addQuest({ title });
-      await refreshViews();
+      await refreshTree();
     } catch (err) {
       console.error(err);
       throw err;
@@ -145,20 +176,74 @@ function Index() {
   };
 
   const handleQuestDeleted = async () => {
-    await refreshViews();
+    await refreshTree();
   };
 
   const handleQuestToggled = async () => {
-    await refreshViews();
+    await refreshTree();
   };
 
-  const onOrderChanged = async () => {
-    await refreshViews();
+  const handleToggleNode = (questId: string) => {
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(questId)) {
+        next.delete(questId);
+      } else {
+        next.add(questId);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleAll = () => {
+    if (!hasExpandableTasks()) {
+      return;
+    }
+
+    setCollapsedIds(() => (allExpanded() ? new Set(expandableIds()) : new Set<string>()));
+  };
+
+  const handleResetPreview = () => {
+    if (questsTreeQuery.data) {
+      setTree(questsTreeQuery.data);
+    }
+  };
+
+  const handlePreviewMoveQuest = (
+    questId: string,
+    parentId: string | null,
+    index: number,
+  ): TreeMoveResult | null => {
+    const moveResult = moveTreeQuest(tree(), questId, parentId, index);
+    if (!moveResult) {
+      return null;
+    }
+
+    setTree(moveResult.nextTree);
+    return moveResult;
+  };
+
+  const handlePersistMoveQuest = async (questId: string, parentId: string | null, index: number) => {
+    try {
+      await moveQuest({
+        questId,
+        parentId,
+        index,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      await refreshTree();
+    }
   };
 
   return (
     <BaseLayout class="relative flex min-h-0 flex-col px-4 pb-4 pt-5 sm:px-6 sm:pb-5 sm:pt-6">
-      <TodayDate />
+      <TodayDate
+        allExpanded={allExpanded()}
+        canToggleAll={hasExpandableTasks()}
+        onToggleAll={handleToggleAll}
+      />
 
       <AddQuestDialog
         open={isAddDialogOpen()}
@@ -167,23 +252,17 @@ function Index() {
       />
 
       <section class="mt-5 flex min-h-0 flex-1 flex-col overflow-hidden">
-        <Show
-          when={selectedView() === QuestsViewEnum.enum.tree}
-          fallback={
-            <QuestsList
-              quests={questsQuery.data ?? []}
-              filter={searchParams().filter}
-              onQuestDeleted={handleQuestDeleted}
-              onQuestToggled={handleQuestToggled}
-              onOrderChanged={onOrderChanged}
-            />
-          }
-        >
-          <QuestsTree
-            quests={questsTreeQuery.data ?? []}
-            filter={searchParams().filter}
-          />
-        </Show>
+        <QuestsTree
+          quests={tree()}
+          filter={searchParams().filter}
+          collapsedIds={collapsedIds()}
+          onToggleNode={handleToggleNode}
+          onPreviewMoveQuest={handlePreviewMoveQuest}
+          onResetPreview={handleResetPreview}
+          onPersistMoveQuest={handlePersistMoveQuest}
+          onQuestDeleted={handleQuestDeleted}
+          onQuestToggled={handleQuestToggled}
+        />
       </section>
 
       <Show when={isTodaySelected()}>

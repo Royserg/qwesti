@@ -56,15 +56,35 @@ export const TaskStatusCell: Component<TaskStatusCellProps> = (props) => {
         )
       }
     >
-      <div class={cn("pixel-progress-box", props.class)} aria-hidden="true">
-        <span class="pixel-progress-box__value">{progress()}%</span>
-        <div class="pixel-progress-box__track">
-          <div
-            class="pixel-progress-box__fill"
-            style={{ width: `${progress()}%` }}
-          />
-        </div>
-      </div>
+      <Show
+        when={props.onToggle}
+        fallback={
+          <div class={cn("pixel-progress-box", props.class)} aria-hidden="true">
+            <span class="pixel-progress-box__value">{progress()}%</span>
+            <div class="pixel-progress-box__track">
+              <div
+                class="pixel-progress-box__fill"
+                style={{ width: `${progress()}%` }}
+              />
+            </div>
+          </div>
+        }
+      >
+        <button
+          type="button"
+          class={cn("pixel-progress-box grid place-items-center", props.class)}
+          onClick={props.onToggle}
+          aria-label={props.ariaLabel}
+        >
+          <span class="pixel-progress-box__value">{progress()}%</span>
+          <div class="pixel-progress-box__track">
+            <div
+              class="pixel-progress-box__fill"
+              style={{ width: `${progress()}%` }}
+            />
+          </div>
+        </button>
+      </Show>
     </Show>
   );
 };
