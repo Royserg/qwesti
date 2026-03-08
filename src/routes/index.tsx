@@ -1,5 +1,5 @@
 import { queryOptions, useQuery } from "@tanstack/solid-query";
-import { createFileRoute, useNavigate } from "@tanstack/solid-router";
+import { createFileRoute } from "@tanstack/solid-router";
 import { format } from "date-fns";
 import { Show, createEffect, createMemo, createSignal } from "solid-js";
 import { z } from "zod";
@@ -20,11 +20,9 @@ import { queryClient } from "./__root";
 
 export const QuestsFilterEnum = z.enum(["all", "pending", "completed"]);
 export type QuestsFilterEnumType = z.infer<typeof QuestsFilterEnum>;
-export const QuestsViewEnum = z.enum(["list", "tree"]);
 
 const questsSearchSchema = z.object({
   filter: QuestsFilterEnum.default(QuestsFilterEnum.enum.all),
-  view: QuestsViewEnum.optional(),
   // Navigating back from quest details would navigate to default view
   // so it doesn't show 1 day ago if it happens after midnight
   date: z.string().optional(),
@@ -90,7 +88,7 @@ const questsTreeQueryOptions = (date: QuestsSearch["date"], filter: QuestsSearch
 export const Route = createFileRoute("/")({
   component: Index,
   validateSearch: questsSearchSchema,
-  loaderDeps: ({ search: { date, filter, view } }) => ({ date, filter, view }),
+  loaderDeps: ({ search: { date, filter } }) => ({ date, filter }),
   loader: async ({ deps }) =>
     queryClient.ensureQueryData(questsTreeQueryOptions(deps.date ?? todayInFormat(), deps.filter)),
   gcTime: 0,
@@ -98,7 +96,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const navigate = useNavigate({ from: "/" });
   const searchParams = Route.useSearch();
   const selectedDate = () => searchParams().date ?? todayInFormat();
   const selectedFilter = () => searchParams().filter;
@@ -111,22 +108,6 @@ function Index() {
 
   const isTodaySelected = () => !searchParams().date;
   const tree = () => questsTreeQuery.data ?? ([] as TreeQuest[]);
-
-  createEffect(() => {
-    const legacyView = searchParams().view;
-    if (!legacyView) {
-      return;
-    }
-
-    navigate({
-      to: "/",
-      search: (prev) => {
-        const { view: _view, ...rest } = prev;
-        return rest;
-      },
-      replace: true,
-    });
-  });
 
   const expandableIds = createMemo(() => new Set(collectExpandableIds(tree())));
   const hasExpandableTasks = createMemo(() => expandableIds().size > 0);
@@ -171,14 +152,6 @@ function Index() {
       console.error(err);
       throw err;
     }
-  };
-
-  const handleQuestDeleted = async () => {
-    await refreshTree();
-  };
-
-  const handleQuestToggled = async () => {
-    await refreshTree();
   };
 
   const handleToggleNode = (questId: string) => {
@@ -235,8 +208,8 @@ function Index() {
           onToggleAll={handleToggleAll}
           onToggleNode={handleToggleNode}
           onPersistMoveQuest={handlePersistMoveQuest}
-          onQuestDeleted={handleQuestDeleted}
-          onQuestToggled={handleQuestToggled}
+          onQuestDeleted={refreshTree}
+          onQuestToggled={refreshTree}
         />
       </section>
 
