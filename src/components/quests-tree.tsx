@@ -241,16 +241,17 @@ export const QuestsTree: Component<Props> = (props) => {
   const handleDragEnd = async (event: ProviderDragEndEvent) => {
     const sourceData = event.operation.source?.data;
     const move = pendingMove;
+    const intent = dropIntent();
 
     clearHoverExpandTimer();
 
-    if (event.canceled || !isTreeItemDragData(sourceData) || !move) {
+    if (event.canceled || !isTreeItemDragData(sourceData) || !move || !intent) {
       clearDragState();
       return;
     }
 
     clearDragState();
-    await props.onPersistMoveQuest(sourceData.questId, move.targetParentId, move.targetIndex);
+    await props.onPersistMoveQuest(sourceData.questId, intent.parentId, intent.index);
   };
 
   onCleanup(() => {
