@@ -87,59 +87,10 @@ const questsTreeQueryOptions = (date: QuestsSearch["date"], filter: QuestsSearch
     queryFn: () => loadQuestsTreeForDate(date ?? todayInFormat(), filter),
   });
 
-const buildQuestTree = async (
-  quest: Quest,
-  parentChain: Set<string>,
-  seenQuestIds: Set<string>,
-): Promise<Quest> => {
-  if (parentChain.has(quest.id) || seenQuestIds.has(quest.id)) {
-    return {
-      ...quest,
-      hasChildren: false,
-      children: [],
-    };
-  }
-
-  seenQuestIds.add(quest.id);
-  const nextParentChain = new Set(parentChain);
-  nextParentChain.add(quest.id);
-
-  const subQuests = await loadSubQuests(quest.id);
-  const safeSubQuests = subQuests.filter(
-    (subQuest) => !nextParentChain.has(subQuest.id) && !seenQuestIds.has(subQuest.id),
-  );
-  const children: Quest[] = await Promise.all(
-    safeSubQuests.map((subQuest) => buildQuestTree(subQuest, nextParentChain, seenQuestIds)),
-  );
-
-  return {
-    ...quest,
-    hasChildren: children.length > 0,
-    children,
-  };
-};
-
-const loadQuestsTreeForDate = async (
-  date: string,
-  filter: QuestsSearch["filter"],
-): Promise<Quest[]> => {
-  const rootQuests = await loadQuestsForDate(date, filter);
-  const seenQuestIds = new Set<string>();
-  return Promise.all(
-    rootQuests.map((quest) => buildQuestTree(quest, new Set<string>(), seenQuestIds)),
-  );
-};
-
-const questsTreeQueryOptions = (date: QuestsSearch["date"], filter: QuestsSearch["filter"]) =>
-  queryOptions({
-    queryKey: ["questsTree", date, filter],
-    queryFn: () => loadQuestsTreeForDate(date ?? todayInFormat(), filter),
-  });
-
 export const Route = createFileRoute("/")({
   component: Index,
   validateSearch: questsSearchSchema,
-  loaderDeps: ({ search: { date, filter, view } }) => ({ date, filter, view }),
+  loaderDeps: ({ search: { date, filter } }) => ({ date, filter }),
   loader: async ({ deps }) =>
     queryClient.ensureQueryData(questsTreeQueryOptions(deps.date ?? todayInFormat(), deps.filter)),
   gcTime: 0,
@@ -160,22 +111,6 @@ function Index() {
 
   const isTodaySelected = () => !searchParams().date;
   const tree = () => questsTreeQuery.data ?? ([] as TreeQuest[]);
-
-  createEffect(() => {
-    const legacyView = searchParams().view;
-    if (!legacyView) {
-      return;
-    }
-
-    navigate({
-      to: "/",
-      search: (prev) => {
-        const { view: _view, ...rest } = prev;
-        return rest;
-      },
-      replace: true,
-    });
-  });
 
   const expandableIds = createMemo(() => new Set(collectExpandableIds(tree())));
   const hasExpandableTasks = createMemo(() => expandableIds().size > 0);
@@ -212,15 +147,6 @@ function Index() {
     ]);
   };
 
-  const refreshViews = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["quests"] }),
-      queryClient.invalidateQueries({ queryKey: ["questsTree"] }),
-      questsQuery.refetch(),
-      questsTreeQuery.refetch(),
-    ]);
-  };
-
   const handleAddQuest = async (title: string) => {
     try {
       await addQuest({ title });
@@ -229,14 +155,6 @@ function Index() {
       console.error(err);
       throw err;
     }
-  };
-
-  const handleQuestDeleted = async () => {
-    await refreshTree();
-  };
-
-  const handleQuestToggled = async () => {
-    await refreshTree();
   };
 
   const handleToggleNode = (questId: string) => {
@@ -293,8 +211,8 @@ function Index() {
           onToggleAll={handleToggleAll}
           onToggleNode={handleToggleNode}
           onPersistMoveQuest={handlePersistMoveQuest}
-          onQuestDeleted={handleQuestDeleted}
-          onQuestToggled={handleQuestToggled}
+          onQuestDeleted={refreshTree}
+          onQuestToggled={refreshTree}
         />
       </section>
 

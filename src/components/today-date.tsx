@@ -52,19 +52,6 @@ export const TodayDate = () => {
     setHeaderDateFormat(formatValue);
   };
 
-  const renderDate = () => {
-    const selectedDate = search().date ?? getTodayDate();
-    const parsedDate = parse(selectedDate, BE_DATE_FROMAT, new Date());
-    const formatToken = HEADER_DATE_FORMAT_PRESETS[dateFormatOption()]?.token
-      ?? HEADER_DATE_FORMAT_PRESETS[DEFAULT_HEADER_DATE_FORMAT].token;
-
-    if (!isValid(parsedDate)) {
-      return selectedDate;
-    }
-
-    return format(parsedDate, formatToken);
-  }
-
   const openSettings = () => {
     settingsDialogRef()?.showModal();
   };
