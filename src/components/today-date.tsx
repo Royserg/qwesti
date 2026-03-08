@@ -17,13 +17,7 @@ import {
 import { cn } from "~/lib/utils";
 import { BE_DATE_FROMAT } from "~/stores/date";
 
-interface TodayDateProps {
-  allExpanded: boolean;
-  canToggleAll: boolean;
-  onToggleAll: () => void;
-}
-
-export const TodayDate = (_props: TodayDateProps) => {
+export const TodayDate = () => {
   const search = useSearch({ from: "/" });
   const [settingsDialogRef, setSettingsDialogRef] = createSignal<HTMLDialogElement>();
   const [dateFormatOption, setDateFormatOption] =

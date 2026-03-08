@@ -107,6 +107,7 @@ function Index() {
 
   const [isAddDialogOpen, setIsAddDialogOpen] = createSignal(false);
   const [collapsedIds, setCollapsedIds] = createSignal<Set<string>>(new Set());
+  let knownExpandableIds = new Set<string>();
 
   const isTodaySelected = () => !searchParams().date;
   const tree = () => questsTreeQuery.data ?? ([] as TreeQuest[]);
@@ -129,21 +130,29 @@ function Index() {
 
   const expandableIds = createMemo(() => new Set(collectExpandableIds(tree())));
   const hasExpandableTasks = createMemo(() => expandableIds().size > 0);
-  const allExpanded = createMemo(() => {
+  const hasExpandedTasks = createMemo(() => {
     const ids = expandableIds();
     if (ids.size === 0) {
       return false;
     }
 
-    return [...ids].every((id) => !collapsedIds().has(id));
+    return [...ids].some((id) => !collapsedIds().has(id));
   });
 
   createEffect(() => {
     const validIds = expandableIds();
     setCollapsedIds((prev) => {
       const next = new Set([...prev].filter((id) => validIds.has(id)));
+
+      for (const id of validIds) {
+        if (!knownExpandableIds.has(id)) {
+          next.add(id);
+        }
+      }
+
       return areSetsEqual(prev, next) ? prev : next;
     });
+    knownExpandableIds = new Set(validIds);
   });
 
   const refreshTree = async () => {
@@ -189,7 +198,7 @@ function Index() {
       return;
     }
 
-    setCollapsedIds(() => (allExpanded() ? new Set(expandableIds()) : new Set<string>()));
+    setCollapsedIds(() => (hasExpandedTasks() ? new Set(expandableIds()) : new Set<string>()));
   };
 
   const handlePersistMoveQuest = async (questId: string, parentId: string | null, index: number) => {
@@ -208,11 +217,7 @@ function Index() {
 
   return (
     <BaseLayout class="relative flex min-h-0 flex-col px-4 pb-4 pt-5 sm:px-6 sm:pb-5 sm:pt-6">
-      <TodayDate
-        allExpanded={allExpanded()}
-        canToggleAll={hasExpandableTasks()}
-        onToggleAll={handleToggleAll}
-      />
+      <TodayDate />
 
       <AddQuestDialog
         open={isAddDialogOpen()}
@@ -225,6 +230,9 @@ function Index() {
           quests={tree()}
           filter={searchParams().filter}
           collapsedIds={collapsedIds()}
+          hasExpandableTasks={hasExpandableTasks()}
+          hasExpandedTasks={hasExpandedTasks()}
+          onToggleAll={handleToggleAll}
           onToggleNode={handleToggleNode}
           onPersistMoveQuest={handlePersistMoveQuest}
           onQuestDeleted={handleQuestDeleted}

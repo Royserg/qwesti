@@ -1,5 +1,7 @@
 import { DragDropProvider, DragOverlay, useDraggable, useDroppable, type DragDropProviderProps } from "@dnd-kit/solid";
 import { useNavigate, useSearch } from "@tanstack/solid-router";
+import ChevronDown from "icons/chevron-down";
+import Minus from "icons/minus";
 import { For, Show, createMemo, createSignal, onCleanup, type Component } from "solid-js";
 import { deleteQuest, updateQuestCompleted } from "~/actions";
 import { DeleteButton } from "~/components/delete-button";
@@ -30,6 +32,9 @@ interface Props {
   filter: QuestsFilterEnumType;
   quests: TreeQuest[];
   collapsedIds: Set<string>;
+  hasExpandableTasks: boolean;
+  hasExpandedTasks: boolean;
+  onToggleAll: () => void;
   onToggleNode: (id: string) => void;
   onPersistMoveQuest: (questId: string, parentId: string | null, index: number) => Promise<void>;
   onQuestDeleted: () => void;
@@ -263,25 +268,22 @@ export const QuestsTree: Component<Props> = (props) => {
     >
       <div class="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
         <Show when={isTodaySelected()}>
-
-          <div class="w-full flex justify-between items-end">
-
-            {/* classList={{ */}
-            {/*   "pointer-events-none opacity-50": !props.canToggleAll, */}
-            {/* }} */}
-            {/* title={props.allExpanded ? "Collapse all tasks" : "Expand all tasks"} */}
-            {/* aria-label={props.allExpanded ? "Collapse all tasks" : "Expand all tasks"} */}
-            {/* disabled={!props.canToggleAll} */}
-            {/* onClick={props.onToggleAll} */}
-            {/* <button */}
-            {/*   type="button" */}
-            {/*   class="pixel-icon-button size-7 shrink-0" */}
-            {/* > */}
-            {/* <Show when={props.allExpanded} fallback={<ChevronsRight class="size-[18px]" />}> */}
-            {/* <ChevronDown class="size-[18px]" /> */}
-            {/* </Show> */}
-            {/* </button> */}
-
+          <div class="flex w-full justify-end items-end gap-2">
+            <button
+              type="button"
+              class="pixel-icon-button size-7 shrink-0"
+              classList={{
+                "pointer-events-none opacity-50": !props.hasExpandableTasks,
+              }}
+              title={props.hasExpandedTasks ? "Collapse all tasks" : "Expand all tasks"}
+              aria-label={props.hasExpandedTasks ? "Collapse all tasks" : "Expand all tasks"}
+              disabled={!props.hasExpandableTasks}
+              onClick={props.onToggleAll}
+            >
+              <Show when={props.hasExpandedTasks} fallback={<ChevronDown class="size-[18px]" />}>
+                <Minus class="size-[18px]" />
+              </Show>
+            </button>
             <Filters filter={(props.filter as string) ?? "all"} />
           </div>
         </Show>
