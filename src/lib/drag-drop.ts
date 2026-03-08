@@ -103,14 +103,15 @@ export const moveItemToIndex = <T extends { id: string }>(
     return null;
   }
 
-  const nextItems = [...items];
-  const [removed] = nextItems.splice(currentIndex, 1);
-  if (!removed) {
+  const adjustedIndex = rawIndex > currentIndex ? rawIndex - 1 : rawIndex;
+  const targetIndex = Math.max(0, Math.min(adjustedIndex, items.length - 1));
+  if (targetIndex === currentIndex) {
     return null;
   }
 
-  const targetIndex = Math.max(0, Math.min(rawIndex, nextItems.length));
-  if (targetIndex === currentIndex) {
+  const nextItems = [...items];
+  const [removed] = nextItems.splice(currentIndex, 1);
+  if (!removed) {
     return null;
   }
 

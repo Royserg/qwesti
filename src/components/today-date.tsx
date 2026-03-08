@@ -1,6 +1,5 @@
 import { Link, useSearch } from "@tanstack/solid-router";
 import { addDays, format, isEqual, isValid, parse } from "date-fns";
-import ChevronDown from "icons/chevron-down";
 import ChevronLeft from "icons/chevron-left";
 import ChevronRight from "icons/chevron-right";
 import ChevronsRight from "icons/chevrons-right";
@@ -24,7 +23,7 @@ interface TodayDateProps {
   onToggleAll: () => void;
 }
 
-export const TodayDate = (props: TodayDateProps) => {
+export const TodayDate = (_props: TodayDateProps) => {
   const search = useSearch({ from: "/" });
   const [settingsDialogRef, setSettingsDialogRef] = createSignal<HTMLDialogElement>();
   const [dateFormatOption, setDateFormatOption] =
@@ -68,22 +67,9 @@ export const TodayDate = (props: TodayDateProps) => {
         onClose={closeSettings}
       />
 
-      <div class="mx-auto flex w-full max-w-[600px] items-center justify-between gap-2 sm:gap-3">
-        <button
-          type="button"
-          onClick={props.onToggleAll}
-          class="pixel-icon-button h-11 w-11 shrink-0 sm:h-12 sm:w-12"
-          classList={{
-            "pointer-events-none opacity-50": !props.canToggleAll,
-          }}
-          title={props.allExpanded ? "Collapse all tasks" : "Expand all tasks"}
-          aria-label={props.allExpanded ? "Collapse all tasks" : "Expand all tasks"}
-          disabled={!props.canToggleAll}
-        >
-          <Show when={props.allExpanded} fallback={<ChevronsRight class="size-[18px]" />}>
-            <ChevronDown class="size-[18px]" />
-          </Show>
-        </button>
+      <div class="mx-auto flex w-full max-w-[800px] items-center justify-between gap-2 sm:gap-3">
+        {/* To keep space-between equal */}
+        <div></div>
 
         <div class="pixel-panel flex w-full max-w-[360px] min-w-0 items-center gap-2 px-2 py-1.5 sm:max-w-[400px] sm:px-3 sm:py-2">
           <Link

@@ -1,6 +1,6 @@
 import {
-    QueryClient,
-    QueryClientProvider,
+  QueryClient,
+  QueryClientProvider,
 } from '@tanstack/solid-query';
 import { createRootRoute, Outlet } from '@tanstack/solid-router';
 import { relaunch } from '@tauri-apps/plugin-process';

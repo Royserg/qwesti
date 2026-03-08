@@ -735,11 +735,6 @@
     background: var(--completion-box-color);
   }
 
-  .pixel-progress-box--centered {
-    justify-content: center;
-    padding-top: 0.45rem;
-  }
-
   .pixel-progress-box__value {
     font-family:
       "Silkscreen",

@@ -1,5 +1,4 @@
-import { DragDropProvider, DragOverlay, useDroppable, type DragDropProviderProps } from "@dnd-kit/solid";
-import { useSortable } from "@dnd-kit/solid/sortable";
+import { DragDropProvider, DragOverlay, useDraggable, useDroppable, type DragDropProviderProps } from "@dnd-kit/solid";
 import {
   queryOptions,
   useQuery,
@@ -11,7 +10,7 @@ import {
   useRouter,
 } from "@tanstack/solid-router";
 import ChevronLeft from "icons/chevron-left";
-import { Component, For, Match, Show, Switch, createEffect, createSignal } from "solid-js";
+import { Component, For, Match, Show, Switch, createSignal } from "solid-js";
 import {
   addQuest,
   deleteQuest,
@@ -33,7 +32,6 @@ import { Button } from "~/components/ui/button";
 import {
   DRAG_DROP_OVERLAY_ANIMATION,
   DRAG_CLICK_SUPPRESS_MS,
-  SORTABLE_ITEM_TRANSITION,
   dragSensors,
   isFlatInsertDropData,
   isFlatItemDragData,
@@ -41,7 +39,6 @@ import {
   type FlatInsertDropData,
   type FlatItemDragData,
 } from "~/lib/drag-drop";
-import { createFlipListAnimator } from "~/lib/flip-list";
 import { BaseLayout } from "~/layouts/base";
 import { queryClient } from "./__root";
 
@@ -185,9 +182,8 @@ function RouteComponent() {
     subQuestsQuery.refetch();
   };
 
-  const handleSubQuestToggled = () => {
-    subQuestsQuery.refetch();
-    questQuery.refetch();
+  const handleSubQuestToggled = async () => {
+    await Promise.all([subQuestsQuery.refetch(), questQuery.refetch()]);
   };
 
   const subQuestsCount = () => subQuestsQuery.data?.length ?? 0;
@@ -233,7 +229,7 @@ function RouteComponent() {
                 </Match>
 
                 <Match when={subQuestsQuery.data?.length && subQuestsQuery.data.length > 0}>
-                  <TaskStatusCell class="pixel-progress-box--centered" progress={completionPercentage()} />
+                  <TaskStatusCell progress={completionPercentage()} />
                 </Match>
               </Switch>
             }
@@ -329,8 +325,6 @@ const Breadcrumbs: Component<{
   );
 };
 
-const buildFlatPreviewKey = (questId: string, index: number) => `${questId}|${index}`;
-
 const SubQuests: Component<{
   groupId: string;
   quests: Quest[];
@@ -338,41 +332,15 @@ const SubQuests: Component<{
   onQuestToggled?: (id: string) => void;
   onOrderChanged?: () => void;
 }> = (props) => {
-  const [orderedQuests, setOrderedQuests] = createSignal(props.quests);
   const [draggedQuestId, setDraggedQuestId] = createSignal<string | null>(null);
   const [activeSnapshot, setActiveSnapshot] = createSignal<FlatItemDragData["snapshot"] | null>(null);
-  const flipAnimator = createFlipListAnimator({
-    getSkippedId: draggedQuestId,
-  });
-  let lastPreviewKey: string | null = null;
-  let pendingIds: string[] | null = null;
+  const [dropIndex, setDropIndex] = createSignal<number | null>(null);
   let suppressNavigationUntil = 0;
-
-  createEffect(() => {
-    if (draggedQuestId()) {
-      return;
-    }
-
-    setOrderedQuests(props.quests);
-  });
-
-  createEffect(() => {
-    orderedQuests();
-    flipAnimator.schedule();
-  });
-
-  const resetPreview = () => {
-    if (lastPreviewKey !== null) {
-      setOrderedQuests(props.quests);
-      lastPreviewKey = null;
-    }
-
-    pendingIds = null;
-  };
 
   const clearDragState = () => {
     setDraggedQuestId(null);
     setActiveSnapshot(null);
+    setDropIndex(null);
     suppressNavigationUntil = performance.now() + DRAG_CLICK_SUPPRESS_MS;
   };
 
@@ -382,8 +350,7 @@ const SubQuests: Component<{
       return;
     }
 
-    pendingIds = null;
-    lastPreviewKey = null;
+    setDropIndex(null);
     setDraggedQuestId(sourceData.questId);
     setActiveSnapshot(sourceData.snapshot);
   };
@@ -395,52 +362,45 @@ const SubQuests: Component<{
     }
 
     const targetData = event.operation.target?.data;
-    const targetIndex = isFlatInsertDropData(targetData)
-      ? targetData.index
-      : isFlatItemDragData(targetData)
-        ? targetData.index
-        : null;
+    const targetIndex = isFlatInsertDropData(targetData) ? targetData.index : null;
 
     if (targetIndex === null) {
-      resetPreview();
+      setDropIndex(null);
       return;
     }
 
-    const previewKey = buildFlatPreviewKey(sourceData.questId, targetIndex);
-    if (previewKey === lastPreviewKey) {
-      return;
-    }
-
-    const nextQuests = moveItemToIndex(orderedQuests(), sourceData.questId, targetIndex);
+    const nextQuests = moveItemToIndex(props.quests, sourceData.questId, targetIndex);
     if (!nextQuests) {
-      resetPreview();
+      setDropIndex(null);
       return;
     }
 
-    setOrderedQuests(nextQuests);
-    pendingIds = nextQuests.map((quest) => quest.id);
-    lastPreviewKey = previewKey;
+    setDropIndex(targetIndex);
   };
 
   const handleDragEnd = async (event: ProviderDragEndEvent) => {
-    const shouldPersist = !event.canceled && pendingIds && pendingIds.length > 0;
-    const ids = pendingIds;
+    const sourceData = event.operation.source?.data;
+    const targetIndex = dropIndex();
 
-    lastPreviewKey = null;
-    pendingIds = null;
+    const shouldPersist = !event.canceled
+      && isFlatItemDragData(sourceData)
+      && targetIndex !== null;
+
+    const ids = shouldPersist
+      ? moveItemToIndex(props.quests, sourceData.questId, targetIndex)?.map((quest) => quest.id) ?? null
+      : null;
+
     clearDragState();
 
     if (!shouldPersist || !ids) {
-      setOrderedQuests(props.quests);
       return;
     }
 
     try {
       await updateQuestsOrder({ ids });
-      props.onOrderChanged?.();
+      await props.onOrderChanged?.();
     } catch (err) {
       console.error(err);
-      setOrderedQuests(props.quests);
     }
   };
 
@@ -457,33 +417,32 @@ const SubQuests: Component<{
         class="flex min-h-0 flex-1 flex-col gap-2 overflow-auto"
         style={{ "view-transition-name": "sub-quests-container" }}
       >
-        <Show when={orderedQuests().length > 0}>
+        <Show when={props.quests.length > 0}>
           <h3 class="pixel-section-title px-1 text-[var(--muted-color)]">subtasks</h3>
           <div class="flex flex-col gap-1 pr-1">
-            <FlatInsertSlot index={0} />
+            <FlatInsertSlot index={0} active={dropIndex() === 0} />
 
-            <For each={orderedQuests()}>
+            <For each={props.quests}>
               {(quest, index) => (
                 <>
-                  <SortableSubQuestCard
+                  <DraggableSubQuestCard
                     quest={quest}
                     index={index()}
                     groupId={props.groupId}
                     draggedQuestId={draggedQuestId()}
-                    registerRowRef={flipAnimator.register}
                     canOpen={() => performance.now() >= suppressNavigationUntil}
                     onDeleted={() => props.onQuestDeleted?.(quest.id)}
                     onToggled={() => props.onQuestToggled?.(quest.id)}
                   />
 
-                  <FlatInsertSlot index={index() + 1} />
+                  <FlatInsertSlot index={index() + 1} active={dropIndex() === index() + 1} />
                 </>
               )}
             </For>
           </div>
         </Show>
 
-        <Show when={orderedQuests().length === 0}>
+        <Show when={props.quests.length === 0}>
           <div class="pixel-empty-state w-full">no subtasks yet</div>
         </Show>
       </section>
@@ -506,7 +465,7 @@ const SubQuests: Component<{
   );
 };
 
-const FlatInsertSlot: Component<{ index: number }> = (props) => {
+const FlatInsertSlot: Component<{ index: number; active: boolean }> = (props) => {
   const droppable = useDroppable<FlatInsertDropData>({
     id: `flat-insert:${props.index}`,
     data: {
@@ -520,18 +479,17 @@ const FlatInsertSlot: Component<{ index: number }> = (props) => {
       ref={droppable.ref}
       classList={{
         "pixel-drop-slot": true,
-        "pixel-drop-slot--active": droppable.isDropTarget(),
+        "pixel-drop-slot--active": props.active,
       }}
     />
   );
 };
 
-const SortableSubQuestCard: Component<{
+const DraggableSubQuestCard: Component<{
   quest: Quest;
   index: number;
   groupId: string;
   draggedQuestId: string | null;
-  registerRowRef: (id: string) => (element: Element | undefined) => void;
   canOpen: () => boolean;
   onDeleted?: () => void;
   onToggled?: () => void;
@@ -543,11 +501,8 @@ const SortableSubQuestCard: Component<{
       ? 0
       : Math.floor((subQuestsCompletedCount() / subQuestsCount()) * 100);
 
-  const sortable = useSortable<FlatItemDragData>({
+  const draggable = useDraggable<FlatItemDragData>({
     id: `flat-row:${props.quest.id}`,
-    group: `subquests:${props.groupId}`,
-    index: props.index,
-    transition: SORTABLE_ITEM_TRANSITION,
     data: {
       kind: "flat-item",
       questId: props.quest.id,
@@ -560,19 +515,16 @@ const SortableSubQuestCard: Component<{
     },
   });
 
-  const setSortableRowRef = (element: Element | undefined) => {
-    sortable.ref(element);
-    sortable.sourceRef(element);
-    sortable.targetRef(element);
-    props.registerRowRef(props.quest.id)(element);
+  const setDraggableRowRef = (element: Element | undefined) => {
+    draggable.ref(element);
   };
 
   return (
     <QuestCard
       quest={props.quest}
-      rowRef={setSortableRowRef}
-      class={sortable.isDragging() ? "pixel-task-row--drag-source" : undefined}
-      titleButtonRef={sortable.handleRef}
+      rowRef={setDraggableRowRef}
+      class={draggable.isDragging() ? "pixel-task-row--drag-source" : undefined}
+      titleButtonRef={draggable.handleRef}
       canOpen={props.canOpen}
       onDeleted={props.onDeleted}
       onToggled={props.onToggled}

@@ -59,7 +59,7 @@ export const TaskStatusCell: Component<TaskStatusCellProps> = (props) => {
       <Show
         when={props.onToggle}
         fallback={
-          <div class={cn("pixel-progress-box", props.class)} aria-hidden="true">
+          <div class={cn("pixel-progress-box grid place-items-center", props.class)} aria-hidden="true">
             <span class="pixel-progress-box__value">{progress()}%</span>
             <div class="pixel-progress-box__track">
               <div

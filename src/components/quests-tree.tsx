@@ -263,7 +263,27 @@ export const QuestsTree: Component<Props> = (props) => {
     >
       <div class="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
         <Show when={isTodaySelected()}>
-          <Filters filter={(props.filter as string) ?? "all"} />
+
+          <div class="w-full flex justify-between items-end">
+
+            {/* classList={{ */}
+            {/*   "pointer-events-none opacity-50": !props.canToggleAll, */}
+            {/* }} */}
+            {/* title={props.allExpanded ? "Collapse all tasks" : "Expand all tasks"} */}
+            {/* aria-label={props.allExpanded ? "Collapse all tasks" : "Expand all tasks"} */}
+            {/* disabled={!props.canToggleAll} */}
+            {/* onClick={props.onToggleAll} */}
+            {/* <button */}
+            {/*   type="button" */}
+            {/*   class="pixel-icon-button size-7 shrink-0" */}
+            {/* > */}
+            {/* <Show when={props.allExpanded} fallback={<ChevronsRight class="size-[18px]" />}> */}
+            {/* <ChevronDown class="size-[18px]" /> */}
+            {/* </Show> */}
+            {/* </button> */}
+
+            <Filters filter={(props.filter as string) ?? "all"} />
+          </div>
         </Show>
 
         <div class="pixel-scroll flex min-h-0 flex-1 overflow-auto pb-4">
