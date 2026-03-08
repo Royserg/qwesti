@@ -1,6 +1,6 @@
 mod commands;
 use commands::{
-    add_quest, delete_quest, get_quest, get_quests, get_sub_quests, update_quest,
+    add_quest, delete_quest, get_quest, get_quests, get_sub_quests, move_quest, update_quest,
     update_quests_order,
 };
 use futures::executor::block_on;
@@ -35,6 +35,7 @@ pub async fn run() -> anyhow::Result<()> {
             update_quest,
             delete_quest,
             update_quests_order,
+            move_quest,
         ]);
 
     // Export config

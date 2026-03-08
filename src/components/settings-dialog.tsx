@@ -6,7 +6,16 @@ import { format } from "date-fns";
 import ChevronLeft from "icons/chevron-left";
 import ChevronRight from "icons/chevron-right";
 import X from "icons/x";
-import { For, Show, createSignal, onMount, type Accessor, type Component, type Setter } from "solid-js";
+import {
+  For,
+  Show,
+  createSignal,
+  onMount,
+  type Accessor,
+  type Component,
+  type Setter,
+} from "solid-js";
+import logoUrl from "../../src-tauri/icons/icon.png";
 import {
   HEADER_DATE_FORMAT_OPTIONS,
   HEADER_DATE_FORMAT_PRESETS,
@@ -14,7 +23,7 @@ import {
 } from "~/lib/localstorage";
 import { cn } from "~/lib/utils";
 
-const PREVIEW_DATE = new Date(2026, 2, 6); // March 06, 2026
+const PREVIEW_DATE = new Date(2026, 2, 6);
 const REPOSITORY_URL = "https://github.com/Royserg/qwesti";
 
 type SettingsView = "menu" | "date_format" | "about";
@@ -24,9 +33,9 @@ const VIEW_INDEX: Record<SettingsView, number> = {
   about: 2,
 };
 const VIEW_TITLE: Record<SettingsView, string> = {
-  menu: "Settings",
-  date_format: "Date format",
-  about: "About",
+  menu: "settings",
+  date_format: "date format",
+  about: "about",
 };
 
 interface Props {
@@ -37,7 +46,6 @@ interface Props {
 }
 
 export const SettingsDialog: Component<Props> = (props) => {
-  const formatOptions = HEADER_DATE_FORMAT_OPTIONS;
   const [view, setView] = createSignal<SettingsView>("menu");
   const [appVersion, setAppVersion] = createSignal("Loading...");
   const [isCheckingUpdates, setIsCheckingUpdates] = createSignal(false);
@@ -72,37 +80,37 @@ export const SettingsDialog: Component<Props> = (props) => {
     }
 
     if (!navigator.onLine) {
-      setUpdateStatus("You are offline. Connect to the internet and try again.");
+      setUpdateStatus("offline. reconnect and try again.");
       return;
     }
 
     setIsCheckingUpdates(true);
-    setUpdateStatus("Checking for updates...");
+    setUpdateStatus("checking for updates...");
 
     try {
       const update = await check();
 
       if (!update) {
-        setUpdateStatus("You are up to date.");
+        setUpdateStatus("you are up to date.");
         return;
       }
 
       let downloadedBytes = 0;
       let contentLength = 0;
-      setUpdateStatus(`Update ${update.version} found. Downloading...`);
+      setUpdateStatus(`update ${update.version} found. downloading...`);
 
       await update.downloadAndInstall((event) => {
         switch (event.event) {
           case "Started":
             contentLength = event.data.contentLength ?? 0;
-            setUpdateStatus(`Downloading update... 0 / ${contentLength} bytes`);
+            setUpdateStatus(`downloading... 0 / ${contentLength} bytes`);
             break;
           case "Progress":
             downloadedBytes += event.data.chunkLength;
-            setUpdateStatus(`Downloading update... ${downloadedBytes} / ${contentLength} bytes`);
+            setUpdateStatus(`downloading... ${downloadedBytes} / ${contentLength} bytes`);
             break;
           case "Finished":
-            setUpdateStatus("Update downloaded and installed.");
+            setUpdateStatus("update installed.");
             break;
         }
       });
@@ -113,10 +121,10 @@ export const SettingsDialog: Component<Props> = (props) => {
         return;
       }
 
-      setUpdateStatus("Update installed. Restart the app later to use the new version.");
+      setUpdateStatus("restart later to use the new version.");
     } catch (error) {
       console.error("Failed to check/install update from About settings.", error);
-      setUpdateStatus("Update check failed. Please try again.");
+      setUpdateStatus("update check failed. try again.");
     } finally {
       setIsCheckingUpdates(false);
     }
@@ -132,91 +140,92 @@ export const SettingsDialog: Component<Props> = (props) => {
   });
 
   return (
-    <dialog
-      ref={props.dialogRef}
-      onClick={handleBackdropClick}
-      class="fixed left-1/2 top-1/2 m-0 w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 rounded-xs border bg-background p-0 backdrop:bg-black/70 animate-in fade-in zoom-in-95 duration-150"
-    >
-      <div class="relative border-b px-5 py-4">
-        <Show when={view() !== "menu"}>
+    <dialog ref={props.dialogRef} onClick={handleBackdropClick} class="pixel-dialog">
+      <div class="pixel-dialog__panel relative mx-auto overflow-hidden">
+        <div class="flex items-center justify-between border-b-2 border-[var(--line-color)] px-5 py-4">
+          <Show when={view() !== "menu"}>
+            <button
+              type="button"
+              onClick={() => setView("menu")}
+              class="pixel-icon-button size-10"
+              aria-label="Back to settings menu"
+            >
+              <ChevronLeft />
+            </button>
+          </Show>
+
+          <Show when={view() === "menu"}>
+            <div class="w-10" />
+          </Show>
+
+          <h4 class="type-pixel text-lg">{title()}</h4>
+
           <button
             type="button"
-            onClick={() => setView("menu")}
-            class="absolute left-5 top-1/2 -translate-y-1/2 rounded-xs border p-1.5 hover:bg-gray-100"
-            aria-label="Back to settings menu"
+            onClick={handleClose}
+            class="pixel-icon-button size-10"
+            aria-label="Close settings"
           >
-            <ChevronLeft class="size-4" />
+            <X />
           </button>
-        </Show>
+        </div>
 
-        <h4 class="text-center text-xl font-semibold">{title()}</h4>
-
-        <button
-          type="button"
-          onClick={handleClose}
-          class="absolute right-5 top-1/2 -translate-y-1/2 rounded-xs border p-1.5 hover:bg-gray-100"
-          aria-label="Close settings"
-        >
-          <X class="size-4" />
-        </button>
-      </div>
-
-      <div class="overflow-hidden">
         <div
-          class="flex w-[300%] transition-transform duration-300 ease-out"
+          class="flex w-[300%] transition-transform duration-200"
           style={{
             transform: `translateX(-${VIEW_INDEX[view()] * 33.333333}%)`,
           }}
         >
-          <div class="w-1/3 px-5 py-4">
-            <button
-              type="button"
-              onClick={() => setView("date_format")}
-              class="flex w-full items-center justify-between rounded-xs border px-3 py-2 text-left transition-colors hover:bg-gray-50"
-            >
-              <div class="flex flex-col">
-                <span class="text-sm font-medium">Date format</span>
-                <span class="text-sm text-gray-600">Configure header date display</span>
-              </div>
+          <div class="w-1/3 px-5 py-5">
+            <div class="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => setView("date_format")}
+                class="pixel-shell-card flex w-full items-center justify-between px-4 py-4 text-left"
+              >
+                <div class="flex flex-col gap-1">
+                  <span class="type-pixel text-sm">date format</span>
+                  <span class="text-sm text-[var(--muted-color)]">configure the header date display</span>
+                </div>
 
-              <ChevronRight class="size-4 text-gray-500" />
-            </button>
+                <ChevronRight class="size-4" />
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setView("about")}
-              class="mt-2 flex w-full items-center justify-between rounded-xs border px-3 py-2 text-left transition-colors hover:bg-gray-50"
-            >
-              <div class="flex flex-col">
-                <span class="text-sm font-medium">About</span>
-                <span class="text-sm text-gray-600">Version and repository</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => setView("about")}
+                class="pixel-shell-card flex w-full items-center justify-between px-4 py-4 text-left"
+              >
+                <div class="flex flex-col gap-1">
+                  <span class="type-pixel text-sm">about</span>
+                  <span class="text-sm text-[var(--muted-color)]">version, repository, and updates</span>
+                </div>
 
-              <ChevronRight class="size-4 text-gray-500" />
-            </button>
+                <ChevronRight class="size-4" />
+              </button>
+            </div>
           </div>
 
-          <div class="w-1/3 px-5 py-4">
-            <div class="space-y-2">
-              <For each={formatOptions}>
+          <div class="w-1/3 px-5 py-5">
+            <div class="flex flex-col gap-3">
+              <For each={HEADER_DATE_FORMAT_OPTIONS}>
                 {(option) => (
                   <label
-                    class={cn(
-                      "flex cursor-pointer items-center justify-between rounded-xs border px-3 py-2 transition-colors hover:bg-gray-50",
-                      {
-                        "border-amber-400 bg-amber-50": props.selectedFormat() === option,
-                      },
-                    )}
+                    class={cn("pixel-shell-card flex cursor-pointer items-center justify-between gap-4 px-4 py-3", {
+                      "bg-[var(--accent-soft-color)]": props.selectedFormat() === option,
+                    })}
                   >
-                    <div class="flex flex-col">
-                      <span class="text-sm font-medium">{HEADER_DATE_FORMAT_PRESETS[option].label}</span>
-                      <span class="text-sm text-gray-600">{format(PREVIEW_DATE, HEADER_DATE_FORMAT_PRESETS[option].token)}</span>
+                    <div class="flex flex-col gap-1">
+                      <span class="type-pixel text-sm">{HEADER_DATE_FORMAT_PRESETS[option].label}</span>
+                      <span class="text-sm text-[var(--muted-color)]">
+                        {format(PREVIEW_DATE, HEADER_DATE_FORMAT_PRESETS[option].token)}
+                      </span>
                     </div>
 
                     <input
                       type="radio"
                       name="header-date-format"
-                      class="size-4 accent-amber-400"
+                      class="pixel-radio"
                       checked={props.selectedFormat() === option}
                       onChange={() => props.onFormatChange(option)}
                     />
@@ -226,37 +235,45 @@ export const SettingsDialog: Component<Props> = (props) => {
             </div>
           </div>
 
-          <div class="w-1/3 px-5 py-4">
-            <div class="space-y-4">
-              <div class="rounded-xs border px-3 py-2">
-                <p class="text-xs uppercase tracking-wide text-gray-500">Version</p>
-                <p class="text-base font-medium">{appVersion()}</p>
+          <div class="w-1/3 px-5 py-5">
+            <div class="flex flex-col gap-3">
+              <div class="pixel-shell-card flex items-center gap-4 px-4 py-4">
+                <img src={logoUrl} alt="Qwesti logo" class="h-16 w-16 shrink-0 object-contain" />
+                <div class="flex flex-col gap-1">
+                  <p class="type-pixel text-sm">qwesti</p>
+                  <p class="text-sm text-[var(--muted-color)]">pixel task tracker for infinitely nested tasks.</p>
+                </div>
               </div>
 
-              <div class="rounded-xs border px-3 py-2">
-                <p class="text-xs uppercase tracking-wide text-gray-500">Repository</p>
+              <div class="pixel-shell-card px-4 py-3">
+                <p class="type-pixel text-sm">version</p>
+                <p class="mt-2 text-sm">{appVersion()}</p>
+              </div>
+
+              <div class="pixel-shell-card px-4 py-3">
+                <p class="type-pixel text-sm">repository</p>
                 <button
                   type="button"
                   onClick={openRepository}
-                  class="mt-1 text-left text-sm text-amber-700 underline underline-offset-2 hover:text-amber-800"
+                  class="mt-2 text-left text-sm underline underline-offset-2"
                 >
                   github.com/Royserg/qwesti
                 </button>
               </div>
 
-              <div class="rounded-xs border px-3 py-2">
-                <p class="text-xs uppercase tracking-wide text-gray-500">Updates</p>
+              <div class="pixel-shell-card px-4 py-3">
+                <p class="type-pixel text-sm">updates</p>
                 <button
                   type="button"
                   onClick={checkForUpdates}
                   disabled={isCheckingUpdates()}
-                  class="mt-1 rounded-xs border border-amber-400 bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-900 transition-colors hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-70"
+                  class="pixel-inline-button mt-3"
                 >
-                  {isCheckingUpdates() ? "Checking..." : "Check for updates"}
+                  {isCheckingUpdates() ? "checking..." : "check for updates"}
                 </button>
 
                 <Show when={updateStatus().length > 0}>
-                  <p class="mt-2 text-sm text-gray-700">{updateStatus()}</p>
+                  <p class="mt-3 text-sm text-[var(--muted-color)]">{updateStatus()}</p>
                 </Show>
               </div>
             </div>

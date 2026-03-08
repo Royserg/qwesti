@@ -1,11 +1,12 @@
 import {
-    QueryClient,
-    QueryClientProvider,
+  QueryClient,
+  QueryClientProvider,
 } from '@tanstack/solid-query';
 import { createRootRoute, Outlet } from '@tanstack/solid-router';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check } from '@tauri-apps/plugin-updater';
 import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
+import logoUrl from '../../src-tauri/icons/icon.png';
 import { LAST_VISITED_PAGE_KEY } from '~/lib/localstorage';
 
 export const queryClient = new QueryClient();
@@ -133,15 +134,36 @@ const UpdateScreen: Component<UpdateScreenProps> = (props) => {
   })
 
   return (
-    <div class="w-full h-full grid place-items-center">
+    <div class="grid min-h-screen place-items-center px-4">
+      <div class="pixel-dialog__panel flex w-full max-w-[420px] flex-col items-center gap-5 px-6 py-7 text-center">
+        <img src={logoUrl} alt="Qwesti logo" class="h-20 w-20 object-contain" />
 
-      <Show when={length() === 0}>
-        <h2 class='text-2xl'>Checking for updates...</h2>
-      </Show>
+        <div class="flex flex-col gap-2">
+          <p class="type-pixel text-xl">qwesti</p>
 
-      <Show when={length() > 0}>
-        <h2 class='text-2xl'>Downloaded {downloaded()} from {length()}</h2>
-      </Show>
+          <Show when={length() === 0}>
+            <h2 class='type-pixel text-base'>checking for updates...</h2>
+          </Show>
+
+          <Show when={length() > 0}>
+            <h2 class='type-pixel text-base'>installing update...</h2>
+            <p class="text-sm text-[var(--muted-color)]">
+              {downloaded()} / {length()} bytes
+            </p>
+          </Show>
+        </div>
+
+        <div class="pixel-progress-bar w-full">
+          <div
+            class="pixel-progress-bar__fill"
+            style={{ "--progress-stop": `${length() > 0 ? Math.floor((downloaded() / length()) * 100) : 15}%` }}
+          />
+        </div>
+
+        <p class="text-sm text-[var(--muted-color)]">
+          the app will reopen automatically when the update is ready.
+        </p>
+      </div>
     </div>
   )
 }

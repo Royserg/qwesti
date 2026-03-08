@@ -1,71 +1,278 @@
-import { Component, onMount, Setter } from "solid-js";
-import { DOMElement } from "solid-js/jsx-runtime";
-
-type DialogClickEvent = MouseEvent & {
-  currentTarget: HTMLDialogElement;
-  target: DOMElement;
-};
+import Drawer from "@corvu/drawer";
+import X from "icons/x";
+import {
+  Show,
+  createEffect,
+  createSignal,
+  createUniqueId,
+  onCleanup,
+  onMount,
+  type Component,
+} from "solid-js";
+import { Button } from "~/components/ui/button";
 
 interface Props {
-  dialogRef: Setter<HTMLDialogElement | undefined>;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSubmit: (title: string) => Promise<void>;
 }
+
+interface AddTaskBodyProps {
+  open: boolean;
+  title: string;
+  onTitleChange: (title: string) => void;
+  onClose: () => void;
+  onSubmit: (event: Event) => Promise<void>;
+  registerInput: (element: HTMLInputElement) => void;
+  useDrawerA11y?: boolean;
+  titleId: string;
+  descriptionId: string;
+}
+
+const MOBILE_QUERY = "(max-width: 767px)";
+
+const AddTaskBody: Component<AddTaskBodyProps> = (props) => {
+  return (
+    <form
+      class="pixel-add-surface__form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        props.onSubmit(event);
+      }}
+    >
+      <button
+        type="button"
+        onClick={props.onClose}
+        class="pixel-icon-button absolute right-4 top-4 z-10 size-10"
+        aria-label="Close create task surface"
+      >
+        <X />
+      </button>
+
+      <Show
+        when={props.useDrawerA11y}
+        fallback={
+          <div class="pixel-add-surface__header">
+            <h2 id={props.titleId} class="type-pixel text-xl">
+              create new task
+            </h2>
+            <p id={props.descriptionId} class="type-copy text-sm text-[var(--muted-color)]">
+              add a new task for the current day or branch.
+            </p>
+          </div>
+        }
+      >
+        <div class="pixel-add-surface__header">
+          <Drawer.Label id={props.titleId} class="type-pixel text-xl">
+            create new task
+          </Drawer.Label>
+          <Drawer.Description id={props.descriptionId} class="type-copy text-sm text-[var(--muted-color)]">
+            add a new task for the current day or branch.
+          </Drawer.Description>
+        </div>
+      </Show>
+
+      <input
+        autocomplete="off"
+        autoCapitalize="off"
+        autocorrect="off"
+        autofocus
+        name="title"
+        class="pixel-field"
+        placeholder="create new task"
+        ref={props.registerInput}
+        value={props.title}
+        onInput={(event) => props.onTitleChange(event.currentTarget.value)}
+      />
+
+      <div class="flex justify-end">
+        <Button type="submit" class="min-w-[160px]">
+          add task
+        </Button>
+      </div>
+    </form>
+  );
+};
+
 export const AddQuestDialog: Component<Props> = (props) => {
   let inputRef!: HTMLInputElement;
+  const titleId = createUniqueId();
+  const descriptionId = createUniqueId();
+  const [title, setTitle] = createSignal("");
+  const [isMobile, setIsMobile] = createSignal(false);
 
+  const close = () => {
+    props.onOpenChange(false);
+  };
+
+  const focusInput = () => {
+    if (!inputRef) {
+      return;
+    }
+
+    inputRef.focus({ preventScroll: true });
+    inputRef.select();
+  };
+
+  const scheduleInputFocus = () => {
+    const timeouts: number[] = [];
+    const frames: number[] = [];
+
+    const scheduleTimeoutFocus = (delay = 0) => {
+      timeouts.push(
+        window.setTimeout(() => {
+          focusInput();
+        }, delay),
+      );
+    };
+
+    frames.push(
+      window.requestAnimationFrame(() => {
+        focusInput();
+        frames.push(window.requestAnimationFrame(() => focusInput()));
+      }),
+    );
+
+    scheduleTimeoutFocus();
+    scheduleTimeoutFocus(120);
+
+    return () => {
+      for (const frame of frames) {
+        window.cancelAnimationFrame(frame);
+      }
+
+      for (const timeout of timeouts) {
+        window.clearTimeout(timeout);
+      }
+    };
+  };
 
   const handleSubmit = async () => {
-    const title = inputRef.value;
-    await props.onSubmit(title)
+    const nextTitle = title().trim();
+    if (!nextTitle) {
+      return;
+    }
 
-    // clear input
-    inputRef.value = "";
-  }
+    try {
+      await props.onSubmit(nextTitle);
+      setTitle("");
+      props.onOpenChange(false);
+    } catch {
+      // Keep the drawer/dialog open and preserve the draft title on failure.
+    }
+  };
 
   onMount(() => {
-    inputRef.focus();
-  })
+    const mediaQuery = window.matchMedia(MOBILE_QUERY);
+    const syncMobile = () => setIsMobile(mediaQuery.matches);
 
-  // Closes dialog when backdrop is clicked
-  const handleDialogClick = (e: DialogClickEvent) => {
-    let rect = e.target.getBoundingClientRect();
+    syncMobile();
+    mediaQuery.addEventListener("change", syncMobile);
 
-    if (rect.left > e.clientX ||
-      rect.right < e.clientX ||
-      rect.top > e.clientY ||
-      rect.bottom < e.clientY
-    ) {
-      props.onClose()
+    onCleanup(() => {
+      mediaQuery.removeEventListener("change", syncMobile);
+    });
+  });
+
+  createEffect(() => {
+    if (!props.open) {
+      return;
     }
-  }
+
+    const cleanupFocus = scheduleInputFocus();
+
+    onCleanup(cleanupFocus);
+  });
+
+  createEffect(() => {
+    if (!props.open || isMobile()) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    onCleanup(() => {
+      window.removeEventListener("keydown", handleKeyDown);
+    });
+  });
 
   return (
-    <dialog onClick={handleDialogClick} ref={props.dialogRef} class={`w-full overflow-hidden backdrop:bg-black/70 max-w-full animate-in slide-in-from-top-36 duration-300`}>
-      <button onClick={props.onClose} class="absolute right-5 top-3 cursor-pointer rounded-xs border-2 px-2 grid place-items-center">X</button>
+    <>
+      <Show when={!isMobile() && props.open}>
+        <div class="absolute inset-0 z-40 flex items-center justify-center p-4 sm:p-6">
+          <div class="pixel-overlay-scrim absolute inset-0" onClick={close} aria-hidden="true" />
 
-      <form
-        class="w-full mx-auto rounded-t-xs bg-background text-2xl py-8 border-b px-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!inputRef.value.trim()) {
-            return;
-          }
-          handleSubmit();
-        }}
-      >
-        <h4 class="text-center text-3xl pb-2">Create task</h4>
-        <input
-          autocomplete="off"
-          autoCapitalize="off"
-          autocorrect="off"
-          name="title"
-          class="h-[65px] w-full outline-none p-3 py-4 focus-within:border-[#222] focus-within:shadow-inner border-[#dedede] border"
-          placeholder="Create task"
-          ref={inputRef}
-          autofocus
-        />
-      </form>
-    </dialog>
+          <div
+            class="pixel-add-surface pixel-add-surface--dialog relative z-10 w-full max-w-[430px]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={descriptionId}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <AddTaskBody
+              open={props.open}
+              title={title()}
+              onTitleChange={setTitle}
+              onClose={close}
+              onSubmit={handleSubmit}
+              registerInput={(element) => {
+                inputRef = element;
+
+                if (props.open) {
+                  window.requestAnimationFrame(() => focusInput());
+                }
+              }}
+              titleId={titleId}
+              descriptionId={descriptionId}
+            />
+          </div>
+        </div>
+      </Show>
+
+      <Show when={isMobile()}>
+        <Drawer
+          open={props.open}
+          onOpenChange={props.onOpenChange}
+          side="bottom"
+          snapPoints={[0, 1]}
+          defaultSnapPoint={1}
+          transitionResize
+        >
+          <Drawer.Overlay class="pixel-overlay-scrim absolute inset-0 z-40" />
+
+          <Drawer.Content class="pixel-add-surface pixel-add-surface--drawer absolute inset-x-0 bottom-0 z-50 flex max-h-[min(78vh,520px)] flex-col outline-none">
+            <div class="flex justify-center px-4 pt-3">
+              <div class="pixel-add-surface__handle" />
+            </div>
+
+            <AddTaskBody
+              open={props.open}
+              title={title()}
+              onTitleChange={setTitle}
+              onClose={close}
+              onSubmit={handleSubmit}
+              registerInput={(element) => {
+                inputRef = element;
+
+                if (props.open) {
+                  window.requestAnimationFrame(() => focusInput());
+                }
+              }}
+              useDrawerA11y
+              titleId={titleId}
+              descriptionId={descriptionId}
+            />
+          </Drawer.Content>
+        </Drawer>
+      </Show>
+    </>
   );
 };

@@ -8,7 +8,7 @@ const Card: Component<ComponentProps<"div">> = (props) => {
   return (
     <div
       class={cn(
-        "bg-card text-card-foreground rounded-xs border shadow-sm",
+        "pixel-shell-card bg-card text-card-foreground",
         local.class,
       )}
       {...others}
@@ -19,7 +19,7 @@ const Card: Component<ComponentProps<"div">> = (props) => {
 const CardHeader: Component<ComponentProps<"div">> = (props) => {
   const [local, others] = splitProps(props, ["class"]);
   return (
-    <div class={cn("flex flex-col space-y-1.5 p-6", local.class)} {...others} />
+    <div class={cn("flex flex-col space-y-1.5 p-5", local.class)} {...others} />
   );
 };
 
@@ -28,7 +28,7 @@ const CardTitle: Component<ComponentProps<"h3">> = (props) => {
   return (
     <h3
       class={cn(
-        "text-lg leading-none font-semibold tracking-tight",
+        "type-pixel text-base leading-none tracking-[0.12em]",
         local.class,
       )}
       {...others}
@@ -39,19 +39,19 @@ const CardTitle: Component<ComponentProps<"h3">> = (props) => {
 const CardDescription: Component<ComponentProps<"p">> = (props) => {
   const [local, others] = splitProps(props, ["class"]);
   return (
-    <p class={cn("text-muted-foreground text-sm", local.class)} {...others} />
+    <p class={cn("text-muted-foreground text-sm leading-relaxed", local.class)} {...others} />
   );
 };
 
 const CardContent: Component<ComponentProps<"div">> = (props) => {
   const [local, others] = splitProps(props, ["class"]);
-  return <div class={cn("p-6 pt-0", local.class)} {...others} />;
+  return <div class={cn("p-5 pt-0", local.class)} {...others} />;
 };
 
 const CardFooter: Component<ComponentProps<"div">> = (props) => {
   const [local, others] = splitProps(props, ["class"]);
   return (
-    <div class={cn("flex items-center p-6 pt-0", local.class)} {...others} />
+    <div class={cn("flex items-center p-5 pt-0", local.class)} {...others} />
   );
 };
 

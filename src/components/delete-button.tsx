@@ -14,61 +14,47 @@ interface Props {
 }
 
 export const DeleteButton: Component<Props> = (props) => {
-  let deleteConfirmTimeout: NodeJS.Timeout | null;
-  const [deleteBtnPressed, setDeleteButtonPressed] = createSignal(false);
-  const [deleteProgress, setDeleteProgress] = createSignal(0); // percent progress - bg gradient
+  let deleteConfirmTimeout: ReturnType<typeof setInterval> | null = null;
+  const [deleteProgress, setDeleteProgress] = createSignal(0);
 
   const handlePress = () => {
-    setDeleteButtonPressed(true);
+    if (deleteConfirmTimeout) {
+      return;
+    }
 
     deleteConfirmTimeout = setInterval(() => {
       setDeleteProgress((prev) => {
-        if (prev < 100) {
-          return prev + 2;
-        }
-        return prev;
+        const next = Math.min(prev + 2, 100);
+        props.onDeleteProgressChange?.(next);
+        return next;
       });
-      props.onDeleteProgressChange?.(deleteProgress());
     }, 20);
   };
 
   const handleRelease = () => {
-    setDeleteButtonPressed(false);
-    // Reset delete confirm progress
     if (deleteConfirmTimeout) {
-      clearTimeout(deleteConfirmTimeout);
+      clearInterval(deleteConfirmTimeout);
       deleteConfirmTimeout = null;
     }
+
     setDeleteProgress(0);
-    props.onDeleteProgressChange?.(deleteProgress());
+    props.onDeleteProgressChange?.(0);
   };
 
   createEffect(() => {
     if (deleteProgress() >= 100) {
+      handleRelease();
       props.onDelete();
-      setDeleteProgress(0);
-      props.onDeleteProgressChange?.(deleteProgress());
     }
   });
-
-  const deleteBtnLinearGradient = () => {
-    return `linear-gradient(
-			          0deg,
-								var(--color-red-800) 0%,
-								var(--color-red-800) ${deleteProgress()}%, var(--color-white) ${deleteProgress() + 2}%
-							)`;
-  };
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
       e.stopPropagation();
-      if (deleteConfirmTimeout) {
-        clearTimeout(deleteConfirmTimeout);
-      }
-      deleteConfirmTimeout = null;
       handlePress();
     }
   };
+
   const handleKeyUp = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
       e.stopPropagation();
@@ -78,7 +64,7 @@ export const DeleteButton: Component<Props> = (props) => {
 
   onCleanup(() => {
     if (deleteConfirmTimeout) {
-      clearTimeout(deleteConfirmTimeout);
+      clearInterval(deleteConfirmTimeout);
     }
   });
 
@@ -92,12 +78,12 @@ export const DeleteButton: Component<Props> = (props) => {
       onPointerUp={handleRelease}
       onPointerCancel={handleRelease}
       onPointerLeave={handleRelease}
+      class={cn("pixel-delete-button focus-visible:z-10", props.class)}
       style={{
-        background: deleteBtnPressed()
-          ? deleteBtnLinearGradient()
-          : "var(--color-red-300)",
+        "--delete-progress": `${deleteProgress()}%`,
       }}
-      class={cn("ml-auto h-5 w-5 cursor-pointer border-1", props.class)}
+      aria-label="Hold to delete task"
+      title="Hold to delete"
     />
   );
 };

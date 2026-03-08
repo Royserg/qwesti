@@ -1,6 +1,6 @@
 {
   "name": "qwesti",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "",
   "type": "module",
   "scripts": {
@@ -20,7 +20,9 @@
     "t:b:android": "pnpm tauri android build --apk --target aarch64"
   },
   "dependencies": {
-    "@formkit/drag-and-drop": "^0.5.3",
+    "@corvu/drawer": "^0.2.4",
+    "@dnd-kit/dom": "^0.3.2",
+    "@dnd-kit/solid": "^0.3.2",
     "@kobalte/core": "^0.13.9",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/solid-query": "^5.74.4",

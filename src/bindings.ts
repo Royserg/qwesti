@@ -60,6 +60,14 @@ async updateQuestsOrder(props: UpdateQuestsOrderRequest) : Promise<Result<null, 
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async moveQuest(props: MoveQuestRequest) : Promise<Result<Quest, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("move_quest", { props }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -76,6 +84,7 @@ async updateQuestsOrder(props: UpdateQuestsOrderRequest) : Promise<Result<null, 
 export type AddQuestRequest = { title: string; parent_id: string | null }
 export type DeleteQuestRequest = { id: string }
 export type GetQuestsRequest = { date: string | null; filter: string }
+export type MoveQuestRequest = { id: string; parent_id: string | null; index: number }
 export type Quest = { id: string; title: string; completed: boolean; createdAt: string; completedAt: string | null; orderIndex: number; parentId: string | null; hasChildren: boolean | null; children: Quest[] | null }
 export type UpdateQuestData = { title?: string | null; completed?: boolean | null }
 export type UpdateQuestRequest = { id: string; data: UpdateQuestData }
@@ -89,6 +98,8 @@ import {
 } from "@tauri-apps/api/core";
 import * as TAURI_API_EVENT from "@tauri-apps/api/event";
 import { type WebviewWindow as __WebviewWindow__ } from "@tauri-apps/api/webviewWindow";
+
+void TAURI_CHANNEL;
 
 type __EventObj__<T> = {
 	listen: (
@@ -140,3 +151,5 @@ function __makeEvents__<T extends Record<string, any>>(
 		},
 	);
 }
+
+void __makeEvents__;

@@ -1,17 +1,16 @@
-import { animations, insert } from "@formkit/drag-and-drop";
-import { dragAndDrop } from "@formkit/drag-and-drop/solid";
+import { DragDropProvider, DragOverlay, useDraggable, useDroppable, type DragDropProviderProps } from "@dnd-kit/solid";
 import {
-    queryOptions,
-    useQuery,
-} from '@tanstack/solid-query';
+  queryOptions,
+  useQuery,
+} from "@tanstack/solid-query";
 import {
-    createFileRoute,
-    Link,
-    useNavigate,
-    useRouter,
+  createFileRoute,
+  Link,
+  useNavigate,
+  useRouter,
 } from "@tanstack/solid-router";
 import ChevronLeft from "icons/chevron-left";
-import { Component, createSignal, For, Match, onMount, Show, Switch } from "solid-js";
+import { Component, For, Match, Show, Switch, createSignal } from "solid-js";
 import {
     addQuest,
     deleteQuest,
@@ -25,10 +24,22 @@ import { Quest } from "~/bindings";
 import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
 import { DeleteButton } from "~/components/delete-button";
 import { EditableText } from "~/components/editable-text";
+import { PixelTaskRow } from "~/components/pixel-task-row";
 import { QuestCard } from "~/components/quest-card";
+import { TaskDragOverlay } from "~/components/task-drag-overlay";
+import { TaskStatusCell } from "~/components/task-status-cell";
 import { Button } from "~/components/ui/button";
+import {
+  DRAG_DROP_OVERLAY_ANIMATION,
+  DRAG_CLICK_SUPPRESS_MS,
+  dragSensors,
+  isFlatInsertDropData,
+  isFlatItemDragData,
+  moveItemToIndex,
+  type FlatInsertDropData,
+  type FlatItemDragData,
+} from "~/lib/drag-drop";
 import { BaseLayout } from "~/layouts/base";
-import { cn } from "~/lib/utils";
 import { queryClient } from "./__root";
 
 type BreadcrumbQuest = {
@@ -36,22 +47,22 @@ type BreadcrumbQuest = {
   title: string;
 };
 
+type ProviderDragStartEvent = Parameters<NonNullable<DragDropProviderProps["onDragStart"]>>[0];
+type ProviderDragOverEvent = Parameters<NonNullable<DragDropProviderProps["onDragOver"]>>[0];
+type ProviderDragEndEvent = Parameters<NonNullable<DragDropProviderProps["onDragEnd"]>>[0];
+
 const questQueryOptions = (questId: string) => queryOptions({
-  queryKey: ['quest', questId],
-  queryFn: () => { return loadQuest({ id: questId }) },
-  // NOTE: this mini-refreshes the view and glitches AddDialog
-  // But without this the "go back" will not animate
-  // staleTime: 10 * 1000, // 5 seconds
-})
+  queryKey: ["quest", questId],
+  queryFn: () => loadQuest({ id: questId }),
+});
+
 const subQuestsQueryOptions = (questId: string) => queryOptions({
-  queryKey: ['subQuests', questId],
-  queryFn: () => { return loadSubQuests(questId) },
-  // NOTE: this mini-refreshes the view and glitches AddDialog
-  // But without this the "go back" will not animate
-  // staleTime: 10 * 1000, // 10seconds
-})
+  queryKey: ["subQuests", questId],
+  queryFn: () => loadSubQuests(questId),
+});
+
 const breadcrumbsQueryOptions = (questId: string) => queryOptions({
-  queryKey: ['questBreadcrumbs', questId],
+  queryKey: ["questBreadcrumbs", questId],
   queryFn: async () => {
     const chain: BreadcrumbQuest[] = [];
     const seen = new Set<string>();
@@ -71,14 +82,14 @@ const breadcrumbsQueryOptions = (questId: string) => queryOptions({
 
     return chain.reverse();
   },
-})
+});
 
 export const Route = createFileRoute("/quests/$questId")({
   component: RouteComponent,
   loader: async ({ params }) => {
-    await queryClient.ensureQueryData(questQueryOptions(params.questId))
-    await queryClient.ensureQueryData(subQuestsQueryOptions(params.questId))
-    await queryClient.ensureQueryData(breadcrumbsQueryOptions(params.questId))
+    await queryClient.ensureQueryData(questQueryOptions(params.questId));
+    await queryClient.ensureQueryData(subQuestsQueryOptions(params.questId));
+    await queryClient.ensureQueryData(breadcrumbsQueryOptions(params.questId));
   },
   gcTime: 0,
   shouldReload: false,
@@ -89,14 +100,14 @@ function RouteComponent() {
   const router = useRouter();
   const navigate = useNavigate({ from: "/quests/$questId" });
 
-  const questQuery = useQuery(() => questQueryOptions(params().questId))
-  const subQuestsQuery = useQuery(() => subQuestsQueryOptions(params().questId))
-  const breadcrumbsQuery = useQuery(() => breadcrumbsQueryOptions(params().questId))
+  const questQuery = useQuery(() => questQueryOptions(params().questId));
+  const subQuestsQuery = useQuery(() => subQuestsQueryOptions(params().questId));
+  const breadcrumbsQuery = useQuery(() => breadcrumbsQueryOptions(params().questId));
 
-  const [dialogRef, setDialogRef] = createSignal<HTMLDialogElement>();
+  const [isAddDialogOpen, setIsAddDialogOpen] = createSignal(false);
 
   const handleBackClick = () => {
-    queryClient.clear(); // helps out with re-triggering other queries I think
+    queryClient.clear();
 
     if (router.history.canGoBack()) {
       router.history.back();
@@ -107,15 +118,13 @@ function RouteComponent() {
 
   const handleTitleChange = async (title: string) => {
     const questId = params().questId;
-
     if (!questId) {
       return;
     }
 
     try {
-      await updateQuestTitle({ questId: questId, title });
-      questQuery.refetch();
-      breadcrumbsQuery.refetch();
+      await updateQuestTitle({ questId, title });
+      await Promise.all([questQuery.refetch(), breadcrumbsQuery.refetch()]);
     } catch (err) {
       console.error(err);
     }
@@ -123,14 +132,16 @@ function RouteComponent() {
 
   const handleDeleteQuest = async () => {
     const questId = params().questId;
-    if (questId) {
-      await deleteQuest({ questId });
+    if (!questId) {
+      return;
+    }
 
-      if (router.history.canGoBack()) {
-        router.history.back();
-      } else {
-        navigate({ to: "/" });
-      }
+    await deleteQuest({ questId });
+
+    if (router.history.canGoBack()) {
+      router.history.back();
+    } else {
+      navigate({ to: "/" });
     }
   };
 
@@ -141,13 +152,12 @@ function RouteComponent() {
     }
 
     try {
-      const nextCompleted = !currentQuest.completed;
       await updateQuestCompleted({
         questId: currentQuest.id,
-        completed: nextCompleted,
+        completed: !currentQuest.completed,
       });
 
-      questQuery.refetch();
+      await questQuery.refetch();
     } catch (err) {
       console.error(err);
     }
@@ -160,137 +170,114 @@ function RouteComponent() {
     }
 
     try {
-      // pass in parent id
       await addQuest({ title, parentId: questId });
-
-      subQuestsQuery.refetch();
-      closeDialog();
+      await subQuestsQuery.refetch();
     } catch (err) {
       console.error(err);
+      throw err;
     }
-  };
-
-  const closeDialog = () => {
-    dialogRef()?.close();
   };
 
   const handleSubQuestDeleted = () => {
     subQuestsQuery.refetch();
   };
 
-  const handleSubQuestToggled = (_id: string) => {
-    subQuestsQuery.refetch();
-  }
+  const handleSubQuestToggled = async () => {
+    await Promise.all([subQuestsQuery.refetch(), questQuery.refetch()]);
+  };
 
   const subQuestsCount = () => subQuestsQuery.data?.length ?? 0;
-  const subQuestsCompletedCount = () => subQuestsQuery.data?.filter((q) => q.completed).length ?? 0;
+  const subQuestsCompletedCount = () => subQuestsQuery.data?.filter((quest) => quest.completed).length ?? 0;
   const completionPercentage = () =>
     subQuestsCompletedCount() === 0
       ? 0
       : Math.floor((subQuestsCompletedCount() / subQuestsCount()) * 100);
-  const completionBgGradient = () => {
-    if (subQuestsCompletedCount() === 0) {
-      return "var(--color-white)";
-    }
-    return `linear-gradient(
-                0deg,
-                var(--color-amber-300) 0%,
-                var(--color-amber-400) ${completionPercentage()}%,
-                var(--color-white) ${completionPercentage() + 2}%
-              )`;
-  };
 
   return (
-    <BaseLayout class="flex flex-col">
-      <div class="flex h-[calc(100%-70px)]">
+    <BaseLayout class="flex min-h-0 flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5">
+      <div class="flex items-start gap-3">
         <button
+          type="button"
           onClick={handleBackClick}
-          class="flex h-full w-4 cursor-pointer items-center justify-center border-r bg-gray-50"
+          class="pixel-icon-button h-11 w-11 shrink-0 sm:h-12 sm:w-12"
+          aria-label="Go back"
         >
-          <ChevronLeft class="text-gray-600" />
+          <ChevronLeft />
         </button>
 
-        <div class="flex h-full w-full flex-col pt-3">
-          <Breadcrumbs crumbs={breadcrumbsQuery.data ?? []} />
+        <div class="flex min-w-0 flex-1 flex-col gap-2">
+          <div class="pixel-scroll overflow-x-auto px-1 py-1">
+            <Breadcrumbs crumbs={breadcrumbsQuery.data ?? []} />
+          </div>
 
-          <div
+          <PixelTaskRow
             style={{
               contain: "layout",
               "view-transition-name": `quest-${params().questId}`,
             }}
-            class="border-b-secondary flex h-12 w-full items-center gap-6 border-b px-4 pb-2"
+            rightClass="w-[62px]"
+            left={
+              <Switch>
+                <Match when={subQuestsQuery.data?.length === 0}>
+                  <TaskStatusCell
+                    completed={questQuery.data?.completed}
+                    onToggle={handleQuestToggle}
+                    ariaLabel={
+                      questQuery.data?.completed ? "Mark task as pending" : "Mark task as completed"
+                    }
+                  />
+                </Match>
+
+                <Match when={subQuestsQuery.data?.length && subQuestsQuery.data.length > 0}>
+                  <TaskStatusCell progress={completionPercentage()} />
+                </Match>
+              </Switch>
+            }
+            right={<DeleteButton onDelete={handleDeleteQuest} />}
           >
-            <Switch>
-              <Match when={subQuestsQuery.data?.length === 0}>
-                <button
-                  type="button"
-                  class={cn(
-                    "flex h-full w-12 cursor-pointer justify-center border shadow-inner shadow-black/20",
-                    {
-                      "bg-amber-300": questQuery.data?.completed,
-                      "bg-card": !questQuery.data?.completed,
-                    },
-                  )}
-                  onClick={handleQuestToggle}
-                />
-              </Match>
-
-              <Match when={subQuestsQuery.data?.length && subQuestsQuery.data?.length > 0}>
-                <div
-                  class="group grid h-full w-14 place-items-center inset-shadow-sm inset-shadow-black/20"
-                  style={{
-                    background: completionBgGradient(),
-                  }}
-                >
-                  <p class="invisible group-hover:visible">
-                    {completionPercentage()}%
-                  </p>
-                </div>
-              </Match>
-            </Switch>
-
-            <EditableText
-              value={questQuery.data?.title ?? ''}
-              onSubmit={handleTitleChange}
-              focusable={() => true}
-            />
-
-            <DeleteButton class="mr-2 p-3" onDelete={handleDeleteQuest} />
-          </div>
-
-          {/* Sub-Quests */}
-          <div class="py-2" />
-
-          <SubQuests
-            quests={subQuestsQuery.data ?? []}
-            onQuestDeleted={handleSubQuestDeleted}
-            onQuestToggled={handleSubQuestToggled}
-            onOrderChanged={() => subQuestsQuery.refetch()}
-          />
+            <div class="flex min-w-0 flex-1 items-center px-4 py-2.5">
+              <EditableText
+                value={questQuery.data?.title ?? ""}
+                onSubmit={handleTitleChange}
+                focusable={() => true}
+                class="pixel-title text-[1rem] sm:text-[1.08rem]"
+                inputClass="min-h-[44px]"
+              />
+            </div>
+          </PixelTaskRow>
         </div>
+      </div>
+
+      <div class="mt-5 flex min-h-0 flex-1 overflow-hidden">
+        <SubQuests
+          groupId={params().questId}
+          quests={subQuestsQuery.data ?? []}
+          onQuestDeleted={handleSubQuestDeleted}
+          onQuestToggled={handleSubQuestToggled}
+          onOrderChanged={() => subQuestsQuery.refetch()}
+        />
       </div>
 
       <section
         style={{
           "view-transition-name": "bottom-bar",
         }}
-        // class="bg-background animate-in slide-in-from-bottom-5 mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1 rounded-t-xs"
-        class="bg-background mt-auto flex h-[70px] w-full items-center justify-center border-t pb-1 rounded-t-xs"
+        class="mt-4"
       >
         <Button
-          class="h-[50px] w-3/5 rounded-xs"
+          class="pixel-button--action h-[60px] w-full"
           onClick={() => {
-            dialogRef()?.showModal();
+            setIsAddDialogOpen(true);
           }}
         >
-          Add subtask
+          add subtask
         </Button>
       </section>
 
       <AddQuestDialog
-        dialogRef={setDialogRef}
+        open={isAddDialogOpen()}
+        onOpenChange={setIsAddDialogOpen}
         onSubmit={handleAddSubQuest}
-        onClose={closeDialog}
       />
     </BaseLayout>
   );
@@ -300,137 +287,247 @@ const Breadcrumbs: Component<{
   crumbs: BreadcrumbQuest[];
 }> = (props) => {
   return (
-    <div class="w-full overflow-x-auto px-4 pb-2">
-      <div class="flex min-w-max items-center gap-1 text-sm">
-        <Link to="/" search={{ filter: "all" }} class="text-gray-500 transition-colors hover:text-gray-900">
-          Tasks
-        </Link>
+    <div class="pixel-breadcrumbs">
+      <Link to="/" search={{ filter: "all" }} class="underline underline-offset-2">
+        tasks
+      </Link>
 
-        <For each={props.crumbs}>
-          {(crumb, index) => {
-            const isLast = () => index() === props.crumbs.length - 1;
+      <For each={props.crumbs}>
+        {(crumb, index) => {
+          const isLast = () => index() === props.crumbs.length - 1;
 
-            return (
-              <>
-                <span class="text-gray-400">/</span>
+          return (
+            <>
+              <span>/</span>
 
-                <Show
-                  when={!isLast()}
-                  fallback={
-                    <span class="max-w-[220px] truncate font-medium text-gray-900" title={crumb.title}>
-                      {crumb.title}
-                    </span>
-                  }
-                >
-                  <Link
-                    to="/quests/$questId"
-                    params={{ questId: crumb.id }}
-                    class="max-w-[180px] truncate text-gray-500 transition-colors hover:text-gray-900"
-                    title={crumb.title}
-                  >
+              <Show
+                when={!isLast()}
+                fallback={
+                  <span class="max-w-[220px] truncate text-[var(--ink-color)]" title={crumb.title}>
                     {crumb.title}
-                  </Link>
-                </Show>
-              </>
-            );
-          }}
-        </For>
-      </div>
+                  </span>
+                }
+              >
+                <Link
+                  to="/quests/$questId"
+                  params={{ questId: crumb.id }}
+                  class="max-w-[180px] truncate underline underline-offset-2"
+                  title={crumb.title}
+                >
+                  {crumb.title}
+                </Link>
+              </Show>
+            </>
+          );
+        }}
+      </For>
     </div>
   );
 };
 
-
-const createInsertPointElement = () => {
-  const div = document.createElement("div");
-  div.classList.add("absolute",
-    "bg-amber-500",
-    "z-200",
-    "rounded-full",
-    "duration-[5ms]",
-    "before:block",
-    'before:content-["Insert"]',
-    "before:whitespace-nowrap",
-    "before:block",
-    "before:bg-amber-500",
-    "before:py-1",
-    "before:px-2",
-    "before:rounded-full",
-    "before:text-xs",
-    "before:absolute",
-    "before:top-1/2",
-    "before:left-1/2",
-    "before:-translate-y-1/2",
-    "before:-translate-x-1/2",
-    "before:text-white",
-    "before:text-xs",);
-  return div;
-}
-
-// -- Sub Quests --
 const SubQuests: Component<{
+  groupId: string;
   quests: Quest[];
   onQuestDeleted?: (id: string) => void;
   onQuestToggled?: (id: string) => void;
   onOrderChanged?: () => void;
 }> = (props) => {
+  const [draggedQuestId, setDraggedQuestId] = createSignal<string | null>(null);
+  const [activeSnapshot, setActiveSnapshot] = createSignal<FlatItemDragData["snapshot"] | null>(null);
+  const [dropIndex, setDropIndex] = createSignal<number | null>(null);
+  let suppressNavigationUntil = 0;
 
-  let questsContainer!: HTMLDivElement;
+  const clearDragState = () => {
+    setDraggedQuestId(null);
+    setActiveSnapshot(null);
+    setDropIndex(null);
+    suppressNavigationUntil = performance.now() + DRAG_CLICK_SUPPRESS_MS;
+  };
 
-  onMount(() => {
-    dragAndDrop({
-      parent: questsContainer,
-      group: 'quests',
-      state: [
-        () => props.quests,
-        async (data) => {
-          const newOrderedQuests = data;
-          const ids = newOrderedQuests.map(q => q.id);
-          await updateQuestsOrder({ ids });
-          props.onOrderChanged?.()
-        }
-      ],
-      handleNodePointerdown: () => { },
-      handlePointercancel: () => { },
-      dragHandle: '.drag-handle',
-      plugins: [
-        animations(),
-        insert({
-          insertPoint: (_parent) => {
-            return createInsertPointElement();
-          }
-        })
-      ]
-    });
-  })
+  const handleDragStart = (event: ProviderDragStartEvent) => {
+    const sourceData = event.operation.source?.data;
+    if (!isFlatItemDragData(sourceData)) {
+      return;
+    }
 
-  const onQuestDeleted = (id: string) => {
-    props.onQuestDeleted?.(id);
-  }
-  const onQuestToggled = (id: string) => {
-    props.onQuestToggled?.(id);
-  }
+    setDropIndex(null);
+    setDraggedQuestId(sourceData.questId);
+    setActiveSnapshot(sourceData.snapshot);
+  };
+
+  const handleDragOver = (event: ProviderDragOverEvent) => {
+    const sourceData = event.operation.source?.data;
+    if (!isFlatItemDragData(sourceData)) {
+      return;
+    }
+
+    const targetData = event.operation.target?.data;
+    const targetIndex = isFlatInsertDropData(targetData) ? targetData.index : null;
+
+    if (targetIndex === null) {
+      setDropIndex(null);
+      return;
+    }
+
+    const nextQuests = moveItemToIndex(props.quests, sourceData.questId, targetIndex);
+    if (!nextQuests) {
+      setDropIndex(null);
+      return;
+    }
+
+    setDropIndex(targetIndex);
+  };
+
+  const handleDragEnd = async (event: ProviderDragEndEvent) => {
+    const sourceData = event.operation.source?.data;
+    const targetIndex = dropIndex();
+
+    const shouldPersist = !event.canceled
+      && isFlatItemDragData(sourceData)
+      && targetIndex !== null;
+
+    const ids = shouldPersist
+      ? moveItemToIndex(props.quests, sourceData.questId, targetIndex)?.map((quest) => quest.id) ?? null
+      : null;
+
+    clearDragState();
+
+    if (!shouldPersist || !ids) {
+      return;
+    }
+
+    try {
+      await updateQuestsOrder({ ids });
+      await props.onOrderChanged?.();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
-    <section
-      class="flex flex-1 flex-col gap-2 overflow-auto"
-      style={{ "view-transition-name": "sub-quests-container" }}
+    <DragDropProvider
+      sensors={dragSensors}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={(event) => {
+        void handleDragEnd(event);
+      }}
     >
-      <Show when={props.quests.length > 0}>
-        <h3 class="text-muted-foreground pl-4 text-xl">Subtasks</h3>
-        <div ref={questsContainer} class="flex flex-col gap-1 px-6 pb-3">
-          <For each={props.quests}>
-            {(q) => (
-              <QuestCard
-                data-label={q.id}
-                quest={q}
-                onDeleted={() => onQuestDeleted(q.id)}
-                onToggled={() => onQuestToggled(q.id)}
-              />
-            )}
-          </For>
-        </div>
-      </Show>
-    </section>
+      <section
+        class="flex min-h-0 flex-1 flex-col gap-2 overflow-auto"
+        style={{ "view-transition-name": "sub-quests-container" }}
+      >
+        <Show when={props.quests.length > 0}>
+          <h3 class="pixel-section-title px-1 text-[var(--muted-color)]">subtasks</h3>
+          <div class="flex flex-col gap-1 pr-1">
+            <FlatInsertSlot index={0} active={dropIndex() === 0} />
+
+            <For each={props.quests}>
+              {(quest, index) => (
+                <>
+                  <DraggableSubQuestCard
+                    quest={quest}
+                    index={index()}
+                    groupId={props.groupId}
+                    draggedQuestId={draggedQuestId()}
+                    canOpen={() => performance.now() >= suppressNavigationUntil}
+                    onDeleted={() => props.onQuestDeleted?.(quest.id)}
+                    onToggled={() => props.onQuestToggled?.(quest.id)}
+                  />
+
+                  <FlatInsertSlot index={index() + 1} active={dropIndex() === index() + 1} />
+                </>
+              )}
+            </For>
+          </div>
+        </Show>
+
+        <Show when={props.quests.length === 0}>
+          <div class="pixel-empty-state w-full">no subtasks yet</div>
+        </Show>
+      </section>
+
+      <DragOverlay
+        class="pixel-drag-overlay-shell"
+        dropAnimation={DRAG_DROP_OVERLAY_ANIMATION}
+      >
+        <Show when={activeSnapshot()}>
+          {(snapshot) => (
+            <TaskDragOverlay
+              title={snapshot().title}
+              completed={snapshot().completed}
+              progress={snapshot().progress}
+            />
+          )}
+        </Show>
+      </DragOverlay>
+    </DragDropProvider>
+  );
+};
+
+const FlatInsertSlot: Component<{ index: number; active: boolean }> = (props) => {
+  const droppable = useDroppable<FlatInsertDropData>({
+    id: `flat-insert:${props.index}`,
+    data: {
+      kind: "flat-insert",
+      index: props.index,
+    },
+  });
+
+  return (
+    <div
+      ref={droppable.ref}
+      classList={{
+        "pixel-drop-slot": true,
+        "pixel-drop-slot--active": props.active,
+      }}
+    />
+  );
+};
+
+const DraggableSubQuestCard: Component<{
+  quest: Quest;
+  index: number;
+  groupId: string;
+  draggedQuestId: string | null;
+  canOpen: () => boolean;
+  onDeleted?: () => void;
+  onToggled?: () => void;
+}> = (props) => {
+  const subQuestsCount = () => props.quest.children?.length ?? 0;
+  const subQuestsCompletedCount = () => props.quest.children?.filter((q) => q.completed).length ?? 0;
+  const progress = () =>
+    subQuestsCompletedCount() === 0
+      ? 0
+      : Math.floor((subQuestsCompletedCount() / subQuestsCount()) * 100);
+
+  const draggable = useDraggable<FlatItemDragData>({
+    id: `flat-row:${props.quest.id}`,
+    data: {
+      kind: "flat-item",
+      questId: props.quest.id,
+      index: props.index,
+      snapshot: {
+        title: props.quest.title,
+        completed: props.quest.completed,
+        progress: props.quest.hasChildren ? progress() : undefined,
+      },
+    },
+  });
+
+  const setDraggableRowRef = (element: Element | undefined) => {
+    draggable.ref(element);
+  };
+
+  return (
+    <QuestCard
+      quest={props.quest}
+      rowRef={setDraggableRowRef}
+      class={draggable.isDragging() ? "pixel-task-row--drag-source" : undefined}
+      titleButtonRef={draggable.handleRef}
+      canOpen={props.canOpen}
+      onDeleted={props.onDeleted}
+      onToggled={props.onToggled}
+    />
   );
 };
