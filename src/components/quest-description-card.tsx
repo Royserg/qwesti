@@ -8,6 +8,7 @@ import {
   extractDescriptionText,
   renderDescriptionMarkdown,
   resolveDescriptionAssetUrls,
+  startsDescriptionWithImage,
 } from "~/lib/quest-description";
 import { QuestDescriptionEditor } from "./quest-description-editor";
 import { Button } from "./ui/button";
@@ -32,6 +33,7 @@ export const QuestDescriptionCard: Component<Props> = (props) => {
   );
 
   const hasDescription = createMemo(() => Boolean(props.description?.trim()));
+  const startsWithImage = createMemo(() => startsDescriptionWithImage(props.description ?? ""));
   const previewText = createMemo(() => extractDescriptionPreviewText(props.description ?? ""));
   const descriptionText = createMemo(() => extractDescriptionText(props.description ?? ""));
   const imageCount = createMemo(() => countDescriptionImageReferences(props.description ?? ""));
@@ -170,14 +172,23 @@ export const QuestDescriptionCard: Component<Props> = (props) => {
               when={expanded() && hasDescription()}
               fallback={
                 <div class="flex flex-col gap-2">
-                  <p
-                    class="pixel-description-excerpt type-copy text-sm leading-relaxed"
-                    classList={{
-                      "text-[var(--muted-color)]": !hasDescription(),
-                    }}
+                  <Show
+                    when={hasDescription() && startsWithImage()}
+                    fallback={
+                      <p
+                        class="pixel-description-excerpt type-copy text-sm leading-relaxed"
+                        classList={{
+                          "text-[var(--muted-color)]": !hasDescription(),
+                        }}
+                      >
+                        {collapsedSummary()}
+                      </p>
+                    }
                   >
-                    {collapsedSummary()}
-                  </p>
+                    <div class="pixel-description-preview-snippet">
+                      <div class="pixel-markdown" innerHTML={previewHtml()} />
+                    </div>
+                  </Show>
 
                   <Show when={hasDescription() && imageCount() > 0 && !previewText()}>
                     <span class="type-copy text-[0.76rem] text-[var(--muted-color)]">

@@ -479,6 +479,11 @@
     -webkit-line-clamp: 1;
   }
 
+  .pixel-description-preview-snippet {
+    max-height: 56px;
+    overflow: hidden;
+  }
+
   .pixel-description-toggle {
     display: inline-flex;
     align-items: center;

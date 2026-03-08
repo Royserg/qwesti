@@ -75,6 +75,9 @@ export const countDescriptionImageReferences = (markdown: string) =>
     destination.startsWith(DESCRIPTION_ASSET_SCHEME),
   ).length;
 
+export const startsDescriptionWithImage = (markdown: string) =>
+  /^\s*!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/.test(markdown.trimStart());
+
 export const extractDescriptionPreviewText = (markdown: string) =>
   markdown
     .replace(/\r\n?/g, "\n")
