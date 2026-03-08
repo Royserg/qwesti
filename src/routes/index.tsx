@@ -1,5 +1,5 @@
 import { queryOptions, useQuery } from "@tanstack/solid-query";
-import { createFileRoute, useNavigate } from "@tanstack/solid-router";
+import { createFileRoute } from "@tanstack/solid-router";
 import { format } from "date-fns";
 import { Show, createEffect, createMemo, createSignal } from "solid-js";
 import { z } from "zod";
@@ -20,11 +20,9 @@ import { queryClient } from "./__root";
 
 export const QuestsFilterEnum = z.enum(["all", "pending", "completed"]);
 export type QuestsFilterEnumType = z.infer<typeof QuestsFilterEnum>;
-export const QuestsViewEnum = z.enum(["list", "tree"]);
 
 const questsSearchSchema = z.object({
   filter: QuestsFilterEnum.default(QuestsFilterEnum.enum.all),
-  view: QuestsViewEnum.optional(),
   // Navigating back from quest details would navigate to default view
   // so it doesn't show 1 day ago if it happens after midnight
   date: z.string().optional(),
@@ -98,7 +96,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const navigate = useNavigate({ from: "/" });
   const searchParams = Route.useSearch();
   const selectedDate = () => searchParams().date ?? todayInFormat();
   const selectedFilter = () => searchParams().filter;

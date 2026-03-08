@@ -12,12 +12,12 @@ import {
 import ChevronLeft from "icons/chevron-left";
 import { Component, For, Match, Show, Switch, createSignal } from "solid-js";
 import {
-    addQuest,
-    deleteQuest,
-    loadQuest,
-    loadSubQuests,
-    updateQuestCompleted,
-    updateQuestTitle,
+  addQuest,
+  deleteQuest,
+  loadQuest,
+  loadSubQuests,
+  updateQuestCompleted,
+  updateQuestTitle,
 } from "~/actions";
 import { updateQuestsOrder } from "~/actions/update-quests-order";
 import { Quest } from "~/bindings";

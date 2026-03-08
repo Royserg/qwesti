@@ -40,8 +40,6 @@ export const Filters: Component<FiltersProps> = (props) => {
     },
   ];
 
-  const toggleFilters = () => setIsOpen(!isOpen());
-
   return (
     <div class="relative mx-auto flex w-full justify-end">
       <div class="flex items-center gap-2">

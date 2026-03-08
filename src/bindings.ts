@@ -99,8 +99,6 @@ import {
 import * as TAURI_API_EVENT from "@tauri-apps/api/event";
 import { type WebviewWindow as __WebviewWindow__ } from "@tauri-apps/api/webviewWindow";
 
-void TAURI_CHANNEL;
-
 type __EventObj__<T> = {
 	listen: (
 		cb: TAURI_API_EVENT.EventCallback<T>,
@@ -151,5 +149,3 @@ function __makeEvents__<T extends Record<string, any>>(
 		},
 	);
 }
-
-void __makeEvents__;
