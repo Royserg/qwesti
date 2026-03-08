@@ -11,9 +11,7 @@ import { TodayDate } from "~/components/today-date";
 import { Button } from "~/components/ui/button";
 import {
   collectExpandableIds,
-  moveTreeQuest,
   recomputeTreeQuest,
-  type TreeMoveResult,
   type TreeQuest,
 } from "~/lib/quest-tree";
 import { BaseLayout } from "~/layouts/base";
@@ -108,10 +106,10 @@ function Index() {
   const questsTreeQuery = useQuery(() => questsTreeQueryOptions(selectedDate(), selectedFilter()));
 
   const [isAddDialogOpen, setIsAddDialogOpen] = createSignal(false);
-  const [tree, setTree] = createSignal<TreeQuest[]>([]);
   const [collapsedIds, setCollapsedIds] = createSignal<Set<string>>(new Set());
 
   const isTodaySelected = () => !searchParams().date;
+  const tree = () => questsTreeQuery.data ?? ([] as TreeQuest[]);
 
   createEffect(() => {
     const legacyView = searchParams().view;
@@ -127,15 +125,6 @@ function Index() {
       },
       replace: true,
     });
-  });
-
-  createEffect(() => {
-    const nextTree = questsTreeQuery.data;
-    if (!nextTree) {
-      return;
-    }
-
-    setTree(nextTree);
   });
 
   const expandableIds = createMemo(() => new Set(collectExpandableIds(tree())));
@@ -203,26 +192,6 @@ function Index() {
     setCollapsedIds(() => (allExpanded() ? new Set(expandableIds()) : new Set<string>()));
   };
 
-  const handleResetPreview = () => {
-    if (questsTreeQuery.data) {
-      setTree(questsTreeQuery.data);
-    }
-  };
-
-  const handlePreviewMoveQuest = (
-    questId: string,
-    parentId: string | null,
-    index: number,
-  ): TreeMoveResult | null => {
-    const moveResult = moveTreeQuest(tree(), questId, parentId, index);
-    if (!moveResult) {
-      return null;
-    }
-
-    setTree(moveResult.nextTree);
-    return moveResult;
-  };
-
   const handlePersistMoveQuest = async (questId: string, parentId: string | null, index: number) => {
     try {
       await moveQuest({
@@ -257,8 +226,6 @@ function Index() {
           filter={searchParams().filter}
           collapsedIds={collapsedIds()}
           onToggleNode={handleToggleNode}
-          onPreviewMoveQuest={handlePreviewMoveQuest}
-          onResetPreview={handleResetPreview}
           onPersistMoveQuest={handlePersistMoveQuest}
           onQuestDeleted={handleQuestDeleted}
           onQuestToggled={handleQuestToggled}

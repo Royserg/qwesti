@@ -6,6 +6,15 @@ export const DRAG_TOUCH_DELAY_MS = 220;
 export const DRAG_TOUCH_TOLERANCE_PX = 8;
 export const TREE_AUTO_EXPAND_DELAY_MS = 300;
 export const DRAG_CLICK_SUPPRESS_MS = 250;
+export const SORTABLE_ITEM_TRANSITION = {
+  duration: 220,
+  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+  idle: true,
+} as const;
+export const DRAG_DROP_OVERLAY_ANIMATION = {
+  duration: 240,
+  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+} as const;
 
 export interface TaskDragSnapshot {
   title: string;
@@ -30,6 +39,13 @@ export interface TreeInsertDropData {
   index: number;
 }
 
+export interface TreeIntoDropData {
+  kind: "tree-into";
+  questId: string;
+  childCount: number;
+  hasChildren: boolean;
+}
+
 export interface FlatItemDragData {
   kind: "flat-item";
   questId: string;
@@ -45,6 +61,7 @@ export interface FlatInsertDropData {
 export type DragData =
   | TreeItemDragData
   | TreeInsertDropData
+  | TreeIntoDropData
   | FlatItemDragData
   | FlatInsertDropData;
 
@@ -66,6 +83,9 @@ export const isTreeItemDragData = (data: unknown): data is TreeItemDragData =>
 
 export const isTreeInsertDropData = (data: unknown): data is TreeInsertDropData =>
   typeof data === "object" && data !== null && "kind" in data && data.kind === "tree-insert";
+
+export const isTreeIntoDropData = (data: unknown): data is TreeIntoDropData =>
+  typeof data === "object" && data !== null && "kind" in data && data.kind === "tree-into";
 
 export const isFlatItemDragData = (data: unknown): data is FlatItemDragData =>
   typeof data === "object" && data !== null && "kind" in data && data.kind === "flat-item";
@@ -99,38 +119,3 @@ export const moveItemToIndex = <T extends { id: string }>(
 };
 
 export const serializeParentId = (parentId: string | null) => parentId ?? ROOT_PARENT_ID;
-
-export const logDragDebug = (scope: string, label: string, payload?: unknown) => {
-  if (payload === undefined) {
-    console.debug(`[qwesti:dnd:${scope}] ${label}`);
-    return;
-  }
-
-  console.debug(`[qwesti:dnd:${scope}] ${label}`, payload);
-};
-
-export const logDragOperation = (
-  scope: string,
-  label: string,
-  event: {
-    canceled?: boolean;
-    operation?: {
-      source?: {
-        id?: string | number;
-        data?: unknown;
-      } | null;
-      target?: {
-        id?: string | number;
-        data?: unknown;
-      } | null;
-    };
-  },
-) => {
-  console.debug(`[qwesti:dnd:${scope}] ${label}`, {
-    canceled: event.canceled,
-    sourceId: event.operation?.source?.id,
-    sourceData: event.operation?.source?.data,
-    targetId: event.operation?.target?.id,
-    targetData: event.operation?.target?.data,
-  });
-};

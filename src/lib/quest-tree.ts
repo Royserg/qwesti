@@ -26,6 +26,13 @@ export interface TreeMoveResult {
   targetIndex: number;
 }
 
+export interface TreeMoveResolution {
+  sourceParentId: string | null;
+  sourceIndex: number;
+  targetParentId: string | null;
+  targetIndex: number;
+}
+
 interface ReplaceChildrenResult {
   quests: TreeQuest[];
   replaced: boolean;
@@ -59,11 +66,8 @@ export const moveTreeQuest = (
   targetParentId: string | null,
   rawIndex: number,
 ): TreeMoveResult | null => {
-  if (rawIndex < 0 || questId === targetParentId) {
-    return null;
-  }
-
-  if (targetParentId && isDescendantOf(quests, questId, targetParentId)) {
+  const move = resolveTreeMove(quests, questId, targetParentId, rawIndex);
+  if (!move) {
     return null;
   }
 
@@ -72,36 +76,60 @@ export const moveTreeQuest = (
     return null;
   }
 
-  const targetSiblings = targetParentId === null
-    ? removal.quests
-    : findQuestById(removal.quests, targetParentId)?.children;
-
-  if (!targetSiblings) {
-    return null;
-  }
-
-  const adjustedIndex = removal.parentId === targetParentId && rawIndex > removal.index
-    ? rawIndex - 1
-    : rawIndex;
-  const targetIndex = Math.max(0, Math.min(adjustedIndex, targetSiblings.length));
-
-  if (removal.parentId === targetParentId && targetIndex === removal.index) {
-    return null;
-  }
-
   const movedQuest: TreeQuest = {
     ...removal.removed,
-    parentId: targetParentId,
+    parentId: move.targetParentId,
   };
-  const insertion = insertQuest(removal.quests, movedQuest, targetParentId, targetIndex);
+  const insertion = insertQuest(removal.quests, movedQuest, move.targetParentId, move.targetIndex);
   if (!insertion.inserted) {
     return null;
   }
 
   return {
     nextTree: insertion.quests.map(recomputeTreeQuest),
-    sourceParentId: removal.parentId,
-    sourceIndex: removal.index,
+    ...move,
+  };
+};
+
+export const resolveTreeMove = (
+  quests: TreeQuest[],
+  questId: string,
+  targetParentId: string | null,
+  rawIndex: number,
+): TreeMoveResolution | null => {
+  if (rawIndex < 0 || questId === targetParentId) {
+    return null;
+  }
+
+  if (targetParentId && isDescendantOf(quests, questId, targetParentId)) {
+    return null;
+  }
+
+  const sourceLocation = findQuestLocation(quests, questId, null);
+  if (!sourceLocation) {
+    return null;
+  }
+
+  const targetSiblings = targetParentId === null
+    ? quests
+    : findQuestById(quests, targetParentId)?.children;
+
+  if (!targetSiblings) {
+    return null;
+  }
+
+  const adjustedIndex = sourceLocation.parentId === targetParentId && rawIndex > sourceLocation.index
+    ? rawIndex - 1
+    : rawIndex;
+  const targetIndex = Math.max(0, Math.min(adjustedIndex, targetSiblings.length));
+
+  if (sourceLocation.parentId === targetParentId && targetIndex === sourceLocation.index) {
+    return null;
+  }
+
+  return {
+    sourceParentId: sourceLocation.parentId,
+    sourceIndex: sourceLocation.index,
     targetParentId,
     targetIndex,
   };
@@ -151,6 +179,30 @@ const isDescendantOf = (quests: TreeQuest[], ancestorId: string, targetId: strin
 
 const questContainsId = (quests: TreeQuest[], targetId: string): boolean =>
   quests.some((quest) => quest.id === targetId || questContainsId(quest.children, targetId));
+
+const findQuestLocation = (
+  quests: TreeQuest[],
+  questId: string,
+  parentId: string | null,
+): { quest: TreeQuest; parentId: string | null; index: number } | null => {
+  const directIndex = quests.findIndex((quest) => quest.id === questId);
+  if (directIndex >= 0) {
+    return {
+      quest: quests[directIndex],
+      parentId,
+      index: directIndex,
+    };
+  }
+
+  for (const quest of quests) {
+    const nestedLocation = findQuestLocation(quest.children, questId, quest.id);
+    if (nestedLocation) {
+      return nestedLocation;
+    }
+  }
+
+  return null;
+};
 
 const normalizeParentIds = (quest: TreeQuest, parentId: string | null): TreeQuest => ({
   ...quest,

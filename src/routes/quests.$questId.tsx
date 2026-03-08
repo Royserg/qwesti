@@ -31,16 +31,17 @@ import { TaskDragOverlay } from "~/components/task-drag-overlay";
 import { TaskStatusCell } from "~/components/task-status-cell";
 import { Button } from "~/components/ui/button";
 import {
+  DRAG_DROP_OVERLAY_ANIMATION,
   DRAG_CLICK_SUPPRESS_MS,
+  SORTABLE_ITEM_TRANSITION,
   dragSensors,
   isFlatInsertDropData,
   isFlatItemDragData,
-  logDragDebug,
-  logDragOperation,
   moveItemToIndex,
   type FlatInsertDropData,
   type FlatItemDragData,
 } from "~/lib/drag-drop";
+import { createFlipListAnimator } from "~/lib/flip-list";
 import { BaseLayout } from "~/layouts/base";
 import { queryClient } from "./__root";
 
@@ -340,6 +341,9 @@ const SubQuests: Component<{
   const [orderedQuests, setOrderedQuests] = createSignal(props.quests);
   const [draggedQuestId, setDraggedQuestId] = createSignal<string | null>(null);
   const [activeSnapshot, setActiveSnapshot] = createSignal<FlatItemDragData["snapshot"] | null>(null);
+  const flipAnimator = createFlipListAnimator({
+    getSkippedId: draggedQuestId,
+  });
   let lastPreviewKey: string | null = null;
   let pendingIds: string[] | null = null;
   let suppressNavigationUntil = 0;
@@ -350,6 +354,11 @@ const SubQuests: Component<{
     }
 
     setOrderedQuests(props.quests);
+  });
+
+  createEffect(() => {
+    orderedQuests();
+    flipAnimator.schedule();
   });
 
   const resetPreview = () => {
@@ -368,10 +377,8 @@ const SubQuests: Component<{
   };
 
   const handleDragStart = (event: ProviderDragStartEvent) => {
-    logDragOperation("detail-subtasks", "dragstart", event);
     const sourceData = event.operation.source?.data;
     if (!isFlatItemDragData(sourceData)) {
-      logDragDebug("detail-subtasks", "dragstart ignored: source data did not match flat-item", sourceData);
       return;
     }
 
@@ -382,10 +389,8 @@ const SubQuests: Component<{
   };
 
   const handleDragOver = (event: ProviderDragOverEvent) => {
-    logDragOperation("detail-subtasks", "dragover", event);
     const sourceData = event.operation.source?.data;
     if (!isFlatItemDragData(sourceData)) {
-      logDragDebug("detail-subtasks", "dragover ignored: source data did not match flat-item", sourceData);
       return;
     }
 
@@ -397,7 +402,6 @@ const SubQuests: Component<{
         : null;
 
     if (targetIndex === null) {
-      logDragDebug("detail-subtasks", "dragover ignored: target index could not be resolved", event.operation.target?.data);
       resetPreview();
       return;
     }
@@ -409,10 +413,6 @@ const SubQuests: Component<{
 
     const nextQuests = moveItemToIndex(orderedQuests(), sourceData.questId, targetIndex);
     if (!nextQuests) {
-      logDragDebug("detail-subtasks", "dragover preview rejected", {
-        questId: sourceData.questId,
-        targetIndex,
-      });
       resetPreview();
       return;
     }
@@ -423,7 +423,6 @@ const SubQuests: Component<{
   };
 
   const handleDragEnd = async (event: ProviderDragEndEvent) => {
-    logDragOperation("detail-subtasks", "dragend", event);
     const shouldPersist = !event.canceled && pendingIds && pendingIds.length > 0;
     const ids = pendingIds;
 
@@ -432,10 +431,6 @@ const SubQuests: Component<{
     clearDragState();
 
     if (!shouldPersist || !ids) {
-      logDragDebug("detail-subtasks", "dragend skipped persistence", {
-        canceled: event.canceled,
-        pendingIds: ids,
-      });
       setOrderedQuests(props.quests);
       return;
     }
@@ -452,9 +447,6 @@ const SubQuests: Component<{
   return (
     <DragDropProvider
       sensors={dragSensors}
-      onBeforeDragStart={(event) => {
-        logDragOperation("detail-subtasks", "beforedragstart", event);
-      }}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={(event) => {
@@ -478,6 +470,7 @@ const SubQuests: Component<{
                     index={index()}
                     groupId={props.groupId}
                     draggedQuestId={draggedQuestId()}
+                    registerRowRef={flipAnimator.register}
                     canOpen={() => performance.now() >= suppressNavigationUntil}
                     onDeleted={() => props.onQuestDeleted?.(quest.id)}
                     onToggled={() => props.onQuestToggled?.(quest.id)}
@@ -495,7 +488,10 @@ const SubQuests: Component<{
         </Show>
       </section>
 
-      <DragOverlay class="pixel-drag-overlay-shell" dropAnimation={null}>
+      <DragOverlay
+        class="pixel-drag-overlay-shell"
+        dropAnimation={DRAG_DROP_OVERLAY_ANIMATION}
+      >
         <Show when={activeSnapshot()}>
           {(snapshot) => (
             <TaskDragOverlay
@@ -535,6 +531,7 @@ const SortableSubQuestCard: Component<{
   index: number;
   groupId: string;
   draggedQuestId: string | null;
+  registerRowRef: (id: string) => (element: Element | undefined) => void;
   canOpen: () => boolean;
   onDeleted?: () => void;
   onToggled?: () => void;
@@ -550,6 +547,7 @@ const SortableSubQuestCard: Component<{
     id: `flat-row:${props.quest.id}`,
     group: `subquests:${props.groupId}`,
     index: props.index,
+    transition: SORTABLE_ITEM_TRANSITION,
     data: {
       kind: "flat-item",
       questId: props.quest.id,
@@ -566,6 +564,7 @@ const SortableSubQuestCard: Component<{
     sortable.ref(element);
     sortable.sourceRef(element);
     sortable.targetRef(element);
+    props.registerRowRef(props.quest.id)(element);
   };
 
   return (
@@ -574,13 +573,6 @@ const SortableSubQuestCard: Component<{
       rowRef={setSortableRowRef}
       class={sortable.isDragging() ? "pixel-task-row--drag-source" : undefined}
       titleButtonRef={sortable.handleRef}
-      onTitlePointerDown={(event) => {
-        logDragDebug("detail-subtasks", "handle pointerdown", {
-          questId: props.quest.id,
-          pointerType: event.pointerType,
-          targetTag: event.currentTarget.tagName,
-        });
-      }}
       canOpen={props.canOpen}
       onDeleted={props.onDeleted}
       onToggled={props.onToggled}
