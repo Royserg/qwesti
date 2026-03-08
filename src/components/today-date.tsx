@@ -39,11 +39,11 @@ export const TodayDate = () => {
     return format(parsedDate, formatToken);
   };
 
-  const openSettings = () => {
+  const handleOpenSettingsDialog = () => {
     settingsDialogRef()?.showModal();
   };
 
-  const closeSettings = () => {
+  const handleCloseSettingsDialog = () => {
     settingsDialogRef()?.close();
   };
 
@@ -58,7 +58,7 @@ export const TodayDate = () => {
         dialogRef={setSettingsDialogRef}
         selectedFormat={dateFormatOption}
         onFormatChange={handleDateFormatChange}
-        onClose={closeSettings}
+        onClose={handleCloseSettingsDialog}
       />
 
       <div class="mx-auto flex w-full max-w-[800px] items-center justify-between gap-2 sm:gap-3">
@@ -120,7 +120,7 @@ export const TodayDate = () => {
 
         <button
           type="button"
-          onClick={openSettings}
+          onClick={handleOpenSettingsDialog}
           class="pixel-icon-button h-11 w-11 shrink-0 sm:h-12 sm:w-12"
           title="Settings"
           aria-label="Open settings"
