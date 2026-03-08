@@ -68,6 +68,22 @@ async moveQuest(props: MoveQuestRequest) : Promise<Result<Quest, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async uploadDescriptionImage(props: UploadDescriptionImageRequest) : Promise<Result<QuestDescriptionAsset, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("upload_description_image", { props }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async discardDescriptionDraft(props: DiscardDescriptionDraftRequest) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("discard_description_draft", { props }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -81,14 +97,17 @@ async moveQuest(props: MoveQuestRequest) : Promise<Result<Quest, string>> {
 
 /** user-defined types **/
 
-export type AddQuestRequest = { title: string; parent_id: string | null }
+export type AddQuestRequest = { title: string; parent_id: string | null; description?: string | null; description_draft_id?: string | null }
 export type DeleteQuestRequest = { id: string }
+export type DiscardDescriptionDraftRequest = { draft_id: string }
 export type GetQuestsRequest = { date: string | null; filter: string }
 export type MoveQuestRequest = { id: string; parent_id: string | null; index: number }
-export type Quest = { id: string; title: string; completed: boolean; createdAt: string; completedAt: string | null; orderIndex: number; parentId: string | null; hasChildren: boolean | null; children: Quest[] | null }
-export type UpdateQuestData = { title?: string | null; completed?: boolean | null }
+export type Quest = { id: string; title: string; description: string | null; completed: boolean; createdAt: string; completedAt: string | null; orderIndex: number; parentId: string | null; hasChildren: boolean | null; descriptionAssets: QuestDescriptionAsset[] | null; children: Quest[] | null }
+export type QuestDescriptionAsset = { id: string; questId: string | null; draftId: string | null; relativePath: string; originalFilename: string | null; mimeType: string; byteSize: number; createdAt: string }
+export type UpdateQuestData = { title?: string | null; description?: string | null; completed?: boolean | null }
 export type UpdateQuestRequest = { id: string; data: UpdateQuestData }
 export type UpdateQuestsOrderRequest = { ids: string[] }
+export type UploadDescriptionImageRequest = { quest_id: string | null; draft_id: string | null; filename: string | null; mime_type: string; bytes: number[] }
 
 /** tauri-specta globals **/
 

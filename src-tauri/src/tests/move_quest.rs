@@ -2,6 +2,46 @@ use crate::models::QuestRow;
 use crate::repo;
 use crate::tests::db_setup::setup;
 
+async fn root_quests(pool: &sqlx::SqlitePool) -> anyhow::Result<Vec<QuestRow>> {
+    sqlx::query_as::<_, QuestRow>(
+        r#"
+        SELECT * FROM quests
+        WHERE parent_id IS NULL
+        ORDER BY order_index, created_at DESC
+        "#,
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(Into::into)
+}
+
+async fn child_quests(pool: &sqlx::SqlitePool, parent_id: &str) -> anyhow::Result<Vec<QuestRow>> {
+    sqlx::query_as::<_, QuestRow>(
+        r#"
+        SELECT * FROM quests
+        WHERE parent_id IS ?1
+        ORDER BY order_index, created_at DESC
+        "#,
+    )
+    .bind(parent_id)
+    .fetch_all(pool)
+    .await
+    .map_err(Into::into)
+}
+
+async fn quest_by_id(pool: &sqlx::SqlitePool, quest_id: &str) -> anyhow::Result<QuestRow> {
+    sqlx::query_as::<_, QuestRow>(
+        r#"
+        SELECT * FROM quests
+        WHERE id = ?1
+        "#,
+    )
+    .bind(quest_id)
+    .fetch_one(pool)
+    .await
+    .map_err(Into::into)
+}
+
 async fn set_order(pool: &sqlx::SqlitePool, ids: &[&str]) -> anyhow::Result<()> {
     for (index, id) in ids.iter().enumerate() {
         sqlx::query(
@@ -29,6 +69,7 @@ async fn move_quest_reorders_within_same_parent() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "A".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -37,6 +78,7 @@ async fn move_quest_reorders_within_same_parent() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "B".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -45,6 +87,7 @@ async fn move_quest_reorders_within_same_parent() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "C".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -61,16 +104,7 @@ async fn move_quest_reorders_within_same_parent() -> anyhow::Result<()> {
     )
     .await?;
 
-    let quests = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE parent_id IS NULL
-        ORDER BY order_index, created_at DESC
-        "#
-    )
-    .fetch_all(&pool)
-    .await?;
+    let quests = root_quests(&pool).await?;
 
     assert_eq!(quests.iter().map(|quest| quest.id.as_str()).collect::<Vec<_>>(), vec![
         quest_b.id.as_str(),
@@ -91,6 +125,7 @@ async fn move_quest_changes_parent_and_compacts_both_lists() -> anyhow::Result<(
         repo::AddQuestRequest {
             title: "Parent A".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -99,6 +134,7 @@ async fn move_quest_changes_parent_and_compacts_both_lists() -> anyhow::Result<(
         repo::AddQuestRequest {
             title: "Parent B".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -108,6 +144,7 @@ async fn move_quest_changes_parent_and_compacts_both_lists() -> anyhow::Result<(
         repo::AddQuestRequest {
             title: "Child A1".to_string(),
             parent_id: Some(parent_a.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -116,6 +153,7 @@ async fn move_quest_changes_parent_and_compacts_both_lists() -> anyhow::Result<(
         repo::AddQuestRequest {
             title: "Child A2".to_string(),
             parent_id: Some(parent_a.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -124,6 +162,7 @@ async fn move_quest_changes_parent_and_compacts_both_lists() -> anyhow::Result<(
         repo::AddQuestRequest {
             title: "Child B1".to_string(),
             parent_id: Some(parent_b.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -139,6 +178,7 @@ async fn move_quest_changes_parent_and_compacts_both_lists() -> anyhow::Result<(
             data: repo::UpdateQuestData {
                 title: None,
                 completed: Some(true),
+                ..Default::default()
             },
         },
     )
@@ -154,38 +194,9 @@ async fn move_quest_changes_parent_and_compacts_both_lists() -> anyhow::Result<(
     )
     .await?;
 
-    let parent_a_children = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE parent_id IS ?1
-        ORDER BY order_index, created_at DESC
-        "#,
-        parent_a.id
-    )
-    .fetch_all(&pool)
-    .await?;
-    let parent_b_children = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE parent_id IS ?1
-        ORDER BY order_index, created_at DESC
-        "#,
-        parent_b.id
-    )
-    .fetch_all(&pool)
-    .await?;
-    let refreshed_parent_b = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE id = ?1
-        "#,
-        parent_b.id
-    )
-    .fetch_one(&pool)
-    .await?;
+    let parent_a_children = child_quests(&pool, &parent_a.id).await?;
+    let parent_b_children = child_quests(&pool, &parent_b.id).await?;
+    let refreshed_parent_b = quest_by_id(&pool, &parent_b.id).await?;
 
     assert_eq!(
         parent_a_children
@@ -223,6 +234,7 @@ async fn move_quest_can_promote_child_to_root() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Parent".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -231,6 +243,7 @@ async fn move_quest_can_promote_child_to_root() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Child".to_string(),
             parent_id: Some(parent.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -245,16 +258,7 @@ async fn move_quest_can_promote_child_to_root() -> anyhow::Result<()> {
     )
     .await?;
 
-    let roots = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE parent_id IS NULL
-        ORDER BY order_index, created_at DESC
-        "#
-    )
-    .fetch_all(&pool)
-    .await?;
+    let roots = root_quests(&pool).await?;
 
     assert_eq!(roots.iter().map(|quest| quest.id.as_str()).collect::<Vec<_>>(), vec![
         parent.id.as_str(),
@@ -273,6 +277,7 @@ async fn move_quest_can_move_root_into_deep_nested_branch() -> anyhow::Result<()
         repo::AddQuestRequest {
             title: "Root A".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -281,6 +286,7 @@ async fn move_quest_can_move_root_into_deep_nested_branch() -> anyhow::Result<()
         repo::AddQuestRequest {
             title: "Root B".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -289,6 +295,7 @@ async fn move_quest_can_move_root_into_deep_nested_branch() -> anyhow::Result<()
         repo::AddQuestRequest {
             title: "Child B".to_string(),
             parent_id: Some(root_b.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -297,6 +304,7 @@ async fn move_quest_can_move_root_into_deep_nested_branch() -> anyhow::Result<()
         repo::AddQuestRequest {
             title: "Grandchild B".to_string(),
             parent_id: Some(child_b.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -315,27 +323,8 @@ async fn move_quest_can_move_root_into_deep_nested_branch() -> anyhow::Result<()
     )
     .await?;
 
-    let roots = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE parent_id IS NULL
-        ORDER BY order_index, created_at DESC
-        "#
-    )
-    .fetch_all(&pool)
-    .await?;
-    let grandchild_children = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE parent_id IS ?1
-        ORDER BY order_index, created_at DESC
-        "#,
-        grandchild_b.id
-    )
-    .fetch_all(&pool)
-    .await?;
+    let roots = root_quests(&pool).await?;
+    let grandchild_children = child_quests(&pool, &grandchild_b.id).await?;
 
     assert_eq!(
         roots.iter().map(|quest| quest.id.as_str()).collect::<Vec<_>>(),
@@ -368,6 +357,7 @@ async fn move_quest_can_move_into_empty_child_container() -> anyhow::Result<()> 
         repo::AddQuestRequest {
             title: "Target Parent".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -376,6 +366,7 @@ async fn move_quest_can_move_into_empty_child_container() -> anyhow::Result<()> 
         repo::AddQuestRequest {
             title: "Moving Root".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -389,6 +380,7 @@ async fn move_quest_can_move_into_empty_child_container() -> anyhow::Result<()> 
             data: repo::UpdateQuestData {
                 title: None,
                 completed: Some(true),
+                ..Default::default()
             },
         },
     )
@@ -404,27 +396,8 @@ async fn move_quest_can_move_into_empty_child_container() -> anyhow::Result<()> 
     )
     .await?;
 
-    let target_children = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE parent_id IS ?1
-        ORDER BY order_index, created_at DESC
-        "#,
-        target_parent.id
-    )
-    .fetch_all(&pool)
-    .await?;
-    let refreshed_target_parent = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE id = ?1
-        "#,
-        target_parent.id
-    )
-    .fetch_one(&pool)
-    .await?;
+    let target_children = child_quests(&pool, &target_parent.id).await?;
+    let refreshed_target_parent = quest_by_id(&pool, &target_parent.id).await?;
 
     assert_eq!(
         target_children
@@ -448,6 +421,7 @@ async fn move_quest_can_reparent_nested_task_to_different_nested_parent() -> any
         repo::AddQuestRequest {
             title: "Root A".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -456,6 +430,7 @@ async fn move_quest_can_reparent_nested_task_to_different_nested_parent() -> any
         repo::AddQuestRequest {
             title: "Root B".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -464,6 +439,7 @@ async fn move_quest_can_reparent_nested_task_to_different_nested_parent() -> any
         repo::AddQuestRequest {
             title: "Child A".to_string(),
             parent_id: Some(root_a.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -472,6 +448,7 @@ async fn move_quest_can_reparent_nested_task_to_different_nested_parent() -> any
         repo::AddQuestRequest {
             title: "Sibling A".to_string(),
             parent_id: Some(root_a.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -480,6 +457,7 @@ async fn move_quest_can_reparent_nested_task_to_different_nested_parent() -> any
         repo::AddQuestRequest {
             title: "Child B".to_string(),
             parent_id: Some(root_b.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -488,6 +466,7 @@ async fn move_quest_can_reparent_nested_task_to_different_nested_parent() -> any
         repo::AddQuestRequest {
             title: "Grandchild B".to_string(),
             parent_id: Some(child_b.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -507,28 +486,8 @@ async fn move_quest_can_reparent_nested_task_to_different_nested_parent() -> any
     )
     .await?;
 
-    let root_a_children = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE parent_id IS ?1
-        ORDER BY order_index, created_at DESC
-        "#,
-        root_a.id
-    )
-    .fetch_all(&pool)
-    .await?;
-    let grandchild_children = sqlx::query_as!(
-        QuestRow,
-        r#"
-        SELECT * FROM quests
-        WHERE parent_id IS ?1
-        ORDER BY order_index, created_at DESC
-        "#,
-        grandchild_b.id
-    )
-    .fetch_all(&pool)
-    .await?;
+    let root_a_children = child_quests(&pool, &root_a.id).await?;
+    let grandchild_children = child_quests(&pool, &grandchild_b.id).await?;
 
     assert_eq!(
         root_a_children
@@ -557,6 +516,7 @@ async fn move_quest_rejects_cycles() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Root".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -565,6 +525,7 @@ async fn move_quest_rejects_cycles() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Child".to_string(),
             parent_id: Some(root.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -573,6 +534,7 @@ async fn move_quest_rejects_cycles() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Grandchild".to_string(),
             parent_id: Some(child.id.clone()),
+            ..Default::default()
         },
     )
     .await?;

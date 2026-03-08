@@ -5,12 +5,12 @@ pub async fn get_sub_quests(
     db_pool: &Pool<Sqlite>,
     quest_id: String,
 ) -> anyhow::Result<Vec<QuestRow>> {
-    let quests = sqlx::query_as!(
-        QuestRow,
+    let quests = sqlx::query_as::<_, QuestRow>(
         r#"
         SELECT
             id,
             title,
+            description,
             completed,
             created_at,
             completed_at,
@@ -23,8 +23,8 @@ pub async fn get_sub_quests(
         ORDER BY
             order_index, created_at DESC
         "#,
-        quest_id
     )
+    .bind(quest_id)
     .fetch_all(db_pool)
     .await
     .expect("Failed to fetch sub quests");

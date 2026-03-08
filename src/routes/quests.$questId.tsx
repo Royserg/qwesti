@@ -24,6 +24,7 @@ import { Quest } from "~/bindings";
 import { AddQuestDialog } from "~/components/add-quest-dialog/add-quest-dialog";
 import { DeleteButton } from "~/components/delete-button";
 import { EditableText } from "~/components/editable-text";
+import { QuestDescriptionCard } from "~/components/quest-description-card";
 import { PixelTaskRow } from "~/components/pixel-task-row";
 import { QuestCard } from "~/components/quest-card";
 import { TaskDragOverlay } from "~/components/task-drag-overlay";
@@ -163,14 +164,19 @@ function RouteComponent() {
     }
   };
 
-  const handleAddSubQuest = async (title: string) => {
+  const handleAddSubQuest = async (data: { title: string; description?: string; descriptionDraftId?: string }) => {
     const questId = params().questId;
     if (!questId) {
       return;
     }
 
     try {
-      await addQuest({ title, parentId: questId });
+      await addQuest({
+        title: data.title,
+        parentId: questId,
+        description: data.description,
+        descriptionDraftId: data.descriptionDraftId,
+      });
       await subQuestsQuery.refetch();
     } catch (err) {
       console.error(err);
@@ -194,7 +200,7 @@ function RouteComponent() {
       : Math.floor((subQuestsCompletedCount() / subQuestsCount()) * 100);
 
   return (
-    <BaseLayout class="flex min-h-0 flex-col px-4 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5">
+    <BaseLayout class="relative flex min-h-0 flex-col overflow-hidden px-4 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5">
       <div class="flex items-start gap-3">
         <button
           type="button"
@@ -205,11 +211,15 @@ function RouteComponent() {
           <ChevronLeft />
         </button>
 
-        <div class="flex min-w-0 flex-1 flex-col gap-2">
+        <div class="flex min-w-0 flex-1 flex-col gap-2 pt-1">
           <div class="pixel-scroll overflow-x-auto px-1 py-1">
             <Breadcrumbs crumbs={breadcrumbsQuery.data ?? []} />
           </div>
+        </div>
+      </div>
 
+      <section class="mt-4 flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto pb-2">
+        <section class="flex w-full flex-col gap-3">
           <PixelTaskRow
             style={{
               contain: "layout",
@@ -245,24 +255,39 @@ function RouteComponent() {
               />
             </div>
           </PixelTaskRow>
-        </div>
-      </div>
 
-      <div class="mt-5 flex min-h-0 flex-1 overflow-hidden">
-        <SubQuests
-          groupId={params().questId}
-          quests={subQuestsQuery.data ?? []}
-          onQuestDeleted={handleSubQuestDeleted}
-          onQuestToggled={handleSubQuestToggled}
-          onOrderChanged={() => subQuestsQuery.refetch()}
-        />
-      </div>
+          <Show when={questQuery.data}>
+            {(quest) => (
+              <QuestDescriptionCard
+                questId={quest().id}
+                description={quest().description ?? null}
+                assets={quest().descriptionAssets ?? []}
+                onSaved={async () => {
+                  await questQuery.refetch();
+                }}
+              />
+            )}
+          </Show>
+        </section>
+
+        <section class="mt-5 w-full pl-5 sm:pl-9">
+          <div class="flex w-full max-w-[860px] flex-col gap-4">
+            <SubQuests
+              groupId={params().questId}
+              quests={subQuestsQuery.data ?? []}
+              onQuestDeleted={handleSubQuestDeleted}
+              onQuestToggled={handleSubQuestToggled}
+              onOrderChanged={() => subQuestsQuery.refetch()}
+            />
+          </div>
+        </section>
+      </section>
 
       <section
         style={{
           "view-transition-name": "bottom-bar",
         }}
-        class="mt-4"
+        class="mt-4 shrink-0"
       >
         <Button
           class="pixel-button--action h-[60px] w-full"
@@ -270,7 +295,7 @@ function RouteComponent() {
             setIsAddDialogOpen(true);
           }}
         >
-          add subtask
+          Add subtask
         </Button>
       </section>
 
@@ -414,7 +439,7 @@ const SubQuests: Component<{
       }}
     >
       <section
-        class="flex min-h-0 flex-1 flex-col gap-2 overflow-auto"
+        class="flex flex-col gap-2"
         style={{ "view-transition-name": "sub-quests-container" }}
       >
         <Show when={props.quests.length > 0}>

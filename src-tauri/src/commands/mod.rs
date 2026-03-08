@@ -21,3 +21,9 @@ pub use move_quest::*;
 
 mod delete_quest;
 pub use delete_quest::*;
+
+mod upload_description_image;
+pub use upload_description_image::*;
+
+mod discard_description_draft;
+pub use discard_description_draft::*;

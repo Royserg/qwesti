@@ -144,9 +144,17 @@ function Index() {
     ]);
   };
 
-  const handleAddQuest = async (title: string) => {
+  const handleAddQuest = async (data: {
+    title: string;
+    description?: string;
+    descriptionDraftId?: string;
+  }) => {
     try {
-      await addQuest({ title });
+      await addQuest({
+        title: data.title,
+        description: data.description,
+        descriptionDraftId: data.descriptionDraftId,
+      });
       await refreshTree();
     } catch (err) {
       console.error(err);
@@ -226,7 +234,7 @@ function Index() {
               setIsAddDialogOpen(true);
             }}
           >
-            add
+            Add task
           </Button>
         </section>
       </Show>

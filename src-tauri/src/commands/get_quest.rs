@@ -1,18 +1,19 @@
 use tauri::{command, State};
 
-use crate::entities::Quest;
+use crate::entities::{Quest, QuestDescriptionAsset};
 use crate::models::QuestRow;
+use crate::repo;
 use crate::DbConnection;
 
 #[command]
 #[specta::specta]
 pub async fn get_quest(state: State<'_, DbConnection>, id: String) -> Result<Quest, String> {
-    let quest = sqlx::query_as!(
-        QuestRow,
+    let quest = sqlx::query_as::<_, QuestRow>(
         r#"
         SELECT
             id,
             title,
+            description,
             completed,
             created_at,
             completed_at,
@@ -21,13 +22,23 @@ pub async fn get_quest(state: State<'_, DbConnection>, id: String) -> Result<Que
         FROM
             quests
         WHERE
-            id = $1 ;
+            id = ?1 ;
         "#,
-        id
     )
+    .bind(&id)
     .fetch_one(&state.db)
     .await
     .expect("Failed to fetch quests");
 
-    Ok(quest.into())
+    let description_assets = repo::get_quest_description_assets(&state.db, &id)
+        .await
+        .map_err(|err| err.to_string())?
+        .into_iter()
+        .map(QuestDescriptionAsset::from)
+        .collect();
+
+    Ok(Quest {
+        description_assets: Some(description_assets),
+        ..quest.into()
+    })
 }

@@ -29,6 +29,7 @@ pub async fn move_quest(db_pool: &Pool<Sqlite>, req: MoveQuestRequest) -> anyhow
         SELECT
             id,
             title,
+            description,
             completed,
             created_at,
             completed_at,
@@ -140,6 +141,7 @@ pub async fn move_quest(db_pool: &Pool<Sqlite>, req: MoveQuestRequest) -> anyhow
         SELECT
             id,
             title,
+            description,
             completed,
             created_at,
             completed_at,

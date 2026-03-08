@@ -33,10 +33,16 @@
     "@tauri-apps/plugin-updater": "2.7.1",
     "date-fns": "^4.1.0",
     "lucide-solid": "^0.501.0",
+    "rehype-sanitize": "^6.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
     "solid-js": "^1.9.5",
     "solid-transition-group": "^0.3.0",
     "tailwindcss": "^4.0.0",
     "ts-pattern": "^5.6.2",
+    "unified": "^11.0.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 mod commands;
 use commands::{
-    add_quest, delete_quest, get_quest, get_quests, get_sub_quests, move_quest, update_quest,
-    update_quests_order,
+    add_quest, delete_quest, discard_description_draft, get_quest, get_quests, get_sub_quests,
+    move_quest, update_quest, update_quests_order, upload_description_image,
 };
 use futures::executor::block_on;
 
@@ -14,13 +14,17 @@ mod utils;
 
 use specta_typescript::{BigIntExportBehavior, Typescript};
 use sqlx::{Pool, Sqlite};
+use std::fs::create_dir_all;
 
 use db::setup_db;
+use repo::cleanup_description_storage;
 use tauri::Manager;
 use tauri_specta::{collect_commands, Builder};
+use utils::DESCRIPTION_ASSET_DIR;
 
 struct DbConnection {
     db: Pool<Sqlite>,
+    description_assets_dir: std::path::PathBuf,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -36,6 +40,8 @@ pub async fn run() -> anyhow::Result<()> {
             delete_quest,
             update_quests_order,
             move_quest,
+            upload_description_image,
+            discard_description_draft,
         ]);
 
     // Export config
@@ -55,8 +61,23 @@ pub async fn run() -> anyhow::Result<()> {
             let handle = app.handle().clone();
 
             block_on(async {
+                let app_config_dir = handle
+                    .path()
+                    .app_config_dir()
+                    .expect("No App config path was found!");
+                create_dir_all(&app_config_dir).expect("Couldn't create app config dir");
+                let description_assets_dir = app_config_dir.join(DESCRIPTION_ASSET_DIR);
+                create_dir_all(&description_assets_dir)
+                    .expect("Couldn't create description asset dir");
                 let db = setup_db(&handle).await;
-                handle.manage(DbConnection { db });
+                cleanup_description_storage(&db, &description_assets_dir)
+                    .await
+                    .expect("Failed to cleanup description storage");
+
+                handle.manage(DbConnection {
+                    db,
+                    description_assets_dir,
+                });
             });
 
             // This is required if you want to use events

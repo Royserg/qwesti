@@ -12,3 +12,6 @@ pub use update_quest::*;
 
 mod move_quest;
 pub use move_quest::*;
+
+mod description_assets;
+pub use description_assets::*;

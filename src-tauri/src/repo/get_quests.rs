@@ -27,6 +27,7 @@ pub async fn get_quests(
             SELECT
                 quests.id,
                 quests.title,
+                quests.description,
                 quests.created_at,
                 quests.order_index,
                 quests.parent_id,
@@ -51,6 +52,7 @@ pub async fn get_quests(
         SELECT
             id,
             title,
+            description,
             created_at,
             completed,
             completed_at,
@@ -105,12 +107,12 @@ pub async fn get_quests(
         Ok(quest_rows)
     } else {
         // There is no filter support for past dates
-        let quest_rows = sqlx::query_as!(
-            QuestRow,
+        let quest_rows = sqlx::query_as::<_, QuestRow>(
             r#"
         SELECT
             id,
             title,
+            description,
             completed,
             created_at,
             completed_at,
@@ -125,8 +127,8 @@ pub async fn get_quests(
         ORDER BY
             order_index, created_at DESC
         "#,
-            date,
         )
+        .bind(date)
         .fetch_all(db_pool)
         .await
         .expect("Failed to fetch quests");
