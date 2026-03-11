@@ -423,7 +423,7 @@ const SubQuests: Component<{
 
     try {
       await updateQuestsOrder({ ids });
-      await props.onOrderChanged?.();
+      props.onOrderChanged?.();
     } catch (err) {
       console.error(err);
     }
