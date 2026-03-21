@@ -1,7 +1,8 @@
 mod commands;
 use commands::{
     add_quest, delete_quest, discard_description_draft, get_quest, get_quests, get_sub_quests,
-    move_quest, update_quest, update_quests_order, upload_description_image,
+    move_quest, update_quest, update_quests_order, upload_description_asset,
+    upload_description_image,
 };
 use futures::executor::block_on;
 
@@ -40,6 +41,7 @@ pub async fn run() -> anyhow::Result<()> {
             delete_quest,
             update_quests_order,
             move_quest,
+            upload_description_asset,
             upload_description_image,
             discard_description_draft,
         ]);

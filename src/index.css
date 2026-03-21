@@ -451,6 +451,8 @@
   .pixel-description-surface--interactive {
     cursor: text;
     transition:
+      min-height 170ms ease,
+      padding 170ms ease,
       border-color 140ms ease,
       box-shadow 140ms ease,
       transform 140ms ease;
@@ -466,8 +468,41 @@
   }
 
   .pixel-description-surface--editing {
-    min-height: unset;
+    min-height: 120px;
     padding: 0.9rem 1rem;
+  }
+
+  .pixel-description-surface--compact {
+    min-height: 0;
+    width: fit-content;
+    margin: 0 auto;
+    padding: 0.22rem;
+    gap: 0;
+  }
+
+  .pixel-description-empty-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(120, 112, 100, 0.32);
+    border-radius: 999px;
+    background: transparent;
+    padding: 0.22rem 0.56rem;
+    color: var(--ink-color);
+    text-transform: lowercase;
+    cursor: pointer;
+    transition:
+      background-color 140ms ease,
+      border-color 140ms ease,
+      color 140ms ease;
+  }
+
+  .pixel-description-empty-trigger:hover,
+  .pixel-description-empty-trigger:focus-visible {
+    border-color: var(--accent-dark-color);
+    background: transparent;
+    color: var(--ink-color);
+    outline: none;
   }
 
   .pixel-description-excerpt {
@@ -637,11 +672,51 @@
 
   .pixel-markdown img {
     display: block;
+    width: auto;
+    height: auto;
     max-width: 100%;
+    max-height: min(42vh, 320px);
+    object-fit: contain;
     border: 2px solid var(--line-color);
     border-radius: var(--surface-radius-sm);
     background: var(--panel-color);
     box-shadow: 2px 2px 0 var(--shadow-color);
+  }
+
+  .pixel-markdown video {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: min(42vh, 320px);
+    object-fit: contain;
+    border: 2px solid var(--line-color);
+    border-radius: var(--surface-radius-sm);
+    background: var(--panel-color);
+    box-shadow: 2px 2px 0 var(--shadow-color);
+  }
+
+  .pixel-markdown a[data-description-file-link="true"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid rgba(120, 112, 100, 0.35);
+    border-radius: 999px;
+    background: var(--panel-muted-color);
+    padding: 0.15rem 0.55rem;
+    text-decoration: none;
+    text-transform: lowercase;
+  }
+
+  .pixel-markdown a[data-description-file-link="true"]::before {
+    content: "file";
+    border: 1px solid rgba(120, 112, 100, 0.35);
+    border-radius: 999px;
+    background: var(--panel-color);
+    padding: 0 0.3rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
   }
 
   .pixel-dialog {
@@ -791,7 +866,8 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
-    min-width: max-content;
+    width: 100%;
+    min-width: 0;
   }
 
   .pixel-tree-list--root {

@@ -42,18 +42,53 @@ pub fn ensure_single_owner<'a>(
     match (quest_id, draft_id) {
         (Some(quest_id), None) => Ok(AssetOwner::Quest(quest_id)),
         (None, Some(draft_id)) => Ok(AssetOwner::Draft(draft_id)),
-        _ => bail!("expected exactly one image owner"),
+        _ => bail!("expected exactly one asset owner"),
     }
 }
 
-pub fn ensure_image_mime(mime_type: &str) -> anyhow::Result<&'static str> {
+pub fn resolve_asset_extension(filename: Option<&str>, mime_type: &str) -> String {
+    extension_from_filename(filename)
+        .or_else(|| extension_from_mime(mime_type).map(ToOwned::to_owned))
+        .unwrap_or_else(|| "bin".to_string())
+}
+
+fn extension_from_filename(filename: Option<&str>) -> Option<String> {
+    let filename = filename?;
+
+    let extension = Path::new(filename).extension()?.to_str()?;
+    let normalized: String = extension
+        .trim()
+        .chars()
+        .filter(|ch| ch.is_ascii_alphanumeric())
+        .map(|ch| ch.to_ascii_lowercase())
+        .take(16)
+        .collect();
+
+    if normalized.is_empty() {
+        return None;
+    }
+
+    Some(normalized)
+}
+
+fn extension_from_mime(mime_type: &str) -> Option<&'static str> {
     match mime_type {
-        "image/png" => Ok("png"),
-        "image/jpeg" | "image/jpg" => Ok("jpg"),
-        "image/webp" => Ok("webp"),
-        "image/gif" => Ok("gif"),
-        "image/svg+xml" => Ok("svg"),
-        _ => bail!("unsupported image mime type"),
+        "image/png" => Some("png"),
+        "image/jpeg" | "image/jpg" => Some("jpg"),
+        "image/webp" => Some("webp"),
+        "image/gif" => Some("gif"),
+        "image/svg+xml" => Some("svg"),
+        "video/mp4" => Some("mp4"),
+        "video/webm" => Some("webm"),
+        "video/ogg" => Some("ogv"),
+        "video/quicktime" => Some("mov"),
+        "application/pdf" => Some("pdf"),
+        "text/plain" => Some("txt"),
+        "text/markdown" => Some("md"),
+        "text/csv" => Some("csv"),
+        "application/json" => Some("json"),
+        "application/zip" => Some("zip"),
+        _ => None,
     }
 }
 

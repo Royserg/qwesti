@@ -250,7 +250,7 @@ function RouteComponent() {
                 value={questQuery.data?.title ?? ""}
                 onSubmit={handleTitleChange}
                 focusable={() => true}
-                class="pixel-title text-[1rem] sm:text-[1.08rem]"
+                class="pixel-title truncate text-[1rem] sm:text-[1.08rem]"
                 inputClass="min-h-[44px]"
               />
             </div>

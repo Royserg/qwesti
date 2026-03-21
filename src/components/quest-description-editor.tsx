@@ -1,9 +1,9 @@
 import { type Component, createMemo, createResource, createSignal, Show } from "solid-js";
 import type { QuestDescriptionAsset } from "~/bindings";
 import {
-  createDescriptionAssetMarkdown,
+  createDescriptionAssetReferenceMarkdown,
   renderDescriptionMarkdown,
-  resolveDescriptionAssetUrls,
+  resolveDescriptionAssetMap,
 } from "~/lib/quest-description";
 import { cn } from "~/lib/utils";
 import { Button } from "./ui/button";
@@ -12,17 +12,23 @@ interface Props {
   value: string;
   assets: QuestDescriptionAsset[];
   onChange: (value: string) => void;
-  onUploadImage: (file: File) => Promise<QuestDescriptionAsset | null>;
+  onUploadFile: (file: File) => Promise<QuestDescriptionAsset | null>;
   placeholder?: string;
   compact?: boolean;
   class?: string;
 }
 
-const readClipboardImages = (event: ClipboardEvent) =>
-  Array.from(event.clipboardData?.items ?? [])
-    .filter((item) => item.type.startsWith("image/"))
+const readClipboardFiles = (event: ClipboardEvent): File[] => {
+  const directFiles = Array.from(event.clipboardData?.files ?? []);
+  if (directFiles.length > 0) {
+    return directFiles;
+  }
+
+  return Array.from(event.clipboardData?.items ?? [])
+    .filter((item) => item.kind === "file")
     .map((item) => item.getAsFile())
     .filter((file): file is File => file !== null);
+};
 
 export const QuestDescriptionEditor: Component<Props> = (props) => {
   let textareaRef!: HTMLTextAreaElement;
@@ -30,12 +36,12 @@ export const QuestDescriptionEditor: Component<Props> = (props) => {
 
   const [previewEnabled, setPreviewEnabled] = createSignal(false);
   const [isUploading, setIsUploading] = createSignal(false);
-  const [assetUrls] = createResource(
-    () => props.assets.map((asset) => `${asset.id}:${asset.relativePath}`).join("|"),
-    () => resolveDescriptionAssetUrls(props.assets),
+  const [assetMap] = createResource(
+    () => props.assets.map((asset) => `${asset.id}:${asset.relativePath}:${asset.mimeType}:${asset.originalFilename ?? ""}`).join("|"),
+    () => resolveDescriptionAssetMap(props.assets),
   );
 
-  const previewHtml = createMemo(() => renderDescriptionMarkdown(props.value, assetUrls() ?? {}));
+  const previewHtml = createMemo(() => renderDescriptionMarkdown(props.value, assetMap() ?? {}));
 
   const insertAtCursor = (snippet: string) => {
     const textarea = textareaRef;
@@ -62,17 +68,13 @@ export const QuestDescriptionEditor: Component<Props> = (props) => {
 
     try {
       for (const file of files) {
-        if (!file.type.startsWith("image/")) {
-          continue;
-        }
-
-        const asset = await props.onUploadImage(file);
+        const asset = await props.onUploadFile(file);
         if (!asset) {
           continue;
         }
 
         const needsSeparator = props.value.length > 0 && !props.value.endsWith("\n");
-        const snippet = `${needsSeparator ? "\n" : ""}${createDescriptionAssetMarkdown(asset, file.name)}\n`;
+        const snippet = `${needsSeparator ? "\n" : ""}${createDescriptionAssetReferenceMarkdown(asset, file.name)}\n`;
         insertAtCursor(snippet);
       }
     } finally {
@@ -81,42 +83,39 @@ export const QuestDescriptionEditor: Component<Props> = (props) => {
   };
 
   const handlePaste = (event: ClipboardEvent) => {
-    const imageFiles = readClipboardImages(event);
-    if (imageFiles.length === 0) {
+    const clipboardFiles = readClipboardFiles(event);
+    if (clipboardFiles.length === 0) {
       return;
     }
 
     event.preventDefault();
-    void uploadFiles(imageFiles);
+    void uploadFiles(clipboardFiles);
+  };
+
+  const handleDragOver = (event: DragEvent) => {
+    if (!event.dataTransfer?.types.includes("Files")) {
+      return;
+    }
+
+    event.preventDefault();
+  };
+
+  const handleDrop = (event: DragEvent) => {
+    const droppedFiles = Array.from(event.dataTransfer?.files ?? []);
+    if (droppedFiles.length === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    void uploadFiles(droppedFiles);
   };
 
   return (
-    <div class={cn("pixel-description-editor", props.class)}>
-      <div class="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={isUploading()}
-          onClick={() => fileInputRef.click()}
-        >
-          {isUploading() ? "uploading..." : "add image"}
-        </Button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setPreviewEnabled((value) => !value)}
-        >
-          {previewEnabled() ? "edit markdown" : "preview"}
-        </Button>
-
-        <span class="type-copy text-[0.74rem] text-[var(--muted-color)]">
-          markdown and pasted images supported
-        </span>
-      </div>
-
+    <div
+      class={cn("pixel-description-editor", props.class)}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       <Show
         when={previewEnabled()}
         fallback={
@@ -146,10 +145,34 @@ export const QuestDescriptionEditor: Component<Props> = (props) => {
         </div>
       </Show>
 
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isUploading()}
+          onClick={() => fileInputRef.click()}
+        >
+          {isUploading() ? "uploading..." : "file"}
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setPreviewEnabled((value) => !value)}
+        >
+          {previewEnabled() ? "edit markdown" : "preview"}
+        </Button>
+      </div>
+
+      <span class="type-copy text-[0.74rem] text-[var(--muted-color)]">
+        markdown, paste, and drop files supported
+      </span>
+
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
         multiple
         class="hidden"
         onChange={(event) => {

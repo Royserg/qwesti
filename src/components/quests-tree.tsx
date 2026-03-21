@@ -294,8 +294,8 @@ export const QuestsTree: Component<Props> = (props) => {
             <div class="pixel-empty-state w-full">no tasks</div>
           </Show>
 
-          <Show when={props.quests.length > 0}>
-            <div class="w-full min-w-max pr-1">
+        <Show when={props.quests.length > 0}>
+            <div class="w-full min-w-0 pr-1">
               <TreeList
                 quests={props.quests}
                 parentId={null}
@@ -462,7 +462,7 @@ const TreeNode: Component<TreeNodeProps> = (props) => {
   };
 
   return (
-    <div class="relative min-w-max pb-[1px]">
+    <div class="relative min-w-0 pb-[1px]">
       <div class="pointer-events-none absolute bottom-0 left-0 top-0" style={{ width: `${props.level * 20}px` }}>
         <For each={guideColumns()}>
           {(guideIndex) => (
@@ -523,7 +523,7 @@ const TreeNode: Component<TreeNodeProps> = (props) => {
             })}
           >
             <span
-              class={cn("pixel-title", {
+              class={cn("pixel-title block w-full truncate", {
                 "pixel-title--done": props.quest.completed,
               })}
               title={props.quest.title}

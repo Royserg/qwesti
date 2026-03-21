@@ -6,5 +6,6 @@ export * from "./move-quest";
 export * from "./update-quest-completed";
 export * from "./update-quest-description";
 export * from "./update-quest-title";
+export * from "./upload-description-asset";
 export * from "./upload-description-image";
 export * from "./discard-description-draft";

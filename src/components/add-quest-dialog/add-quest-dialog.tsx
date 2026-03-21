@@ -9,7 +9,7 @@ import {
   onMount,
   type Component,
 } from "solid-js";
-import { discardDescriptionDraft, uploadDescriptionImage } from "~/actions";
+import { discardDescriptionDraft, uploadDescriptionAsset } from "~/actions";
 import { QuestDescriptionEditor } from "~/components/quest-description-editor";
 import { Button } from "~/components/ui/button";
 import type { QuestDescriptionAsset } from "~/bindings";
@@ -36,7 +36,7 @@ interface AddTaskBodyProps {
   onTitleChange: (title: string) => void;
   onDescriptionChange: (description: string) => void;
   onShowDescription: () => void;
-  onUploadDescriptionImage: (file: File) => Promise<QuestDescriptionAsset | null>;
+  onUploadDescriptionFile: (file: File) => Promise<QuestDescriptionAsset | null>;
   onClose: () => void;
   onSubmit: (event: Event) => Promise<void>;
   registerInput: (element: HTMLInputElement) => void;
@@ -116,7 +116,7 @@ const AddTaskBody: Component<AddTaskBodyProps> = (props) => {
           value={props.description}
           assets={props.descriptionAssets}
           onChange={props.onDescriptionChange}
-          onUploadImage={props.onUploadDescriptionImage}
+          onUploadFile={props.onUploadDescriptionFile}
           placeholder="write a task description..."
         />
       </Show>
@@ -265,7 +265,7 @@ export const AddQuestDialog: Component<Props> = (props) => {
     });
   });
 
-  const handleUploadDescriptionImage = async (file: File) => {
+  const handleUploadDescriptionFile = async (file: File) => {
     const activeDraftId = draftId() ?? createDescriptionDraftId();
 
     if (!draftId()) {
@@ -273,7 +273,7 @@ export const AddQuestDialog: Component<Props> = (props) => {
     }
 
     try {
-      const asset = await uploadDescriptionImage({
+      const asset = await uploadDescriptionAsset({
         draftId: activeDraftId,
         file,
       });
@@ -317,7 +317,7 @@ export const AddQuestDialog: Component<Props> = (props) => {
               onTitleChange={setTitle}
               onDescriptionChange={setDescription}
               onShowDescription={() => setShowDescription(true)}
-              onUploadDescriptionImage={handleUploadDescriptionImage}
+              onUploadDescriptionFile={handleUploadDescriptionFile}
               onClose={() => {
                 void close();
               }}
@@ -361,7 +361,7 @@ export const AddQuestDialog: Component<Props> = (props) => {
               onTitleChange={setTitle}
               onDescriptionChange={setDescription}
               onShowDescription={() => setShowDescription(true)}
-              onUploadDescriptionImage={handleUploadDescriptionImage}
+              onUploadDescriptionFile={handleUploadDescriptionFile}
               onClose={() => {
                 void close();
               }}

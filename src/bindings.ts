@@ -69,7 +69,15 @@ async moveQuest(props: MoveQuestRequest) : Promise<Result<Quest, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async uploadDescriptionImage(props: UploadDescriptionImageRequest) : Promise<Result<QuestDescriptionAsset, string>> {
+async uploadDescriptionAsset(props: UploadDescriptionAssetRequest) : Promise<Result<QuestDescriptionAsset, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("upload_description_asset", { props }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async uploadDescriptionImage(props: UploadDescriptionAssetRequest) : Promise<Result<QuestDescriptionAsset, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("upload_description_image", { props }) };
 } catch (e) {
@@ -107,7 +115,7 @@ export type QuestDescriptionAsset = { id: string; questId: string | null; draftI
 export type UpdateQuestData = { title?: string | null; description?: string | null; completed?: boolean | null }
 export type UpdateQuestRequest = { id: string; data: UpdateQuestData }
 export type UpdateQuestsOrderRequest = { ids: string[] }
-export type UploadDescriptionImageRequest = { quest_id: string | null; draft_id: string | null; filename: string | null; mime_type: string; bytes: number[] }
+export type UploadDescriptionAssetRequest = { quest_id: string | null; draft_id: string | null; filename: string | null; mime_type: string; bytes: number[] }
 
 /** tauri-specta globals **/
 

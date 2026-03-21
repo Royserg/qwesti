@@ -10,13 +10,13 @@ use uuid::Uuid;
 use crate::models::QuestDescriptionAssetRow;
 use crate::utils::{
     collect_description_asset_ids, collect_relative_files, delete_asset_file, draft_relative_path,
-    ensure_image_mime, ensure_single_owner, extension_from_relative_path, move_asset_file,
+    ensure_single_owner, extension_from_relative_path, move_asset_file, resolve_asset_extension,
     prune_empty_parent_dirs, quest_relative_path, resolve_asset_path, write_asset_bytes,
     AssetOwner, STALE_DRAFT_TTL_HOURS,
 };
 
 #[derive(Deserialize, Debug, Clone, PartialEq, Eq, Type)]
-pub struct UploadDescriptionImageRequest {
+pub struct UploadDescriptionAssetRequest {
     pub quest_id: Option<String>,
     pub draft_id: Option<String>,
     pub filename: Option<String>,
@@ -24,21 +24,23 @@ pub struct UploadDescriptionImageRequest {
     pub bytes: Vec<u8>,
 }
 
-pub async fn upload_description_image(
+pub type UploadDescriptionImageRequest = UploadDescriptionAssetRequest;
+
+pub async fn upload_description_asset(
     db_pool: &Pool<Sqlite>,
     assets_dir: &Path,
-    req: UploadDescriptionImageRequest,
+    req: UploadDescriptionAssetRequest,
 ) -> anyhow::Result<QuestDescriptionAssetRow> {
     if req.bytes.is_empty() {
-        bail!("image payload is empty");
+        bail!("asset payload is empty");
     }
 
-    let extension = ensure_image_mime(&req.mime_type)?;
+    let extension = resolve_asset_extension(req.filename.as_deref(), &req.mime_type);
     let asset_id = Uuid::now_v7().to_string();
     let owner = ensure_single_owner(req.quest_id.as_deref(), req.draft_id.as_deref())?;
     let relative_path = match owner {
-        AssetOwner::Quest(quest_id) => quest_relative_path(quest_id, &asset_id, extension),
-        AssetOwner::Draft(draft_id) => draft_relative_path(draft_id, &asset_id, extension),
+        AssetOwner::Quest(quest_id) => quest_relative_path(quest_id, &asset_id, &extension),
+        AssetOwner::Draft(draft_id) => draft_relative_path(draft_id, &asset_id, &extension),
     };
 
     write_asset_bytes(assets_dir, &relative_path, &req.bytes)?;
@@ -83,6 +85,14 @@ pub async fn upload_description_image(
             Err(err.into())
         }
     }
+}
+
+pub async fn upload_description_image(
+    db_pool: &Pool<Sqlite>,
+    assets_dir: &Path,
+    req: UploadDescriptionImageRequest,
+) -> anyhow::Result<QuestDescriptionAssetRow> {
+    upload_description_asset(db_pool, assets_dir, req).await
 }
 
 pub async fn get_quest_description_assets(
