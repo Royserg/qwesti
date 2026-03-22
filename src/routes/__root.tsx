@@ -9,7 +9,13 @@ import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
 import logoUrl from '../../src-tauri/icons/icon.png';
 import { LAST_VISITED_PAGE_KEY } from '~/lib/localstorage';
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: true,
+    },
+  },
+});
 const UPDATE_CHECK_TIMEOUT_MS = 15_000;
 const UPDATE_INSTALL_TIMEOUT_MS = 5 * 60_000;
 

@@ -1,6 +1,7 @@
 /* @refresh reload */
 import { createRouter, RouterProvider } from '@tanstack/solid-router';
 import { render } from "solid-js/web";
+import { setupQueryFocusSync } from "./lib/query-focus";
 import { LAST_VISITED_PAGE_KEY } from "./lib/localstorage";
 import { routeTree } from './routeTree.gen';
 
@@ -11,6 +12,8 @@ const wrapper = document.getElementById("app");
 if (!wrapper) {
   throw new Error("Wrapper div not found");
 }
+
+setupQueryFocusSync();
 
 
 // Create a new router instance
