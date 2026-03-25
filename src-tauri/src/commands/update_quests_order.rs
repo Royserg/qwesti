@@ -21,15 +21,15 @@ pub async fn update_quests_order(
     for (idx, id) in props.ids.into_iter().enumerate() {
         let index: i64 = idx.try_into().unwrap();
 
-        sqlx::query!(
+        sqlx::query(
             r#"
             UPDATE quests
-            SET order_index = $1
-            WHERE id = $2;
+            SET order_index = ?1
+            WHERE id = ?2;
         "#,
-            index,
-            id,
         )
+        .bind(index)
+        .bind(id)
         .execute(tx.deref_mut())
         .await
         .expect("failed to update");

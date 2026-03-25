@@ -9,18 +9,34 @@ import {
   onMount,
   type Component,
 } from "solid-js";
+import { discardDescriptionDraft, uploadDescriptionAsset } from "~/actions";
+import { QuestDescriptionEditor } from "~/components/quest-description-editor";
 import { Button } from "~/components/ui/button";
+import type { QuestDescriptionAsset } from "~/bindings";
+import { createDescriptionDraftId } from "~/lib/quest-description";
+
+export interface AddQuestDialogSubmitPayload {
+  title: string;
+  description?: string;
+  descriptionDraftId?: string;
+}
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (title: string) => Promise<void>;
+  onSubmit: (data: AddQuestDialogSubmitPayload) => Promise<void>;
 }
 
 interface AddTaskBodyProps {
   open: boolean;
   title: string;
+  description: string;
+  showDescription: boolean;
+  descriptionAssets: QuestDescriptionAsset[];
   onTitleChange: (title: string) => void;
+  onDescriptionChange: (description: string) => void;
+  onShowDescription: () => void;
+  onUploadDescriptionFile: (file: File) => Promise<QuestDescriptionAsset | null>;
   onClose: () => void;
   onSubmit: (event: Event) => Promise<void>;
   registerInput: (element: HTMLInputElement) => void;
@@ -85,6 +101,26 @@ const AddTaskBody: Component<AddTaskBodyProps> = (props) => {
         onInput={(event) => props.onTitleChange(event.currentTarget.value)}
       />
 
+      <Show
+        when={props.showDescription}
+        fallback={
+          <div class="flex justify-start">
+            <Button type="button" variant="ghost" size="sm" onClick={props.onShowDescription}>
+              + description
+            </Button>
+          </div>
+        }
+      >
+        <QuestDescriptionEditor
+          compact
+          value={props.description}
+          assets={props.descriptionAssets}
+          onChange={props.onDescriptionChange}
+          onUploadFile={props.onUploadDescriptionFile}
+          placeholder="write a task description..."
+        />
+      </Show>
+
       <div class="flex justify-end">
         <Button type="submit" class="min-w-[160px]">
           add task
@@ -99,10 +135,32 @@ export const AddQuestDialog: Component<Props> = (props) => {
   const titleId = createUniqueId();
   const descriptionId = createUniqueId();
   const [title, setTitle] = createSignal("");
+  const [description, setDescription] = createSignal("");
+  const [showDescription, setShowDescription] = createSignal(false);
+  const [draftId, setDraftId] = createSignal<string | null>(null);
+  const [descriptionAssets, setDescriptionAssets] = createSignal<QuestDescriptionAsset[]>([]);
   const [isMobile, setIsMobile] = createSignal(false);
 
-  const close = () => {
+  const resetDraftState = () => {
+    setTitle("");
+    setDescription("");
+    setShowDescription(false);
+    setDraftId(null);
+    setDescriptionAssets([]);
+  };
+
+  const close = async () => {
+    const currentDraftId = draftId();
+    resetDraftState();
     props.onOpenChange(false);
+
+    if (currentDraftId) {
+      try {
+        await discardDescriptionDraft({ draftId: currentDraftId });
+      } catch (error) {
+        console.error(error);
+      }
+    }
   };
 
   const focusInput = () => {
@@ -154,8 +212,12 @@ export const AddQuestDialog: Component<Props> = (props) => {
     }
 
     try {
-      await props.onSubmit(nextTitle);
-      setTitle("");
+      await props.onSubmit({
+        title: nextTitle,
+        description: showDescription() ? description() : undefined,
+        descriptionDraftId: draftId() ?? undefined,
+      });
+      resetDraftState();
       props.onOpenChange(false);
     } catch {
       // Keep the drawer/dialog open and preserve the draft title on failure.
@@ -203,6 +265,35 @@ export const AddQuestDialog: Component<Props> = (props) => {
     });
   });
 
+  const handleUploadDescriptionFile = async (file: File) => {
+    const activeDraftId = draftId() ?? createDescriptionDraftId();
+
+    if (!draftId()) {
+      setDraftId(activeDraftId);
+    }
+
+    try {
+      const asset = await uploadDescriptionAsset({
+        draftId: activeDraftId,
+        file,
+      });
+      setDescriptionAssets((current) => [...current, asset]);
+      return asset;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      props.onOpenChange(true);
+      return;
+    }
+
+    void close();
+  };
+
   return (
     <>
       <Show when={!isMobile() && props.open}>
@@ -220,8 +311,16 @@ export const AddQuestDialog: Component<Props> = (props) => {
             <AddTaskBody
               open={props.open}
               title={title()}
+              description={description()}
+              showDescription={showDescription()}
+              descriptionAssets={descriptionAssets()}
               onTitleChange={setTitle}
-              onClose={close}
+              onDescriptionChange={setDescription}
+              onShowDescription={() => setShowDescription(true)}
+              onUploadDescriptionFile={handleUploadDescriptionFile}
+              onClose={() => {
+                void close();
+              }}
               onSubmit={handleSubmit}
               registerInput={(element) => {
                 inputRef = element;
@@ -240,7 +339,7 @@ export const AddQuestDialog: Component<Props> = (props) => {
       <Show when={isMobile()}>
         <Drawer
           open={props.open}
-          onOpenChange={props.onOpenChange}
+          onOpenChange={handleOpenChange}
           side="bottom"
           snapPoints={[0, 1]}
           defaultSnapPoint={1}
@@ -256,8 +355,16 @@ export const AddQuestDialog: Component<Props> = (props) => {
             <AddTaskBody
               open={props.open}
               title={title()}
+              description={description()}
+              showDescription={showDescription()}
+              descriptionAssets={descriptionAssets()}
               onTitleChange={setTitle}
-              onClose={close}
+              onDescriptionChange={setDescription}
+              onShowDescription={() => setShowDescription(true)}
+              onUploadDescriptionFile={handleUploadDescriptionFile}
+              onClose={() => {
+                void close();
+              }}
               onSubmit={handleSubmit}
               registerInput={(element) => {
                 inputRef = element;

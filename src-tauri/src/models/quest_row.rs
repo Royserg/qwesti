@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct QuestRow {
     pub id: String,
     pub title: String,
+    pub description: Option<String>,
     pub completed: i64,
     pub created_at: String,
     pub completed_at: Option<String>,

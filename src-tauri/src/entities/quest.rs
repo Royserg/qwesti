@@ -1,3 +1,4 @@
+use crate::entities::QuestDescriptionAsset;
 use crate::models::QuestRow;
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -7,12 +8,14 @@ use specta::Type;
 pub struct Quest {
     pub id: String,
     pub title: String,
+    pub description: Option<String>,
     pub completed: bool,
     pub created_at: String,
     pub completed_at: Option<String>,
     pub order_index: i64,
     pub parent_id: Option<String>,
     pub has_children: Option<bool>,
+    pub description_assets: Option<Vec<QuestDescriptionAsset>>,
     pub children: Option<Vec<Quest>>,
 }
 
@@ -29,6 +32,7 @@ impl From<QuestRow> for Quest {
         Quest {
             id: qr.id,
             title: qr.title,
+            description: qr.description,
             completed: i64_to_bool(qr.completed),
             created_at: qr.created_at,
             completed_at: qr.completed_at,
@@ -36,6 +40,7 @@ impl From<QuestRow> for Quest {
             parent_id: qr.parent_id,
             // Override on demand, defaults to null
             has_children: None,
+            description_assets: None,
             children: None,
         }
     }

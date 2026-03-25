@@ -86,7 +86,7 @@ export const QuestCard: Component<Props> = (props) => {
         class="drag-handle flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-2.5 text-left"
       >
         <span
-          class={cn("pixel-title", {
+          class={cn("pixel-title block w-full truncate", {
             "pixel-title--done": props.quest.completed,
           })}
           title={props.quest.title}

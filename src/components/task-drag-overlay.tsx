@@ -23,7 +23,7 @@ export const TaskDragOverlay: Component<Props> = (props) => {
       >
         <div class="flex min-w-0 flex-1 items-center px-4 py-2.5">
           <span
-            class={cn("pixel-title", {
+            class={cn("pixel-title block w-full truncate", {
               "pixel-title--done": props.completed,
             })}
             title={props.title}

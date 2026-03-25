@@ -13,6 +13,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Q1".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -24,6 +25,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
             data: repo::UpdateQuestData {
                 title: None,
                 completed: Some(true),
+                ..Default::default()
             },
         },
     )
@@ -35,6 +37,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Q2".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -45,6 +48,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Q3".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -54,6 +58,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Q3-a".to_string(),
             parent_id: Some(quest_3.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -65,6 +70,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
             data: repo::UpdateQuestData {
                 title: None,
                 completed: Some(true),
+                ..Default::default()
             },
         },
     )
@@ -75,6 +81,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Q3-b".to_string(),
             parent_id: Some(quest_3.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -85,6 +92,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
             data: repo::UpdateQuestData {
                 title: None,
                 completed: Some(true),
+                ..Default::default()
             },
         },
     )
@@ -97,6 +105,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Q4".to_string(),
             parent_id: None,
+            ..Default::default()
         },
     )
     .await?;
@@ -107,6 +116,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Q4-a".to_string(),
             parent_id: Some(quest_4.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -117,6 +127,7 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
         repo::AddQuestRequest {
             title: "Q4-b".to_string(),
             parent_id: Some(quest_4.id.clone()),
+            ..Default::default()
         },
     )
     .await?;
@@ -128,17 +139,13 @@ async fn get_quests_for_today_with_filters() -> anyhow::Result<()> {
             data: repo::UpdateQuestData {
                 title: None,
                 completed: Some(true),
+                ..Default::default()
             },
         },
     )
     .await?;
 
-    let quests_in_db = sqlx::query_as!(
-        QuestRow,
-        r#"
-                SELECT * FROM quests 
-            "#,
-    )
+    let quests_in_db = sqlx::query_as::<_, QuestRow>("SELECT * FROM quests")
     .fetch_all(&pool)
     .await
     .expect("failed to get quests");

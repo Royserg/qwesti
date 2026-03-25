@@ -72,6 +72,7 @@ export const EditableText: Component<Props> = (props) => {
           }}
           ref={textDisplay}
           class={cn("w-full", props.class)}
+          title={props.value}
           tabIndex={props.focusable() ? 0 : -1}
           onKeyUp={handleKeyUp}
         >
